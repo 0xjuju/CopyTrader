@@ -78,7 +78,7 @@ class Explorer:
                     output[k] = self.decode_list_tuple(arg[k], target_field)
                 else:
                     output[k] = self.decode_list(arg[k])
-            elif isinstance(arg[k], (tuple)):
+            elif isinstance(arg[k], tuple):
                 target_field = [a['components'] for a in target_schema if 'name' in a and a['name'] == k][0]
                 output[k] = self.decode_tuple(arg[k], target_field)
             else:
