@@ -34,13 +34,13 @@ class Explorer:
         if self.chain == "bsc":  # Must set middleware to explore blocks on bsc using web3
             self.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-        self.ABI = self.base_contract_abi()
-
         self.METAMASK_ROUTER = "0x881d40237659c251811cec9c364ef91dc08d300c"
         self.ONEINCH_ROUTER = "0x11111112542d85b3ef69ae05771c2dccff4faa26"
         self.MEVBOT_ROUTER = "0x98c3d3183c4b8a650614ad179a1a98be0a8d6b8e"
         self.UNISWAP_ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
         self.UNISWAP_ROUTER2 = "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45"
+
+        self.ABI = self.base_contract_abi()
 
     @staticmethod
     def base_contract_abi():
@@ -48,7 +48,7 @@ class Explorer:
         return json.loads(ABI)
 
     def convert_from_hex(self, value):
-        if self.chain == "eth":
+        if self.chain == "eth" or self.chain == "ethereum":
             return self.web3.toInt(hexstr=value) // 1000000
         elif self.chain == "bsc":
             return self.web3.toInt(hexstr=value) // 1000000000000000000
@@ -158,10 +158,9 @@ class Explorer:
     def filter_account(self, address, start_block, end_block):
         return self.web3.eth.filter({"fromBlock": start_block, "toBlock": end_block, "address": address})
 
-    def filter_contract(self, *, contract, from_block, to_block):
-        contract = self.web3.toChecksumAddress(contract)
-        # event_filter = contract.events.myEvent.createFilter(fromBlock=from_block, toBLock=to_block,
-        #                                                     address=contract)
+    def filter_contract(self, *, contract_address, from_block, to_block):
+        contract = self.web3.toChecksumAddress(contract_address)
+
         event_filter = self.web3.eth.filter({
             "fromBlock": from_block,
             "toBlock": to_block,
@@ -189,6 +188,9 @@ class Explorer:
         token_contract_address = self.web3.toChecksumAddress(token_contract_address)
         contract = self.web3.eth.contract(token_contract_address, abi=self.ABI)
         return contract
+
+    def get_contract_abi(self, contract):
+        return self.web3.eth.contract(contract=contract).abi
 
     def get_balance_of_token(self, wallet_address: str, token_contract_address: str):
         wallet_address = self.web3.toChecksumAddress(wallet_address)
@@ -226,7 +228,7 @@ class Explorer:
 
     def set_connection(self):
 
-        if self.chain == "eth":
+        if self.chain == "eth" or self.chain == "ethereum":
             RPC_URL = config("INFURA_RPC_URL")
             connection = Web3(Web3.HTTPProvider(RPC_URL))
 

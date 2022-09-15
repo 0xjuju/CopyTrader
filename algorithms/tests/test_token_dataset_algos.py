@@ -25,4 +25,3 @@ class TestCoinPicker(TestCase):
         self.assertEqual(result[-2][1], 0)
         # No 7th day should be 0
         self.assertEqual(result[-7][2], 0)
-
