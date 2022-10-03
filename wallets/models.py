@@ -21,7 +21,7 @@ class Token(models.Model):
     name = models.CharField(max_length=255, default="")
     address = models.CharField(max_length=255, default="")
     uniswap_contract = models.CharField(max_length=255, default="")
-    uniswap_abi = models.CharField(max_length=255, default="")
+    uniswap_abi = models.TextField(default="")
     chain = models.CharField(max_length=255, default="")
 
     def __str__(self):
@@ -33,7 +33,7 @@ class Transaction(models.Model):
     token_in = models.CharField(max_length=255, default="")
     wallet = models.ForeignKey("Wallet", on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    percent = models.DecimalField(max_digits=6, decimal_places=2,default=0)
+    percent = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     timestamp = models.DateTimeField()
 
     def __str__(self):

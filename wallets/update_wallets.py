@@ -1,13 +1,15 @@
+from collections import defaultdict
 from datetime import datetime, timedelta
-from hexbytes import HexBytes
 import json
 import time
+
+import web3
 
 from algorithms.token_dataset_algos import percent_difference_from_dataset
 from blockchain_explorer.blockchain_explorer import Explorer
 from coingecko.coingecko_api import GeckoClient
 from etherscan.etherscan_api import Etherscan
-from wallets.models import Bot, PoolContract, Transaction, Wallet
+from wallets.models import Bot, Transaction, Wallet, PoolContract
 
 
 def updater(token):
@@ -43,7 +45,7 @@ def updater(token):
             )
 
     if price_breakouts:
-        for datapoint in price_breakouts:
+        for index, datapoint in enumerate(price_breakouts):
             duration = datapoint[0]
             timestamp = datapoint[1]
             percentage = datapoint[2]
@@ -64,46 +66,85 @@ def updater(token):
 
             from_block = int(etherscan.get_block_by_timestamp(int(before_breakout_timestamp.timestamp()))["result"])
             to_block = int(etherscan.get_block_by_timestamp(int(three_days_into_breakout_timestamp.timestamp()))["result"])
-            # delay to bypass rate limit
-            time.sleep(0.5)
-
-            blacklisted = Bot.objects.values_list("address", flat=True)
-
             transactions = blockchain.filter_contract(contract_address=token.uniswap_contract, from_block=from_block,
                                                       to_block=to_block)
 
-            for transaction in transactions.get_all_entries():
-                to_address = blockchain.convert_to_checksum_address(transaction["topics"][1])
+            # Exclude known bot wallets from processing
+            blacklisted = Bot.objects.values_list("address", flat=True)
 
-                if to_address not in blacklisted and to_address[0:12] != "0x0000000000":
-                    from_address = blockchain.convert_to_checksum_address(transaction["topics"][2])
+            buyers = defaultdict(list)
+            sellers = defaultdict(list)
 
-                    data = transaction["data"]
-                    topics = [i.hex() for i in transaction["topics"]]
-                    transaction_hash = transaction["transactionHash"].hex()
+            whitelisted_contracts = PoolContract.objects.values_list("address", flat=True)
+            all_entries = transactions.get_all_entries()
+            print(f"Number of transactions: {len(all_entries)}")
 
-                    decoded_log = blockchain.decode_log(data=data, topics=topics, abi=token.uniswap_abi)
+            for transaction in all_entries:
 
-                    if decoded_log[0] == "Swap":
-                        log_data = json.loads(decoded_log[1])
+                checked_topics = [blockchain.convert_to_checksum_address(i) for i in transaction["topics"]]
 
-                        amount0 = log_data["amount0"]
-                        if amount0 < 0:
-                            amount0 = amount0 / (10 ** 18)
-                            wallet, created = Wallet.objects.get_or_create(address=from_address)
-                            if created:
-                                wallet.save()
-                            wallet.token.add(token)
+                if checked_topics[1] in whitelisted_contracts and checked_topics[2] not in whitelisted_contracts and\
+                        blockchain.web3.eth.get_code(checked_topics[2]) == b'':
 
-                            transaction = Transaction.objects.create(
-                                transaction_hash=transaction_hash,
-                                token_in=token.name,
-                                wallet=wallet,
-                                amount=amount0,
-                                percent=percentage,
-                                timestamp=datetime.fromtimestamp(timestamp)
-                            )
-                            transaction.save()
+                    to_address = checked_topics[1]
+
+                    if to_address not in blacklisted and to_address[0:12] != "0x0000000000":
+                        from_address = checked_topics[2]
+
+                        data = transaction["data"]
+                        topics = [i.hex() for i in transaction["topics"]]
+
+                        decoded_log = blockchain.decode_log(data=data, topics=topics, abi=token.uniswap_abi)
+
+                        if decoded_log[0] == "Swap":
+                            log_data = json.loads(decoded_log[1])
+
+                            amount0 = log_data["amount0"]
+                            amount1 = log_data["amount1"]
+
+                            # amount0 as negative number represents main asset as sold
+
+                            if amount0 > 0:
+                                sellers[from_address].append((1, transaction, amount1))
+
+                            elif amount0 < 0:
+                                buyers[from_address].append((1, transaction, amount0))
+
+            #
+            filtered_transactions = list()
+            for buyer, values in buyers.items():
+                if sellers.get(buyer) is None:
+                    for value in values:
+                        filtered_transactions.append((buyer, value[1], value[2]))
+                else:
+                    for value in values:
+                        if value[0] < 5:
+                            filtered_transactions.append((buyer, value[1], value[2]))
+
+            for transaction_data in filtered_transactions:
+                address = transaction_data[0]
+                transaction = transaction_data[1]
+                amount = transaction_data[2] / (10 ** 18)
+
+                wallet, created = Wallet.objects.get_or_create(address=address)
+                if created:
+                    wallet.save()
+                wallet.token.add(token)
+                transaction_hash = transaction["transactionHash"].hex()
+
+                if not Transaction.objects.filter(transaction_hash=transaction_hash).exists():
+                    transaction = Transaction.objects.create(
+                        transaction_hash=transaction_hash,
+                        token_in=token.name,
+                        wallet=wallet,
+                        amount=amount,
+                        percent=percentage,
+                        timestamp=datetime.fromtimestamp(timestamp)
+                    )
+
+                    transaction.save()
+            print(f"Done batch {index+1}: {datetime.fromtimestamp(timestamp)}")
+        print("Finished")
 
 
 

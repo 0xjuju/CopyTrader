@@ -70,7 +70,7 @@ class Build:
                 token_in="0xB62132e35a6c13ee1EE0f84dC5d40bad8d815206",
                 wallet=Wallet.objects.get(address="0xa72782657dd132ceec83344488c5a25e2fb2a083"),
                 amount="5908.71",
-                timestamp=datetime(year=2022, month=9 , day=5, hour=7, minute=42)
+                timestamp=datetime(year=2022, month=9, day=5, hour=7, minute=42)
             )
         ]
 
