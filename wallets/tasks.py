@@ -11,7 +11,7 @@ from wallets.models import TargetWallet
 @shared_task()
 def check_balance():
     """
-    Check the balance of a wallet and send text message if it changes
+    Check the balance of a wallet and send sms if the balance changes
     :return: None
     """
 
