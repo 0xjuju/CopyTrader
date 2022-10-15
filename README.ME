@@ -1,0 +1,46 @@
+## Description
+This program analyzes the blockchain, Twitter, Coingecko, and possible other sources to score the
+likeliness that a token will increase in price within ~7 days by at least 20%.
+
+### Steps
+
+1. Identify a token that increased in price by at least 20% in the last 100 days (price breakout).
+2. Use coingecko  to lookup historical price data on that token. Record date, price, and volume.
+3. Use algorithm to find dates before price increased by at least 20%. 24 hours after date, 3 days after date,
+and 7 days after date. These three timeframes from a given date should catch all price increases
+in a given month, even with extreme volatility in-between.
+4. Create a start-block and end-block range based on the pre-breakout date and 7 days before.
+5. Use the tokens' native blockchain explorer to filter through transactions of Decentralized Exchanges with
+swap pools of the tokens.
+6. Filter for transactions that buy the token during this period, and further filter out arbitrage bots, 
+exchange accounts, and other accounts that are not humans directly interacting with contract with UI.
+7. Store wallets and transactions in database and update with new tokens overtime
+8. Rank wallets by number of transactions and partition x% of top wallets.
+9. Listen to each top wallets and save each token they bought to database.
+10. Score each token by the following criteria
+- Create list of 
+- Number of transactions by all wallets: 80% weight
+- Number of top wallets that hold token: 40% weight
+- Major Exchange listing: 80% weight
+- Influencer mention from Twitter last 7 days: 10% weight (add 5% each time influencer predicted pre-breakout for any
+token in the past).
+- Token mentioned in blogs like "Binance Spotlight" etc.: 40% weight.
+- Token present in Coingecko trending: 5%.
+- Positive Twitter sentiment + number of mentions last 7 days. Variable weight TBD.
+11. Send email or SMS with information on tokens with the highest scores.
+
+### Issues
+Need to
+1. Solidify optimal timeframes for start-end dates for price-breakout.
+2. Effectively remove noisy transactions from non-human transactions etc.
+3. Determine effective weight distributions for scoring token. Current values are arbitrary.
+4. Figure out number for ranked wallets. x%, or all wallets with x transactions or more?
+5. Find efficient way to include all DEX transactions from all routers. Currently, we have a set of whitelisted pools,
+from which we filter transactions in order to exclude autonomous contracts. This method will skip unknown routers from
+various protocols that have humans making the transaction.
+
+
+
+
+
+

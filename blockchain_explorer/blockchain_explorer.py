@@ -1,7 +1,6 @@
 
-# import asyncio
+import asyncio
 from functools import lru_cache
-import json
 import sys
 import traceback
 from decimal import Decimal
@@ -13,9 +12,7 @@ from eth_utils import event_abi_to_log_topic, to_hex
 from hexbytes import HexBytes
 from web3 import Web3
 from web3.auto import w3
-from web3._utils.abi import exclude_indexed_event_inputs, get_abi_input_names, get_indexed_event_inputs, normalize_event_input_types
 from web3._utils.events import get_event_data
-from web3.exceptions import TransactionNotFound
 from web3.middleware import geth_poa_middleware
 
 
@@ -34,37 +31,42 @@ class Explorer:
         if self.chain == "bsc":  # Must set middleware to explore blocks on bsc using web3
             self.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-        self.METAMASK_ROUTER = "0x881d40237659c251811cec9c364ef91dc08d300c"
-        self.ONEINCH_ROUTER = "0x11111112542d85b3ef69ae05771c2dccff4faa26"
-        self.MEVBOT_ROUTER = "0x98c3d3183c4b8a650614ad179a1a98be0a8d6b8e"
-        self.UNISWAP_ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
-        self.UNISWAP_ROUTER2 = "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45"
-
-        self.ABI = self.base_contract_abi()
-
-    @staticmethod
-    def base_contract_abi():
-        ABI = '[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"guy","type":"address"},{"name":"wad","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"src","type":"address"},{"name":"dst","type":"address"},{"name":"wad","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"wad","type":"uint256"}],"name":"withdraw","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"dst","type":"address"},{"name":"wad","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"deposit","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":true,"name":"guy","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":true,"name":"dst","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"dst","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Deposit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Withdrawal","type":"event"}]'
-        return json.loads(ABI)
-
-    def convert_from_hex(self, value):
+    def convert_from_hex(self, value: hex) -> int:
+        """
+        :param value: encoded hex values from transactiond ata
+        :return: Inter representation of hex value
+        """
         if self.chain == "eth" or self.chain == "ethereum":
             return self.web3.toInt(hexstr=value) // 1000000
         elif self.chain == "bsc":
             return self.web3.toInt(hexstr=value) // 1000000000000000000
 
-    def convert_to_checksum_address(self, address):
+    def convert_to_checksum_address(self, address: hex) -> str:
+        """
+        Convert address to unique checksum counterpart
+        :param address: wallet or contract address
+        :return:
+        """
         address = address.hex()
         return self.web3.toChecksumAddress('0x' + address[-40:])
 
     @staticmethod
-    def convert_balance_to_eth(*, balance, decimals: int) -> Decimal:
+    def convert_balance(*, balance, decimals: int) -> float:
+        """
+        Convert long-form integer from transaction to Decimal
+        :param balance: wallet balance
+        :param decimals: number of decimals to use for balance
+        :return: decimal representation of balance
+        """
+
         balance = Decimal(balance)
-        return Decimal(balance / (10 ** decimals))
+        return balance / (10 ** decimals)
 
     def convert_to_hex(self, arg, target_schema):
         """
-        utility function to convert byte codes into human readable and json serializable data structures
+        :param arg:
+        :param target_schema:
+        :return:
         """
 
         output = dict()
@@ -85,8 +87,25 @@ class Explorer:
                 output[k] = arg[k]
         return output
 
+    def custom_filter(self, **kwargs):
+        """
+        :param kwargs: filter arguments for web3 event filter [from_block, to_block, address...]
+        :return: Event filter based on keyword arguments
+        """
+        excepted_chains = ["eth", "ethereum", "bsc"]
+        if self.chain in excepted_chains:
+            event_filter = self.web3.eth.filter(kwargs)
+            return event_filter
+        else:
+            raise ValueError("Chain not supported for newFilter lookup")
+
     @staticmethod
-    def decode_list(l):
+    def decode_list(l: list[(bytes, bytearray)]) -> list[hex]:
+        """
+        Decode list of bytes / bytesarray in hex
+        :param l: list of tuples with two values (byte, bytearray)
+        :return: list of hex values
+        """
         output = l
         for i in range(len(l)):
             if isinstance(l[i], (bytes, bytearray)):
@@ -96,12 +115,24 @@ class Explorer:
         return output
 
     def decode_list_tuple(self, l, target_field):
+        """
+        :param l:
+        :param target_field:
+        :return:
+        """
         output = l
         for i in range(len(l)):
             output[i] = self.decode_tuple(l[i], target_field)
         return output
 
-    def decode_log(self, data, topics, abi):
+    def decode_log(self, data: list[hex], topics: list[hex], abi: str):
+        """
+
+        :param data: Encoded data containing specific transcaction information like swap amounts, values, items swapped
+        :param topics: EOAs and contracts associated with transaction
+        :param abi: Functions of contract
+        :return: Type of transcation event and  Transaction metadata
+        """
         if abi is not None:
             try:
                 topic2abi = self._get_topic2abi(abi)
@@ -138,6 +169,7 @@ class Explorer:
                 target_schema = [a['inputs'] for a in abi if 'name' in a and a['name'] == func_obj.fn_name][0]
                 decoded_func_params = self.convert_to_hex(func_params, target_schema)
                 return func_obj.fn_name, json.dumps(decoded_func_params), json.dumps(target_schema)
+
             except:
                 e = sys.exc_info()[0]
                 return 'decode error', repr(e), None
@@ -155,20 +187,75 @@ class Explorer:
                 output[target_field[i]['name']] = t[i]
         return output
 
+    @staticmethod
+    def event_listener(func, **kwargs):
+
+        loop = asyncio.get_event_loop()
+        try:
+            loop.run_until_complete(
+                asyncio.gather(
+                    func(**kwargs)
+                )
+            )
+
+        finally:
+            loop.close()
+
+    def handle_event(self, **kwargs):
+        print(self.web3.toJSON(kwargs.get("event")))
+
+    async def loop_logs(self, event_filter, poll_interval):
+        while True:
+            for event in event_filter.get_all_entries():
+                self.handle_event(event=event)
+
+            await asyncio.sleep(poll_interval)
+
+    async def check_balance(self, wallet_address, contract, abi, poll_interval, old_balance, handle):
+        while True:
+            balance = self.get_balance_of_token(wallet_address, contract, abi)
+            if balance != old_balance:
+                print("NOT EQUAL")
+                handle()
+                break
+            print(balance, old_balance)
+            await asyncio.sleep(poll_interval)
+
     def filter_account(self, address, start_block, end_block):
         return self.web3.eth.filter({"fromBlock": start_block, "toBlock": end_block, "address": address})
 
     def filter_contract(self, *, contract_address, from_block, to_block):
-        contract = self.web3.toChecksumAddress(contract_address)
+        contract_address = self.web3.toChecksumAddress(contract_address)
 
-        event_filter = self.web3.eth.filter({
-            "fromBlock": from_block,
-            "toBlock": to_block,
-            "address": contract,
-        })
-        return event_filter
+        # BSC Scan is rate-limited 5000 txs for block-range per query
+        if self.chain == "bsc" and abs(to_block - from_block) > 5000:
+            event_filter_list = list()
+            rate_limit = 5000
 
-    def get_address_from_block(self, block_number, address):
+            # Create list of paginated blocks incremented by the rate limit
+            pages = self.paginate(from_block, to_block, increment=rate_limit)
+            for index, page in enumerate(pages):
+                event_filter = self.web3.eth.filter({
+                    "fromBlock": page[0],
+                    "toBlock": page[1],
+                    "address": contract_address,
+                })
+
+                entries = event_filter.get_all_entries()
+                for entry in entries:
+                    event_filter_list.append(entry)
+
+            return event_filter_list
+
+        else:
+            event_filter = self.web3.eth.filter({
+                "fromBlock": from_block,
+                "toBlock": to_block,
+                "address": contract_address,
+            })
+            return event_filter.get_all_entries()
+
+    def get_address_from_block(self, block_number):
         block = self.get_block(block_number)
         return block
 
@@ -184,26 +271,26 @@ class Explorer:
         contract = w3.eth.contract(address=self.web3.toChecksumAddress(address), abi=abi)
         return contract, abi
 
-    def get_contract(self, token_contract_address):
-        token_contract_address = self.web3.toChecksumAddress(token_contract_address)
-        contract = self.web3.eth.contract(token_contract_address, abi=self.ABI)
+    def get_contract(self, token_contract_address, abi):
+        # token_contract_address = self.web3.toChecksumAddress(token_contract_address)
+        contract = self.web3.eth.contract(token_contract_address, abi=abi)
         return contract
 
     def get_contract_abi(self, contract):
         return self.web3.eth.contract(contract=contract).abi
 
-    def get_balance_of_token(self, wallet_address: str, token_contract_address: str):
+    def get_balance_of_token(self, wallet_address, token_contract_address, abi):
         wallet_address = self.web3.toChecksumAddress(wallet_address)
-        contract = self.get_contract(token_contract_address)
-
-        raw_balance = contract.functions.balanceOf(wallet_address).call()
-
-        value = self.web3.fromWei(raw_balance, "ether")
-
-        return value
+        contract = self.get_contract(token_contract_address, abi)
+        balance = contract.functions.balanceOf(wallet_address).call()
+        return balance / (10 ** 18)
 
     def get_block(self, block_number):
         return self.web3.eth.get_block(block_number)
+
+    def get_logs(self, **kwargs):
+        logs = self.web3.eth.get_logs(kwargs)
+        return logs
 
     @lru_cache(maxsize=None)
     def _get_hex_topic(self, t):
@@ -226,40 +313,25 @@ class Explorer:
     def get_transaction_receipt(self, transaction_hash):
         return self.web3.eth.get_transaction_receipt(transaction_hash)
 
+    @staticmethod
+    def paginate(start, stop, increment: int):
+        ranges = list()
+        while start < stop:
+            ranges.append(
+                (start, start + increment)
+            )
+            start += increment
+        return ranges
+
     def set_connection(self):
-
-        if self.chain == "eth" or self.chain == "ethereum":
-            RPC_URL = config("INFURA_RPC_URL")
-            connection = Web3(Web3.HTTPProvider(RPC_URL))
-
-        elif self.chain == "bsc":
-            # RPC_URL = "wss://bsc-ws-node.nariox.org:443"
-            RPC_URL = "https://bsc-dataseed.binance.org/"
-
-            connection = Web3(Web3.HTTPProvider(
-                RPC_URL,
-            ))
-
-        else:
-            raise ValueError("Chain must be eth or bsc")
-
+        map_rpc = {
+            "eth": config("INFURA_RPC_URL"),
+            "ethereum": config("INFURA_RPC_URL"),
+            "bsc": "https://bsc-dataseed.binance.org/",
+            "polygon": "https://polygon-rpc.com/",
+        }
+        connection = Web3(Web3.HTTPProvider(map_rpc.get(self.chain)))
         return connection
-
-    def transaction_data(self, transaction_hash):
-        receipt = self.get_transaction_receipt(transaction_hash)
-        if receipt:
-            # receipt = receipt["logs"][0]
-            # from_address = self.convert_to_checksum_address(receipt["topics"][1])
-            # to_address = self.convert_to_checksum_address(receipt["topics"][2])
-            # value = self.convert_from_hex(receipt["data"])
-            # print(value)
-            # token_address = receipt["address"]
-            # block = receipt["blockNumber"]
-            # timestamp = datetime.fromtimestamp(self.get_block(block)["timestamp"])
-
-            return receipt
-        else:
-            return None
 
 
 

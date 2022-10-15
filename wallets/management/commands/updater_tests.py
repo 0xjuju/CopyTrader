@@ -1,6 +1,5 @@
 from django.core.management.base import BaseCommand
 from wallets.models import Token, Wallet
-from wallets.update_wallets import updater
 
 
 class Command(BaseCommand):

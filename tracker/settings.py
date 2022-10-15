@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 import sys
+import time
 
 from pathlib import Path
 
@@ -20,11 +21,22 @@ from decouple import config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
+# Celery settings
+CELERY_BROKER_URL = "redis://localhost:6379"
+CELERY_RESULT_BACKEND = "redis://localhost:6379"
+
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+# schedule, created = IntervalSchedule
+
+CELERY_BEAT_SCHEDULE = {
+  'check_token_balance': {
+    'task': 'wallets.tasks.check_balance',
+    'schedule': 15,
+    }
+}
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-w_-6thl#&t#6c_wtmi$v(3utiwy335zk+5dl(ed-=3(pbc^=w$'
+SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -42,6 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'wallets',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [

@@ -20,6 +20,11 @@ class BotAdmin(admin.ModelAdmin):
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
+    search_fields = ("address", )
+
+
+@admin.register(TargetWallet)
+class TargetWalletAdmin(admin.ModelAdmin):
     pass
 
 
