@@ -2,23 +2,6 @@
 # import asyncio
 import asyncio
 from datetime import (datetime, )
-from functools import lru_cache
-import json
-import sys
-import traceback
-
-import web3.eth
-import web3
-from web3.auto import w3
-from web3._utils.events import get_event_data
-from web3.contract import Contract
-from web3._utils.events import get_event_data
-from web3._utils.abi import exclude_indexed_event_inputs, get_abi_input_names, get_indexed_event_inputs, normalize_event_input_types
-from web3.exceptions import MismatchedABI, LogTopicError
-from web3.types import ABIEvent
-from eth_utils import event_abi_to_log_topic, to_hex
-from hexbytes import HexBytes
-
 
 from blockchain_explorer.blockchain_explorer import Explorer
 from django.test import TestCase

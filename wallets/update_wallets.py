@@ -5,9 +5,8 @@ import time
 
 from algorithms.token_dataset_algos import percent_difference_from_dataset
 from blockchain_explorer.blockchain_explorer import Explorer
-from bscscan.bscscan_api import BSCScan
+from blockchain_explorer.blockscsan import Blockscan
 from coingecko.coingecko_api import GeckoClient
-from etherscan.etherscan_api import Etherscan
 from wallets.models import Bot, Transaction, Wallet, PoolContract
 
 
@@ -15,6 +14,14 @@ class Updater:
 
     @staticmethod
     def create_database_entry(filtered_transactions, token, percentage, timestamp, index):
+        """
+        :param filtered_transactions:
+        :param token:
+        :param percentage:
+        :param timestamp:
+        :param index:
+        :return:
+        """
         all_transactions = Transaction.objects.all()
         for transaction_data in filtered_transactions:
             address = transaction_data[0]
@@ -159,14 +166,10 @@ class Updater:
         return buyers, sellers
 
     def update(self, token):
+        # Blockchain service explorer
+        explorer = Blockscan(token.chain)
 
-        if token.chain == "ethereum":
-            explorer = Etherscan()
-        elif token.chain == "bsc":
-            explorer = BSCScan()
-        else:
-            raise ValueError("No Selected Explorer for token chain")
-
+        # web3.py
         blockchain = Explorer(token.chain)
 
         timestamps, prices = self.get_prices_data(token.address, chain=token.chain)

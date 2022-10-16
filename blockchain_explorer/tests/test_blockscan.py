@@ -3,12 +3,21 @@ import time
 
 from decouple import config
 from django.test import TestCase
-from etherscan.etherscan_api import Etherscan
+from blockchain_explorer.blockscsan import Blockscan
 
 
-class TestEtherScanApi(TestCase):
+class TestBlockscan(TestCase):
     def setUp(self):
-        self.test = Etherscan()
+        self.test = Blockscan(chain="ethereum")
+
+    def test_ping(self):
+        chains = ["ethereum", "bsc", "polygon"]
+
+        for chain in chains:
+            ex = Blockscan(chain)
+            balance = ex.get_eth_balance(config("MY_WALLET_ADDRESS"))
+            self.assertEqual(balance["status"], "1")
+            self.assertEqual(balance["message"], "OK")
 
     def test_convert_balance_of_eth(self):
         t1 = self.test.convert_balance_to_eth(balance=Decimal(123456789), decimals=18)

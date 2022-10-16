@@ -5,10 +5,24 @@ from decouple import config
 import requests
 
 
-class Etherscan:
-    def __init__(self):
+class Blockscan:
+    def __init__(self, chain):
         self.API_KEY = config("ETHERSCAN_API_KEY")
-        self.BASE_URL = "https://api.etherscan.io/api"
+
+        self.BASE_URL, self.API_KEY = self.chain_map(chain)
+
+    @staticmethod
+    def chain_map(chain):
+        """
+        :param chain: blockchain standard
+        :return: (API URL of chain, API KEY)
+        """
+        chain_data = {
+            "ethereum": ("https://api.etherscan.io/api", config("ETHERSCAN_API_KEY"), ),
+            "bsc": ("https://api.bscscan.com/api", config("BSC_API_KEY"),),
+            "polygon": ("https://api.polygonscan.com/api", config("POLYGONSCAN_API_KEY"), ),
+        }
+        return chain_data[chain][0], chain_data[chain][1]
 
     @staticmethod
     def convert_balance_to_eth(*, balance, decimals: int) -> Decimal:
