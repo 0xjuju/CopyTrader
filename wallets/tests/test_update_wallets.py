@@ -10,13 +10,12 @@ class TestUpdateWallets(TestCase):
         Build().swap_pools()
         Build().tokens()
         Build().bots()
-        self.nexo = Token.objects.get(name="nexo")
-        self.ethernity = Token.objects.get(name="ethernity")
-        self.xwg = Token.objects.get(name="xwg")
 
     def test_updater(self):
-        Updater().update(self.xwg)
+        token = Token.objects.filter(chain="ethereum").filter(pair="eth").get(name="agix")
+        Updater().update(token)
         wallets = Wallet.objects.all()
+
         print(f"Total Wallets: {wallets.count()}")
 
         for wallet in wallets:

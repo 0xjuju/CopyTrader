@@ -1,5 +1,6 @@
 
 import asyncio
+import time
 from functools import lru_cache
 import sys
 import traceback
@@ -12,6 +13,7 @@ from eth_utils import event_abi_to_log_topic, to_hex
 from hexbytes import HexBytes
 from web3 import Web3
 from web3.auto import w3
+from web3.exceptions import BadFunctionCallOutput
 from web3._utils.events import get_event_data
 from web3.middleware import geth_poa_middleware
 
@@ -279,10 +281,28 @@ class Explorer:
     def get_contract_abi(self, contract):
         return self.web3.eth.contract(contract=contract).abi
 
-    def get_balance_of_token(self, wallet_address, token_contract_address, abi):
+    def get_balance_of_token(self, wallet_address: str, token_contract_address: str, abi: str) -> float:
+        """
+        :param wallet_address: EOA address
+        :param token_contract_address: Contract address
+        :param abi: ABI of contract
+        :return: balance of EOA
+        """
+
         wallet_address = self.web3.toChecksumAddress(wallet_address)
         contract = self.get_contract(token_contract_address, abi)
-        balance = contract.functions.balanceOf(wallet_address).call()
+        while True:
+            try:
+                balance = contract.functions.balanceOf(wallet_address).call()
+
+            # catch occasional API error
+            except BadFunctionCallOutput:
+                time.sleep(20)
+                continue
+
+            else:
+                break
+
         return balance / (10 ** 18)
 
     def get_block(self, block_number):

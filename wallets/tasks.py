@@ -13,7 +13,7 @@ def end_task(task_name, message):
     service.send_sms(body=message)
 
     # Disable task once wallet is changes and SMS is sent
-    task = PeriodicTask.objects.get(task_name)
+    task = PeriodicTask.objects.get(name=task_name)
     task.enabled = False
     task.save()
 
