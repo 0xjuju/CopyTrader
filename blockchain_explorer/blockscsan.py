@@ -2,7 +2,7 @@
 from decimal import Decimal
 
 from decouple import config
-import requests
+from webstuff.web_functions import request_get_data
 
 
 class Blockscan:
@@ -29,10 +29,6 @@ class Blockscan:
         balance = Decimal(balance)
         return Decimal(balance / (10 ** decimals))
 
-    def request_get_data(self, **kwargs):
-        result = requests.get(url=self.BASE_URL, params=kwargs.get("params")).json()
-        return result
-
     def get_block_by_timestamp(self, timestamp):
         params = {
             "module": "block",
@@ -42,7 +38,7 @@ class Blockscan:
             "apiKey": self.API_KEY,
         }
 
-        return self.request_get_data(params=params)
+        return request_get_data(url=self.BASE_URL, params=params)
 
     '''
     Get ETH balance of a single address
@@ -61,7 +57,7 @@ class Blockscan:
             "address": address,
             "apikey": self.API_KEY,
         }
-        return self.request_get_data(params=params)
+        return request_get_data(url=self.BASE_URL, params=params)
 
     def get_eth_balance(self, address: str) -> dict:
         params = {
@@ -71,7 +67,7 @@ class Blockscan:
             "tag": "latest",
             "apikey": self.API_KEY,
         }
-        return self.request_get_data(params=params)
+        return request_get_data(url=self.BASE_URL, params=params)
 
     '''
     Get ETH balances for multiple wallets, up to 20 
@@ -95,7 +91,7 @@ class Blockscan:
             "apikey": self.API_KEY,
         }
 
-        return self.request_get_data(params=params)
+        return request_get_data(url=self.BASE_URL, params=params)
 
     '''
     transactions between blocks for a given wallet address.
@@ -129,7 +125,7 @@ class Blockscan:
             params["page"] = page_number
             params["offset"] = offset
 
-        return self.request_get_data(params=params)
+        return request_get_data(url=self.BASE_URL, params=params)
     def get_internal_transaction_list(self, *, address: str, start_block: int = None, end_block: int = None, sort="asc",
                                       page_number: int = None, offset: int = None) -> dict:
         params = {
@@ -143,7 +139,7 @@ class Blockscan:
             "offset": offset,
             "apikey": self.API_KEY,
         }
-        return self.request_get_data(params=params)
+        return request_get_data(url=self.BASE_URL, params=params)
 
     '''
 
@@ -171,7 +167,7 @@ class Blockscan:
         }
         if erc721:
             params["action"] = "tokennfttx"
-        return self.request_get_data(params=params)
+        return request_get_data(url=self.BASE_URL, params=params)
 
     def get_internal_transaction_by_hash(self, transaction_hash: str):
         params = {
@@ -180,7 +176,7 @@ class Blockscan:
             "txhas": transaction_hash,
             "apikey": self.API_KEY,
         }
-        return self.request_get_data(params=params)
+        return request_get_data(url=self.BASE_URL, params=params)
 
 
 
