@@ -12,14 +12,15 @@ class TestUpdateWallets(TestCase):
         Build().bots()
 
     def test_updater(self):
-        token = Token.objects.filter(chain="ethereum").filter(pair="eth").get(name="agix")
+        token = Token.objects.filter(chain="polygon").filter(pair="usdt").get(name="blok")
         Updater().update(token)
         wallets = Wallet.objects.all()
 
         print(f"Total Wallets: {wallets.count()}")
 
         for wallet in wallets:
-            print(wallet.address, f"Transactions: {wallet.transaction_set.count()}")
+            print(wallet.address, f"Transactions: {wallet.transaction_set.count()} >>>>"
+                                  f" {wallet.transaction_set.values_list('transaction_hash', flat=True)}")
 
 
 

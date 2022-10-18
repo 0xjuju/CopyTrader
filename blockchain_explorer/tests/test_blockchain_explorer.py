@@ -119,14 +119,17 @@ class TestBlockchainExplorer(TestCase):
         wallet_address = self.test_wallet
         # address = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
         address = "0x4C54Ff7F1c424Ff5487A32aaD0b48B19cBAf087F"
-        v = self.explore_eth.filter_contract(contract_address=address, from_block=19442105, to_block=19557208)
+        address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+        address = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d"
 
-        for each in v.get_all_entries():
-            address = each
+        # v = self.explore_eth.filter_contract(address=address, fromBLock=19442105, toBlock=19557208)
+        #
+        # for each in v:
+        #     address = each
+        #     print(each)
 
-        v = self.explore_bsc.filter_contract(contract_address=address, from_block=19442105, to_block=19442109)
-        for each in v.get_all_entries():
-            address = each
+        x = self.explore_bsc.filter_contract(address=address, fromBlock=19442105, toBlock=19442109)
+        print(x)
 
     def test_get_block(self):
         block = self.explore_eth.get_block(12411591)
@@ -140,10 +143,16 @@ class TestBlockchainExplorer(TestCase):
 
     def test_get_logs(self):
         # 0x96167d79e03A37d114FEDb14bD9DeCA2a49ea870
-        logs = self.explore_polygon.get_logs(fromBlock=31963063, toBlock=31963065,
-                                             address="0x229b1b6C23ff8953D663C4cBB519717e323a0a84")
+        # 0xa022AE9cfADefd62d70B510c27DC3D5DB67CA43b
+        # 0x229b1b6C23ff8953D663C4cBB519717e323a0a84
+        logs = self.explore_polygon.get_logs(max_chunk=3500, fromBlock=31138230, toBlock=31294249,
+                                             address="0xa022AE9cfADefd62d70B510c27DC3D5DB67CA43b")
         for l in logs:
-            print(l)
+             print(l)
+
+    def test_get_paginated_event_filter(self):
+        logs = self.explore_polygon.get_paginated_event_filters(max_chunk=3500, fromBlock=31138230, toBlock=31294249,
+                                                                address="0xa022AE9cfADefd62d70B510c27DC3D5DB67CA43b")
 
     def test_get_transaction_hash_data(self):
         t_hash = self.explore_eth.get_transaction_hash_data(self.eth_test_hash)

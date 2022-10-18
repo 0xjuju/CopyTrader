@@ -12,6 +12,7 @@ class GeckoClient:
     def get_market_chart_by_contract(self, *, contract_address: str, chain: str, days: int = 100, currency="usd"):
         chain_map = {
             "bsc": "binance-smart-chain",
+            "polygon": "polygon-pos",
         }
 
         return self.client.get_coin_market_chart_from_contract_address_by_id(id=chain_map.get(chain, chain),

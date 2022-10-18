@@ -200,8 +200,20 @@ class Updater:
                 # Convert datetime to range of blocks to look through
                 from_block, to_block = self.create_date_range(duration=duration, timestamp=timestamp, explorer=explorer)
 
-                transactions = blockchain.filter_contract(contract_address=token.uniswap_contract, from_block=from_block,
-                                                          to_block=to_block)
+                # Block range for query
+                max_chunk = None
+                if token.chain == "bsc":
+                    max_chunk = 5000
+
+                # Infura HTTPS for Polygon does not support eth.get_newFilter so get_logs is used instead
+                if token.chain == "polygon":
+                    max_chunk = 3500
+
+                    transactions = blockchain.get_logs(max_chunk=max_chunk, address=token.uniswap_contract,
+                                                       fromBlock=from_block, toBlock=to_block)
+                else:
+                    transactions = blockchain.filter_contract(max_chunk=max_chunk, address=token.uniswap_contract,
+                                                              from_block=from_block, to_block=to_block)
 
                 print(f"Number of transactions: {len(transactions)}")
 

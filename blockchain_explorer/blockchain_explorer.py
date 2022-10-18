@@ -7,7 +7,7 @@ import traceback
 from decimal import Decimal
 import json
 
-from blockchain_explorer.decorators import transaction_not_found_exception
+from blockchain_explorer.decorators import *
 from decouple import config
 from eth_utils import event_abi_to_log_topic, to_hex
 from hexbytes import HexBytes
@@ -226,27 +226,20 @@ class Explorer:
     def filter_account(self, address, start_block, end_block):
         return self.web3.eth.filter({"fromBlock": start_block, "toBlock": end_block, "address": address})
 
-    def filter_contract(self, *, contract_address, from_block, to_block):
-        contract_address = self.web3.toChecksumAddress(contract_address)
+    @check_keyword_args
+    def filter_contract(self, *, max_chunk=None, **kwargs):
+        """
+        :param max_chunk: Max block size to use for block range
+        :param kwargs: Filter params for query
+        :return:
+        """
+        contract_address = self.web3.toChecksumAddress(kwargs["address"])
+        from_block = kwargs.get("fromBlock")
+        to_block = kwargs.get("toBlock")
 
         # BSC Scan is rate-limited 5000 txs for block-range per query
-        if self.chain == "bsc" and abs(to_block - from_block) > 5000:
-            event_filter_list = list()
-            rate_limit = 5000
-
-            # Create list of paginated blocks incremented by the rate limit
-            pages = self.paginate(from_block, to_block, increment=rate_limit)
-            for index, page in enumerate(pages):
-                event_filter = self.web3.eth.filter({
-                    "fromBlock": page[0],
-                    "toBlock": page[1],
-                    "address": contract_address,
-                })
-
-                entries = event_filter.get_all_entries()
-                for entry in entries:
-                    event_filter_list.append(entry)
-
+        if self.chain == "bsc" and isinstance(max_chunk, int) and to_block - from_block > max_chunk:
+            event_filter_list = self.get_paginated_event_filters(max_chunk=max_chunk, **kwargs)
             return event_filter_list
 
         else:
@@ -255,6 +248,7 @@ class Explorer:
                 "toBlock": to_block,
                 "address": contract_address,
             })
+
             return event_filter.get_all_entries()
 
     def get_address_from_block(self, block_number):
@@ -308,9 +302,62 @@ class Explorer:
     def get_block(self, block_number):
         return self.web3.eth.get_block(block_number)
 
-    def get_logs(self, **kwargs):
-        logs = self.web3.eth.get_logs(kwargs)
+    @check_keyword_args
+    def get_logs(self, *, max_chunk=None, **kwargs):
+        """
+        :param max_chunk: max block size to filter
+        :param kwargs: Filter params for log data. fromBlock, toBlock, address...
+        :return: Event log filter
+        """
+        from_block = kwargs.get("fromBlock")
+        to_block = kwargs.get("toBlock")
+        block_range = to_block - from_block
+
+        if max_chunk and from_block and to_block and block_range > max_chunk:
+            logs = self.get_paginated_event_filters(max_chunk=max_chunk, **kwargs)
+        else:
+            logs = self.web3.eth.get_logs(kwargs)
+
         return logs
+
+    def get_paginated_event_filters(self, *, max_chunk, **kwargs):
+        """
+        :param max_chunk: Max block range
+        :param kwargs: Query params for filter
+        :return: list of filtered transaction between block range
+        """
+
+        event_filter_list = list()
+        from_block = kwargs["fromBlock"]
+        to_block = kwargs["toBlock"]
+
+        # Create list of paginated blocks incremented by the rate limit
+        pages = self.paginate(from_block, to_block, increment=max_chunk)
+
+        for index, page in enumerate(pages):
+
+            # polygon network needs to use get_logs. HTTPS does not support eth_newFilter
+            if self.chain == "polygon":
+                event_filter = self.get_logs(
+                    fromBlock=page[0],
+                    toBlock=page[1],
+                    address=kwargs["address"],
+                )
+                entries = event_filter
+
+            else:
+                event_filter = self.web3.eth.filter({
+                    "fromBlock": page[0],
+                    "toBlock": page[1],
+                    "address": kwargs["address"],
+                })
+                entries = event_filter.get_all_entries()
+
+            # Create single list of all event filters
+            for entry in entries:
+                event_filter_list.append(entry)
+
+        return event_filter_list
 
     @lru_cache(maxsize=None)
     def _get_hex_topic(self, t):
@@ -338,7 +385,7 @@ class Explorer:
         ranges = list()
         while start < stop:
             ranges.append(
-                (start, start + increment)
+                (start, start + increment - 1)
             )
             start += increment
         return ranges
@@ -348,7 +395,7 @@ class Explorer:
             "eth": config("INFURA_RPC_URL"),
             "ethereum": config("INFURA_RPC_URL"),
             "bsc": "https://bsc-dataseed.binance.org/",
-            "polygon": "https://polygon-rpc.com/",
+            "polygon": config("INFURA_POLYGON_RPC_URL"),
         }
         connection = Web3(Web3.HTTPProvider(map_rpc.get(self.chain)))
         return connection
