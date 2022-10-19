@@ -1,11 +1,9 @@
 
-# import asyncio
 import asyncio
 from datetime import (datetime, )
 
 from blockchain_explorer.blockchain_explorer import Explorer
 from django.test import TestCase
-from eth_utils import event_abi_to_log_topic, to_hex
 
 
 class TestBlockchainExplorer(TestCase):

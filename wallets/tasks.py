@@ -35,13 +35,15 @@ def check_balance():
         if balance != float(wallet.balance):
 
             end_task(task_name="check_token_balance",
-                     message=f"Balance has changed from ${wallet.balance:,.2f} to ${balance:,.2f}")
+                     message=f"Balance has changed from ${wallet.balance:,.2f} to ${balance:,.2f}\n"
+                             f"Link to Wallet: https://polygonscan.com/token/0x229b1b6c23ff8953d663c4cbb519717e323a0a84?a=0x96167d79e03a37d114fedb14bd9deca2a49ea870")
         else:
             print(balance)
 
     except Exception as e:
         end_task(task_name="check_token_balance",
                  message=f"Unknown Error detected:\n{e}")
+
 
 
 

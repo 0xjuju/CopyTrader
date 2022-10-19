@@ -11,7 +11,8 @@ class TestCoinbase(TestCase):
     def test_get_all_products(self):
         products = self.ex.get_all_products()
         for each in products:
-            pass
+            if each["base_currency"] == "APT":
+                print(each)
 
 
 
