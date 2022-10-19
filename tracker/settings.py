@@ -30,10 +30,15 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
 CELERY_BEAT_SCHEDULE = {
-  'check_token_balance': {
-    'task': 'wallets.tasks.check_balance',
-    'schedule': 15,
-    }
+    'check_token_balance': {
+        'task': 'wallets.tasks.check_balance',
+        'schedule': 15,
+    },
+
+    'check_coinbase_listings': {
+        'task': 'exchange.tasks.check_for_new_listings_coinbase',
+        'schedule': 30,
+}
 }
 
 # SECURITY WARNING: keep the secret key used in production secret!

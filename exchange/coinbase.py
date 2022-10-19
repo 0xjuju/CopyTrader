@@ -2,8 +2,6 @@
 import requests
 
 from exchange.models import CoinbaseProduct
-from decouple import config
-from twilio_sms.twilio_api import Twilio
 
 
 class Coinbase:
@@ -32,16 +30,13 @@ class Coinbase:
         old_products = CoinbaseProduct.objects.values_list("base_currency", flat=True)
         new_products = list(set(old_products).symmetric_difference(set(all_products)))
 
-        # Send sms of new products
-        Twilio().send_sms(body=f"New Products present on Coinbase:\n{new_products}")
-
         # Update database
         if new_products:
             self.add_new_products_to_database(new_products)
 
         return new_products
 
-    def get_all_products(self):
+    def get_all_products(self) -> list[dict]:
         """
         :return: List available tokens available on Coinbase
         """

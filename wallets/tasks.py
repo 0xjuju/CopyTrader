@@ -1,21 +1,10 @@
 from functools import lru_cache
 
+from asyc_modules.periodic_functions import end_task
 from blockchain_explorer.blockchain_explorer import Explorer
 from celery import shared_task
-from django_celery_beat.models import PeriodicTask
-from twilio_sms.twilio_api import Twilio
 from wallets.models import TargetWallet
 
-
-def end_task(task_name, message):
-    # Send sms if balance has changed
-    service = Twilio()
-    service.send_sms(body=message)
-
-    # Disable task once wallet is changes and SMS is sent
-    task = PeriodicTask.objects.get(name=task_name)
-    task.enabled = False
-    task.save()
 
 
 @lru_cache(maxsize=None)
@@ -43,6 +32,8 @@ def check_balance():
     except Exception as e:
         end_task(task_name="check_token_balance",
                  message=f"Unknown Error detected:\n{e}")
+
+
 
 
 
