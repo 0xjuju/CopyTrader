@@ -8,10 +8,45 @@ class Bot(models.Model):
         return self.address
 
 
+class PairContract(models.Model):
+    pair_options = (
+        ("", "",),
+        ("usdt", "usdt",),
+        ("usdc", "usdc",),
+        ("eth", "eth",),
+        ("bnb", "bnb",),
+        ("busd", "busd",),
+        ("avax", "avax",),
+        ("matic", "matic",),
+        ("dai", "dai",),
+    )
+
+    chain_options = (
+        ("", "",),
+        ("ethereum", "ethereum",),
+        ("arbitrum", "arbitrum",),
+        ("polygon", "polygon",),
+        ("bsc", "bsc",),
+        ("avalanche", "avalanche",),
+        ("solana", "solana",),
+    )
+
+    dex = models.CharField(max_length=25, default="")
+    contract_address = models.CharField(max_length=255, default="")
+    abi = models.TextField(default="")
+    pair = models.CharField(max_length=15, default="", choices=pair_options)
+    token = models.ForeignKey("Token", on_delete=models.CASCADE)
+    chain = models.CharField(max_length=255, default="", choices=chain_options)
+
+    def __str__(self):
+        return self.dex
+
+
 class PoolContract(models.Model):
     name = models.CharField(max_length=255, default="")
     address = models.CharField(max_length=255, default="")
-    abi = models.TextField(max_length=255, default="")
+    abi = models.TextField(default="")
+    version = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
@@ -27,12 +62,9 @@ class PotentialGem(models.Model):
 
 
 class Token(models.Model):
+
     name = models.CharField(max_length=255, default="")
-    pair = models.CharField(max_length=255, default="")
     address = models.CharField(max_length=255, default="")
-    uniswap_contract = models.CharField(max_length=255, default="")
-    uniswap_abi = models.TextField(default="")
-    chain = models.CharField(max_length=255, default="")
 
     def __str__(self):
         return self.name

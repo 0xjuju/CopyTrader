@@ -1,7 +1,7 @@
 
 
 # From dataset of prices from token chart, find all of the large percent changes within 1 week of day
-def percent_difference_from_dataset(data: list):
+def percent_difference_from_dataset(data: list) -> list[tuple]:
     results = list()
 
     for index, each in enumerate(data):

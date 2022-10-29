@@ -8,6 +8,10 @@ class Command(BaseCommand):
         token = input("Token Name > ")
         chain = input("Chain > ")
         pair = input("Pair > ")
+        thresshold = float(input("percent > "))
+        thresshold = (thresshold / 100) + 1
+        print(thresshold)
         print("starting...")
-        Updater().update(token=Token.objects.filter(chain=chain).filter(pair=pair).get(name=token))
+        Updater().update(token=Token.objects.filter(chain=chain).filter(pair=pair).get(name=token),
+                         percent_thresshold=thresshold)
 

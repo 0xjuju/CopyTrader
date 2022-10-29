@@ -1,4 +1,4 @@
-
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 from decouple import config
@@ -29,7 +29,8 @@ class Blockscan:
         balance = Decimal(balance)
         return Decimal(balance / (10 ** decimals))
 
-    def get_block_by_timestamp(self, timestamp):
+    def get_block_by_timestamp(self, timestamp, look_for_previous_block_if_error: bool = False, max_tries_hours: int = 5):
+
         params = {
             "module": "block",
             "action": "getblocknobytime",
@@ -38,7 +39,27 @@ class Blockscan:
             "apiKey": self.API_KEY,
         }
 
-        return request_get_data(url=self.BASE_URL, params=params)
+        res = request_get_data(url=self.BASE_URL, params=params)
+
+        if look_for_previous_block_if_error:
+            if res["result"] == "Error! No closest block found":
+                tries = 0
+                while True:
+
+                    # convert to datetime, subtract 1 hour, convert to timestamp
+                    t = datetime.fromtimestamp(params["timestamp"]) - timedelta(hours=1)
+                    params["timestamp"] = int(t.timestamp())
+                    print(t.timestamp())
+
+                    res = request_get_data(url=self.BASE_URL, params=params)
+                    print(res)
+                    tries += 1
+                    if res["result"] != "Error! No closest block found":
+                        break
+                    elif tries > max_tries_hours:
+                        break
+
+        return res["result"]
 
     '''
     Get ETH balance of a single address

@@ -1,3 +1,4 @@
+from datetime import timedelta, datetime
 from decimal import Decimal
 import time
 
@@ -34,7 +35,12 @@ class TestBlockscan(TestCase):
     def test_get_block_by_timestamp(self):
         t = int(1657670400000/1000)
         block = self.test.get_block_by_timestamp(t)
-        time.sleep(0.5)
+        print(block)
+
+        t = datetime.today() + timedelta(days=1)
+        t = int(t.timestamp())
+        block = self.test.get_block_by_timestamp(timestamp=t, look_for_previous_block_if_error=True)
+        print(block)
 
     def test_get_contract_source_code(self):
         v = self.test.get_contract_source_code("0x4C54Ff7F1c424Ff5487A32aaD0b48B19cBAf087F")

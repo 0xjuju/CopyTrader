@@ -1,6 +1,8 @@
 
 import asyncio
 from datetime import (datetime, )
+import socket
+import ssl
 
 from blockchain_explorer.blockchain_explorer import Explorer
 from django.test import TestCase
@@ -22,6 +24,10 @@ class TestBlockchainExplorer(TestCase):
         self.blok_abi = '[{"inputs":[{"internalType":"address","name":"feeAccount","type":"address"},{"internalType":"uint256","name":"feePercent","type":"uint256"},{"internalType":"address","name":"owner","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"uint256","name":"feePercent","type":"uint256"}],"name":"UpdateTaxInfo","type":"event"},{"inputs":[],"name":"INITIAL_SUPPLY","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"PRECISION","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"_feeAccount","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"_feePercent","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"addr","type":"address"}],"name":"addNoFeeAddress","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"burn","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"burnFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"subtractedValue","type":"uint256"}],"name":"decreaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"addedValue","type":"uint256"}],"name":"increaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"addr","type":"address"}],"name":"isExisted","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"addr","type":"address"}],"name":"removeNoFeeAddress","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"feeAccount","type":"address"},{"internalType":"uint256","name":"feePercent","type":"uint256"}],"name":"updateTaxInfo","outputs":[],"stateMutability":"nonpayable","type":"function"}]'
 
     def test_set_connection(self):
+        e = self.explore_eth.provider_url
+        print(e)
+        self.assertEqual(self.explore_eth.set_connection().isConnected(), True)
+        self.explore_eth.use_test_net = True
         self.assertEqual(self.explore_eth.set_connection().isConnected(), True)
         self.assertEqual(self.explore_bsc.set_connection().isConnected(), True)
         self.assertEqual(self.explore_polygon.set_connection().isConnected(), True)
@@ -95,6 +101,10 @@ class TestBlockchainExplorer(TestCase):
         # print('function called: ', output[0])
         # print('arguments: ', json.dumps(json.loads(output[1]), indent=2))
 
+    def test_event_filter(self):
+        event = self.explore_eth.event_filter()
+        print(event.get_all_entries()[0])
+
     def test_event_listener(self):
         # event_filter = self.explore_eth.custom_filter(from_block="latest", address="0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
         contract ="0x229b1b6C23ff8953D663C4cBB519717e323a0a84"
@@ -112,6 +122,18 @@ class TestBlockchainExplorer(TestCase):
         v = self.explore_polygon.get_balance_of_token(wallet_address=wallet_address, abi=self.blok_abi,
                                                       token_contract_address=contract_address)
         print(f"{v:,.2f}")
+
+    def test_get_event(self):
+        hostname = 'www.python.org'
+        context = ssl.create_default_context()
+
+        with socket.create_connection((hostname, 443)) as sock:
+            with context.wrap_socket(sock, server_hostname=hostname) as ssock:
+                print(ssock.version())
+
+        # loop = asyncio.get_event_loop()
+        # while True:
+        #     loop.run_until_complete(self.explore_eth.get_event())
 
     def test_filter_contract(self):
         wallet_address = self.test_wallet

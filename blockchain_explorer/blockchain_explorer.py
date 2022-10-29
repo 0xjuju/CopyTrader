@@ -1,11 +1,13 @@
 
 import asyncio
-import time
-from functools import lru_cache
-import sys
-import traceback
 from decimal import Decimal
+from functools import lru_cache
 import json
+import sys
+import time
+import traceback
+from websockets import connect
+
 
 from blockchain_explorer.decorators import *
 from decouple import config
@@ -19,19 +21,26 @@ from web3.middleware import geth_poa_middleware
 
 
 class Explorer:
-    def __init__(self, chain: str):
+    def __init__(self, chain: str, version: int = 3, use_testnet: bool = False, ):
         """
-        :param chain: explore either ethereum (eth) or binance smart chain (bsc) blockchain, otherwise error will be
-        raised
+        :param chain: which chain to explore
+        :param version: chain version
+        :param use_testnet: mainnet or testnet
         """
 
         self.chain = chain
+        self.use_testnet = use_testnet
+        self.version = version
+
+        # Node provider. Initialized from set_connection()
+        self.provider_url = None
+
+        self.connection_type = None
+        if self.chain == "ethereum" or self.chain == "eth":
+            self.connection_type = "goerli" if self.use_testnet else "mainnet"
 
         # Set Provider URL Based on selected chain, then connect
         self.web3 = self.set_connection()
-
-        if self.chain == "bsc":  # Must set middleware to explore blocks on bsc using web3
-            self.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     def convert_from_hex(self, value: hex) -> int:
         """
@@ -189,6 +198,10 @@ class Explorer:
                 output[target_field[i]['name']] = t[i]
         return output
 
+    def event_filter(self, **kwargs):
+        event = self.web3.eth.filter(kwargs)
+        return event
+
     @staticmethod
     def event_listener(func, **kwargs):
 
@@ -202,6 +215,22 @@ class Explorer:
 
         finally:
             loop.close()
+
+    @staticmethod
+    async def get_event():
+        async with connect("wss://goerli.infura.io/ws/v3/26746c91736a449faf4a9db9d6fc7723") as ws:
+            await ws.send({"id": 1, "method": "eth_subscribe", "params": ["newHeads"]})
+            subscription_response = await ws.recv()
+            print(subscription_response)
+            # you are now subscribed to the event
+            # you keep trying to listen to new events (similar idea to longPolling)
+            while True:
+                try:
+                    message = await asyncio.wait_for(ws.recv(), timeout=60)
+                    print(json.loads(message))
+                    pass
+                except Exception as e:
+                    print(e)
 
     def handle_event(self, **kwargs):
         print(self.web3.toJSON(kwargs.get("event")))
@@ -391,13 +420,21 @@ class Explorer:
         return ranges
 
     def set_connection(self):
+
         map_rpc = {
-            "eth": config("INFURA_RPC_URL"),
-            "ethereum": config("INFURA_RPC_URL"),
+            "eth": f"https://{self.connection_type}.infura.io/v{self.version}/{config('INFURA_ID')}",
+            "ethereum": f"https://{self.connection_type}.infura.io/v{self.version}/{config('INFURA_ID')}",
             "bsc": "https://bsc-dataseed.binance.org/",
             "polygon": config("INFURA_POLYGON_RPC_URL"),
         }
-        connection = Web3(Web3.HTTPProvider(map_rpc.get(self.chain)))
+
+        rpc_url = map_rpc.get(self.chain)
+        connection = Web3(Web3.HTTPProvider(rpc_url))
+        self.provider_url = rpc_url
+
+        # Must set middleware to explore blocks on bsc using web3
+        if self.chain == "bsc":
+            connection.middleware_onion.inject(geth_poa_middleware, layer=0)
         return connection
 
 

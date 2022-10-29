@@ -3,6 +3,11 @@ from django.contrib import admin
 from wallets.models import *
 
 
+@admin.register(PairContract)
+class PairContractAdmin(admin.ModelAdmin):
+    list_display = ["dex", "token", "pair", "chain"]
+
+
 @admin.register(PoolContract)
 class PoolContractAdmin(admin.ModelAdmin):
     pass
@@ -10,7 +15,7 @@ class PoolContractAdmin(admin.ModelAdmin):
 
 @admin.register(Token)
 class TokenAdmin(admin.ModelAdmin):
-    list_display = ("name", "address", "chain")
+    list_display = ("name", "address", )
 
 
 @admin.register(Bot)

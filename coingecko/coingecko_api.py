@@ -13,6 +13,8 @@ class GeckoClient:
         chain_map = {
             "bsc": "binance-smart-chain",
             "polygon": "polygon-pos",
+            "arbitrum_one": "arbitrum-one",
+            "arbitrum_nova": "arbitrum-nova",
         }
 
         return self.client.get_coin_market_chart_from_contract_address_by_id(id=chain_map.get(chain, chain),
