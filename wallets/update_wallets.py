@@ -7,7 +7,7 @@ from algorithms.token_dataset_algos import percent_difference_from_dataset
 from blockchain_explorer.blockchain_explorer import Explorer
 from blockchain_explorer.blockscsan import Blockscan
 from coingecko.coingecko_api import GeckoClient
-from wallets.models import Bot, Transaction, Wallet, PoolContract, Token
+from wallets.models import Bot, Transaction, Wallet, PoolContract, Token, PairContract
 
 
 class Updater:
@@ -53,7 +53,7 @@ class Updater:
                     transaction_hash=transaction_hash,
                     token_in=token.name,
                     wallet=wallet,
-                    amount=amount,
+                    amount=0,
                     percent=percentage,
                     timestamp=datetime.fromtimestamp(timestamp)
                 )
@@ -174,38 +174,31 @@ class Updater:
         return timestamps, prices
 
     @staticmethod
-    def get_transactions(from_block: int, to_block: int, token: Token, blockchain: Explorer):
+    def get_transactions(from_block: int, to_block: int, contract: PairContract, blockchain: Explorer):
         """
         :param from_block: start of block range
         :param to_block: end of block range
-        :param token: Token object
+        :param contract: Pair Contract of token from dex
         :param blockchain: blockchain explorer
         :return: List of transactions filtered by token-pair contract from various dex
         """
 
-        all_transactions = list()
+        # Block range for query
+        max_chunk = None
+        if contract.chain == "bsc":
+            max_chunk = 5000
 
-        contracts = token.paircontract_set.all()
+        # Infura HTTPS for Polygon does not support eth.get_newFilter so get_logs is used instead
+        if contract.chain == "polygon":
+            max_chunk = 3500
 
-        for contract in contracts:
+            transactions = blockchain.get_logs(max_chunk=max_chunk, address=contract.contract_address,
+                                               fromBlock=from_block, toBlock=to_block)
+        else:
+            transactions = blockchain.filter_contract(max_chunk=max_chunk, address=contract.contract_address,
+                                                      fromBlock=from_block, toBlock=to_block)
 
-            # Block range for query
-            max_chunk = None
-            if contract.chain == "bsc":
-                max_chunk = 5000
-
-            # Infura HTTPS for Polygon does not support eth.get_newFilter so get_logs is used instead
-            if contract.chain == "polygon":
-                max_chunk = 3500
-
-                transactions = blockchain.get_logs(max_chunk=max_chunk, address=contract.contract_address,
-                                                   fromBlock=from_block, toBlock=to_block)
-            else:
-                transactions = blockchain.filter_contract(max_chunk=max_chunk, address=contract.contract_address,
-                                                          fromBlock=from_block, toBlock=to_block)
-            all_transactions.append(transactions)
-
-        return all_transactions
+        return transactions
 
     def map_buyers_and_sellers(self, blockchain, all_entries, blacklisted, whitelisted, abi):
         buyers = defaultdict(list)
@@ -260,59 +253,67 @@ class Updater:
         return buyers, sellers
 
     def update(self, token, percent_threshold: float):
-        # Blockchain (etherscan, bscscan) service explorer
-        explorer = Blockscan(token.chain)
+        contracts = token.paircontract_set.all()
 
-        # web3.py
-        blockchain = Explorer(token.chain)
+        for contract in contracts:
+            # Blockchain (etherscan, bscscan) service explorer
+            explorer = Blockscan(contract.chain)
 
-        timestamps, prices = self.get_prices_data(token.address, chain=token.chain)
+            # web3.py
+            blockchain = Explorer(contract.chain)
 
-        # Percentage difference of each price relative to the next day, 3 days, and 7 days from price
-        diffs = percent_difference_from_dataset(prices)
+            if token.name == "dogechain":
+                g_chain = "dogechain"
+            else:
+                g_chain = contract.chain
 
-        # determine if a price increase that meets threshold is reached and add to list
-        price_breakouts = self.determine_price_breakouts(diffs=diffs, timestamps=timestamps,
-                                                         percent_threshold=percent_threshold)
+            timestamps, prices = self.get_prices_data(token.address, chain=g_chain)
 
-        if price_breakouts:
-            # Exclude known bot wallets from processing
-            blacklisted = Bot.objects.values_list("address", flat=True)
+            # Percentage difference of each price relative to the next day, 3 days, and 7 days from price
+            diffs = percent_difference_from_dataset(prices)
 
-            # Contracts that interact with humans
-            whitelisted = PoolContract.objects.values_list("address", flat=True)
+            # determine if a price increase that meets threshold is reached and add to list
+            price_breakouts = self.determine_price_breakouts(diffs=diffs, timestamps=timestamps,
+                                                             percent_threshold=percent_threshold)
 
-            for index, datapoint in enumerate(price_breakouts):
-                duration = datapoint[0]
-                timestamp = datapoint[1]
-                percentage = datapoint[2]
+            if price_breakouts:
+                # Exclude known bot wallets from processing
+                blacklisted = Bot.objects.values_list("address", flat=True)
 
-                # Check if format has changed for any timestamp. Expect the last 5 digits to always be zero. Date only
-                if str(timestamp)[-5:] != "00000":
-                    raise Exception("Will not format correctly")
-                timestamp = int(timestamp / 1000)
+                # Contracts that interact with humans
+                whitelisted = PoolContract.objects.values_list("address", flat=True)
 
-                # Convert datetime to range of blocks to look through
-                from_block, to_block = self.create_block_range(duration=duration, timestamp=timestamp, explorer=explorer)
-                if from_block and to_block:
+                for index, datapoint in enumerate(price_breakouts):
+                    duration = datapoint[0]
+                    timestamp = datapoint[1]
+                    percentage = datapoint[2]
 
-                    transactions = self.get_transactions(from_block=from_block, to_block=to_block, token=token,
-                                                         blockchain=blockchain)
+                    # Check if format has changed for any timestamp. Expect last 5 digits to always be zero. Date only
+                    if str(timestamp)[-5:] != "00000":
+                        raise Exception("Will not format correctly")
+                    timestamp = int(timestamp / 1000)
 
-                    print(f"Number of transactions: {len(transactions)}")
+                    # Convert datetime to range of blocks to look through
+                    from_block, to_block = self.create_block_range(duration=duration, timestamp=timestamp, explorer=explorer)
+                    if from_block and to_block:
 
-                    # Separate Buy ers from Sellers for each transaction and create Dictionary representations
-                    # Wallet address (EOA) as KEY
-                    buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
-                                                                  blacklisted=blacklisted, whitelisted=whitelisted,
-                                                                  abi=token.uniswap_abi)
+                        transactions = self.get_transactions(from_block=from_block, to_block=to_block, contract=contract,
+                                                             blockchain=blockchain)
 
-                    # transactions with unwanted accounts filtered out
-                    filtered_transactions = self.filter_transactions(buyers, sellers)
+                        print(f"Number of transactions: {len(transactions)}")
 
-                    # Update Database with new wallets and transactions
-                    self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
-                                               timestamp=timestamp, percentage=str(percentage), index=index)
+                        # Separate Buy ers from Sellers for each transaction and create Dictionary representations
+                        # Wallet address (EOA) as KEY
+                        buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
+                                                                      blacklisted=blacklisted, whitelisted=whitelisted,
+                                                                      abi=contract.abi)
+
+                        # transactions with unwanted accounts filtered out
+                        filtered_transactions = self.filter_transactions(buyers, sellers)
+
+                        # Update Database with new wallets and transactions
+                        self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
+                                                   timestamp=timestamp, percentage=str(percentage), index=index)
             print("Finished")
 
 

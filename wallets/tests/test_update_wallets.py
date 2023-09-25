@@ -57,19 +57,20 @@ class TestUpdateWallets(TestCase):
         from_block = 15144985
         to_block = 15170801
         token = Token.objects.get(name="nexo")
+        contract = token.paircontract_set.first()
         blockchain = Explorer(chain="ethereum")
         txs = Updater().get_transactions(
             from_block=from_block,
             to_block=to_block,
-            token=token,
+            contract=contract,
             blockchain=blockchain,
         )
-        hashes = [i["transactionHash"].hex() for i in txs[0]]
+        hashes = [i["transactionHash"].hex() for i in txs]
         self.assertIn("0xec8103a1af202c616c57a396f87d5fd94ede03c643bdab42b6b47378c117f4b3", hashes)
 
-    def updater(self):
-        token = Token.objects.filter(chain="polygon").filter(pair="eth").get(name="gains")
-        Updater().update(token, percent_threshold=1.35)
+    def test_updater(self):
+        token = Token.objects.get(name="dogechain")
+        Updater().update(token, percent_threshold=1.40)
         wallets = Wallet.objects.all()
 
         print(f"Total Wallets: {wallets.count()}")

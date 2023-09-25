@@ -12,3 +12,4 @@ def end_task(task_name, message):
     task = PeriodicTask.objects.get(name=task_name)
     task.enabled = False
     task.save()
+

@@ -11,11 +11,11 @@ class TestCoingecko(TestCase):
 
     def test_get_asset_platforms(self):
         v = self.api.get_asset_platforms()
+        print(v)
 
     def test_get_market_charts_by_contract(self):
         res = self.api.get_market_chart_by_contract(contract_address=self.nexo_contract_address, days=100,
                                                     chain="ethereum")
-        print(len(res["prices"]))
 
         t = res["prices"][0][0]
 
