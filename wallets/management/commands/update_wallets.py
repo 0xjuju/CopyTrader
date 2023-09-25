@@ -12,3 +12,4 @@ class Command(BaseCommand):
         print("starting...")
         Updater().update(token=Token.objects.get(name=token), percent_threshold=thresshold)
 
+
