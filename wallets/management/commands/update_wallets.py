@@ -10,6 +10,6 @@ class Command(BaseCommand):
         threshold = (threshold / 100) + 1
         print(threshold)
         print("starting...")
-        Updater().update(token=Token.objects.get(name=token), percent_threshold=thresshold)
+        Updater().update(token=Token.objects.get(name=token), percent_threshold=threshold)
 
 
