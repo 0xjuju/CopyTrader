@@ -14,6 +14,16 @@ class Updater:
 
     @staticmethod
     def contract_and_address_validated(checked_topics, whitelisted_contracts, blacklisted, blockchain):
+        """
+        Validate address against known automated addresses
+
+        :param checked_topics: transaction data containing various contract interactions
+        :param whitelisted_contracts: Accepted addresses interacted..
+        :param blacklisted: Known automated addresses
+        :param blockchain: chain
+        :return: Boolean whitelisted or not
+        """
+
         to_address = checked_topics[1]
         if checked_topics[1] in whitelisted_contracts and checked_topics[2] \
                 not in whitelisted_contracts and blockchain.web3.eth.get_code(checked_topics[2]) == b'' \
