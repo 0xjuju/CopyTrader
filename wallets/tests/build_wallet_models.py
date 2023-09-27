@@ -64,6 +64,7 @@ class Build:
                 (1, "arkenDex", "0xcbd3cbc8707643cc2ced4b40907041f9627ffb51", "1"),
                 (1, "paraswapv5", "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57", "1"),
         )
+
         uploads = list()
         for pool in pools:
             uploads.append(

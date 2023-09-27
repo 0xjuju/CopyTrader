@@ -145,6 +145,11 @@ class Updater:
 
     @staticmethod
     def filter_transactions(buyers: dict[str, list], sellers: dict[str, list]):
+        """
+        :param buyers: ...
+        :param sellers: ...
+        :return:
+        """
         # Loop through buyers and sellers to create list of transaction excluding ones likely done by bots
         filtered_transactions = list()
         for buyer, values in buyers.items():
@@ -196,7 +201,7 @@ class Updater:
         # Block range for query
         max_chunk = None
         if contract.chain == "bsc":
-            max_chunk = 5000
+            max_chunk = 500
 
         # Infura HTTPS for Polygon does not support eth.get_newFilter so get_logs is used instead
         if contract.chain == "polygon":
@@ -211,6 +216,14 @@ class Updater:
         return transactions
 
     def map_buyers_and_sellers(self, blockchain, all_entries, blacklisted, whitelisted, abi):
+        """
+        :param blockchain: chain
+        :param all_entries: list of transaction from given timeframe
+        :param blacklisted: Known automated addressses
+        :param whitelisted: valid addresses
+        :param abi: Application Binary Interface
+        :return: Parsed list of buyers vs sellers
+        """
         buyers = defaultdict(list)
         sellers = defaultdict(list)
 
@@ -264,6 +277,7 @@ class Updater:
 
     def update(self, token, percent_threshold: float):
         contracts = token.paircontract_set.all()
+        print(contracts)
 
         for contract in contracts:
             # Blockchain (etherscan, bscscan) service explorer
@@ -272,12 +286,7 @@ class Updater:
             # web3.py
             blockchain = Explorer(contract.chain)
 
-            if token.name == "dogechain":
-                g_chain = "dogechain"
-            else:
-                g_chain = contract.chain
-
-            timestamps, prices = self.get_prices_data(token.address, chain=g_chain)
+            timestamps, prices = self.get_prices_data(token.address, chain=contract.chain)
 
             # Percentage difference of each price relative to the next day, 3 days, and 7 days from price
             diffs = percent_difference_from_dataset(prices)

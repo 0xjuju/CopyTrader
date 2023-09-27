@@ -60,8 +60,8 @@ class TestBlockchainExplorer(TestCase):
         self.assertEqual(address.lower(), "0xfea856912f20bc4f7c877c52d60a2cdc797c6ef8")
 
     def test_custom_filter(self):
-        val = self.explore_polygon.custom_filter(from_block=31963060, to_block=31963066,
-                                                 address="0x96167d79e03A37d114FEDb14bD9DeCA2a49ea870")
+        val = self.explore_eth.custom_filter(from_block=31963060, to_block=31963066,
+                                             address="0x96167d79e03A37d114FEDb14bD9DeCA2a49ea870")
         for v in val.get_all_entries():
             print(v)
 
@@ -100,6 +100,7 @@ class TestBlockchainExplorer(TestCase):
         output = self.explore_eth.decode_tx('0xe592427a0aece92de3edee1f18e0157c05861564', data["input"], abi)
         # print('function called: ', output[0])
         # print('arguments: ', json.dumps(json.loads(output[1]), indent=2))
+        print(output)
 
     def test_event_filter(self):
         event = self.explore_eth.event_filter()
@@ -123,13 +124,13 @@ class TestBlockchainExplorer(TestCase):
                                                       token_contract_address=contract_address)
         print(f"{v:,.2f}")
 
-    def test_get_event(self):
-        hostname = 'www.python.org'
-        context = ssl.create_default_context()
-
-        with socket.create_connection((hostname, 443)) as sock:
-            with context.wrap_socket(sock, server_hostname=hostname) as ssock:
-                print(ssock.version())
+    # def test_get_event(self):
+    #     hostname = 'www.python.org'
+    #     context = ssl.create_default_context()
+    #
+    #     with socket.create_connection((hostname, 443)) as sock:
+    #         with context.wrap_socket(sock, server_hostname=hostname) as ssock:
+    #             print(ssock.version())
 
         # loop = asyncio.get_event_loop()
         # while True:
@@ -148,8 +149,7 @@ class TestBlockchainExplorer(TestCase):
         #     address = each
         #     print(each)
 
-        x = self.explore_bsc.filter_contract(address=address, fromBlock=19442105, toBlock=19442109)
-        print(x)
+        x = self.explore_bsc.filter_contract(max_chunk=10, address=address, fromBlock=19442105, toBlock=19442409)
 
     def test_get_block(self):
         block = self.explore_eth.get_block(12411591)
@@ -168,7 +168,7 @@ class TestBlockchainExplorer(TestCase):
         logs = self.explore_polygon.get_logs(max_chunk=3500, fromBlock=31138230, toBlock=31294249,
                                              address="0xa022AE9cfADefd62d70B510c27DC3D5DB67CA43b")
         for l in logs:
-             print(l)
+            print(l)
 
     def test_get_paginated_event_filter(self):
         logs = self.explore_polygon.get_paginated_event_filters(max_chunk=3500, fromBlock=31138230, toBlock=31294249,
@@ -184,6 +184,7 @@ class TestBlockchainExplorer(TestCase):
 
     def test_paginate(self):
         ranges = self.explore_eth.paginate(start=5000, stop=25000, increment=5000)
+        print(f" ------- {ranges}")
         self.assertEqual(ranges[0][0], 5000)
         self.assertEqual(ranges[0][1], 10000)
         self.assertEqual(ranges[-1][0], 20000)

@@ -19,6 +19,7 @@ class PairContract(models.Model):
         ("avax", "avax",),
         ("matic", "matic",),
         ("dai", "dai",),
+        ("wbnb", "wbnb",),
     )
 
     chain_options = (

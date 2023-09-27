@@ -172,7 +172,15 @@ class Explorer:
         else:
             return 'no matching abi', None, None
 
-    def decode_tx(self, address, input_data, abi):
+    def decode_tx(self, address: str, input_data: str, abi: str):
+        """
+        Decode input data
+
+        :param address: contract address
+        :param input_data: encoded data
+        :param abi: Application binary Interface str json
+        :return:
+        """
         if abi is not None:
             try:
                 (contract, abi) = self._get_contract(address, abi)
@@ -221,7 +229,6 @@ class Explorer:
         async with connect("wss://goerli.infura.io/ws/v3/26746c91736a449faf4a9db9d6fc7723") as ws:
             await ws.send({"id": 1, "method": "eth_subscribe", "params": ["newHeads"]})
             subscription_response = await ws.recv()
-            print(subscription_response)
             # you are now subscribed to the event
             # you keep trying to listen to new events (similar idea to longPolling)
             while True:
@@ -249,7 +256,6 @@ class Explorer:
                 print("NOT EQUAL")
                 handle()
                 break
-            print(balance, old_balance)
             await asyncio.sleep(poll_interval)
 
     def filter_account(self, address, start_block, end_block):
@@ -364,7 +370,7 @@ class Explorer:
         pages = self.paginate(from_block, to_block, increment=max_chunk)
 
         for index, page in enumerate(pages):
-
+            time.sleep(1)
             # polygon network needs to use get_logs. HTTPS does not support eth_newFilter
             if self.chain == "polygon":
                 event_filter = self.get_logs(
@@ -380,6 +386,7 @@ class Explorer:
                     "toBlock": page[1],
                     "address": kwargs["address"],
                 })
+
                 entries = event_filter.get_all_entries()
 
             # Create single list of all event filters
@@ -411,11 +418,18 @@ class Explorer:
 
     @staticmethod
     def paginate(start, stop, increment: int):
+        """
+        :param start:
+        :param stop:
+        :param increment:
+        :return:
+        """
         ranges = list()
         while start < stop:
             ranges.append(
-                (start, start + increment - 1)
+                (start, start + increment)
             )
+
             start += increment
         return ranges
 

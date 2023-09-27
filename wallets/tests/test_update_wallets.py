@@ -69,7 +69,7 @@ class TestUpdateWallets(TestCase):
         self.assertIn("0xec8103a1af202c616c57a396f87d5fd94ede03c643bdab42b6b47378c117f4b3", hashes)
 
     def test_updater(self):
-        token = Token.objects.get(name="dogechain")
+        token = Token.objects.get(name="FRONT")
         Updater().update(token, percent_threshold=1.40)
         wallets = Wallet.objects.all()
 
