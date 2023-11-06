@@ -63,7 +63,7 @@ class Updater:
                     transaction_hash=transaction_hash,
                     token_in=token.name,
                     wallet=wallet,
-                    amount=0,
+                    amount=amount,
                     percent=percentage,
                     timestamp=datetime.fromtimestamp(timestamp)
                 )
