@@ -63,10 +63,8 @@ class PotentialGem(models.Model):
 
 
 class Token(models.Model):
-
     name = models.CharField(max_length=255, default="")
     address = models.CharField(max_length=255, default="")
-    chain = models.CharField(max_length=255, default='')
 
 
     def __str__(self):
