@@ -11,7 +11,7 @@ class WalletFilter(models.Model):
     top_percent = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     min_wallets = models.IntegerField(default=0)
     max_wallets = models.IntegerField(default=0)
-
+    min_token_wins = models.IntegerField(default=1)  # Minimum number of profitable tokens wallet has bought
 
 class PairContract(models.Model):
     pair_options = (
