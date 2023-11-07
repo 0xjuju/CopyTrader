@@ -7,6 +7,10 @@ from wallets.models import *
 class PairContractAdmin(admin.ModelAdmin):
     list_display = ["dex", "token", "pair", "chain"]
 
+@admin.register(WalletFilter)
+class FilterParamsAdmin(admin.ModelAdmin):
+    list_display = ("top_percent",)
+
 
 @admin.register(PoolContract)
 class PoolContractAdmin(admin.ModelAdmin):
