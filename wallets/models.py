@@ -7,6 +7,11 @@ class Bot(models.Model):
     def __str__(self):
         return self.address
 
+class FilterParams(models.Model):
+    min_wallets = models.IntegerField(default=0),
+    max_wallets = models.IntegerField(default=0),
+    top_percent = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
 
 class PairContract(models.Model):
     pair_options = (
