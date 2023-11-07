@@ -73,6 +73,7 @@ class Token(models.Model):
 
 class Transaction(models.Model):
     transaction_hash = models.CharField(max_length=255, default="")
+    chain = models.CharField(max_length=255, default='')
     token_in = models.CharField(max_length=255, default="")
     wallet = models.ForeignKey("Wallet", on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
