@@ -31,11 +31,12 @@ class Updater:
             return True
 
     @staticmethod
-    def create_database_entry(filtered_transactions: list[tuple[str, dict, float]], token: Token, percentage: str,
+    def create_database_entry(filtered_transactions: list[tuple[str, dict, float]], token: Token, chain: str, percentage: str,
                               timestamp: int, index: int) -> None:
         """
         :param filtered_transactions: transaction data with possible bots / unwanted accounts filtered out
         :param token: Token model
+        :param chain: chain
         :param percentage: percentage increase from price breakout
         :param timestamp: Timestamp before breakout
         :param index: Index for batch
@@ -332,7 +333,8 @@ class Updater:
 
                         # Update Database with new wallets and transactions
                         self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
-                                                   timestamp=timestamp, percentage=str(percentage), index=index)
+                                                   chain=contract.chain, timestamp=timestamp, percentage=str(percentage)
+                                                   ,index=index)
             print("Finished")
 
 
