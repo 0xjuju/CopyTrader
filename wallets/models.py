@@ -115,3 +115,10 @@ class Wallet(models.Model):
         total = self.transaction_set.count()
         return total
 
+    @property
+    def unique_tokens(self):
+        total = self.token.count()
+        return total
+
+
+
