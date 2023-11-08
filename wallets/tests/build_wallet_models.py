@@ -79,6 +79,10 @@ class Build:
             ("nexo", "0xB62132e35a6c13ee1EE0f84dC5d40bad8d815206"),
             ("ethernity", "0xbbc2ae13b23d715c30720f079fcd9b4a74093505"),
             ("dogechain", "0x7B4328c127B85369D9f82ca0503B000D09CF9180"),
+            ("test1", "t1", "0xbbc2ae13b23d715c305ige079fcd9b4a74056b5q",),
+            ("test2", "t2", "0xqtc2ae13b23d71asd05ige079fcd9b4a74056b5q",),
+            ("test3", "t3", "0x56v2ae13b23d71asd05ige079fcd9b4a74056lk9",),
+            ("test4", "t4", "0xqwerty13b23d71asd05ige079fcd9b4a74056ghg5",)
         )
         # token_list = (
         #     ("nexo", "eth", "0xB62132e35a6c13ee1EE0f84dC5d40bad8d815206", "0x4C54Ff7F1c424Ff5487A32aaD0b48B19cBAf087F",
@@ -125,6 +129,10 @@ class Build:
         tokens = (
             ("nexo", "nexo", "0xB62132e35a6c13ee1EE0f84dC5d40bad8d815206",),
             ("ethernity", "ern", "0xbbc2ae13b23d715c30720f079fcd9b4a74093505",),
+            ("test1", "t1", "0xbbc2ae13b23d715c305ige079fcd9b4a74056b5q",),
+            ("test2", "t2", "0xqtc2ae13b23d71asd05ige079fcd9b4a74056b5q",),
+            ("test3", "t3", "0x56v2ae13b23d71asd05ige079fcd9b4a74056lk9",),
+            ("test4", "t4", "0xqwerty13b23d71asd05ige079fcd9b4a74056ghg5",),
         )
 
         for token in tokens:
@@ -133,6 +141,16 @@ class Build:
             )
 
         PotentialGem.objects.bulk_create(uploads)
+
+    @staticmethod
+    def wallet_filter():
+        n = WalletFilter.objects.create(
+            top_percent=1,
+            min_wallets=5,
+            max_wallets=50,
+            min_token_wins=2
+        )
+        n.save()
 
     @staticmethod
     def wallets():
@@ -147,6 +165,12 @@ class Build:
 
         w = Wallet.objects.first()
         w.token.add(tokens.get(address="0xB62132e35a6c13ee1EE0f84dC5d40bad8d815206"))
+        w.token.add(tokens.get(name="test1"))
+
+        w2 = Wallet.objects.last()
+        w2.token.add(tokens.get(name='test1'))
+        w2.token.add(tokens.get(name='test2'))
+        w2.token.add(tokens.get(name='test3'))
 
     @staticmethod
     def transactions():
