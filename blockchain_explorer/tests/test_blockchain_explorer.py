@@ -158,6 +158,10 @@ class TestBlockchainExplorer(TestCase):
     # def test_get_contract_abi(self):
     #     v = self.explore_eth.get_contract_abi(contract="0x4C54Ff7F1c424Ff5487A32aaD0b48B19cBAf087F")
 
+    def test_get_block_range(self):
+        blocks = self.explore_eth.get_block_range(block_start=5000)
+
+
     def test_get_block_before_timestamp(self):
         pass
 
