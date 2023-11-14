@@ -6,6 +6,7 @@ import json
 import sys
 import time
 import traceback
+from typing import Literal
 from websockets import connect
 
 
@@ -356,8 +357,11 @@ class Explorer:
 
         return balance / (10 ** 18)
 
-    def get_block(self, block_number):
-        return self.web3.eth.get_block(block_number)
+    def get_block(self, block_num=None):
+        if block_num:
+            return self.web3.eth.get_block(block_num)
+        else:
+            return self.web3.eth.get_block('latest')
 
     @check_keyword_args
     def get_logs(self, *, max_chunk=None, **kwargs):
