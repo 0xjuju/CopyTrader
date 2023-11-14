@@ -225,28 +225,6 @@ class Explorer:
         finally:
             loop.close()
 
-    def get_block_range(self, block_start=None, block_stop=None):
-        """
-        :param block_start: Starting block
-        :param block_stop: Ending block
-        :return: Event filter of block(s)
-        """
-        latest_block = self.web3.eth.get_block('latest')
-
-        if block_start is None:
-            return latest_block
-        else:
-            #
-            if (block_start and block_stop) and block_start >= block_stop:
-                raise ValueError("Start block cannot equal to or exceed stop block")
-
-            else:
-                latest_block_num = latest_block["number"]
-                first_block = latest_block_num - 10
-
-                blocks = self.web3.eth.filter({"fromBlock": first_block, "toBlock": latest_block_num})
-                return blocks
-
     @staticmethod
     async def get_event():
         async with connect("wss://goerli.infura.io/ws/v3/26746c91736a449faf4a9db9d6fc7723") as ws:

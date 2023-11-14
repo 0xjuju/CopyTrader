@@ -154,6 +154,10 @@ class TestBlockchainExplorer(TestCase):
     def test_get_block(self):
         block = self.explore_eth.get_block(12411591)
         self.assertEqual(str(datetime.fromtimestamp(block["timestamp"])), "2021-05-11 06:47:16")
+        block = self.explore_eth.get_block()["transactions"]
+        c = block[0].hex()
+        tx = self.explore_eth.get_transaction_hash_data(c)
+
 
     # def test_get_contract_abi(self):
     #     v = self.explore_eth.get_contract_abi(contract="0x4C54Ff7F1c424Ff5487A32aaD0b48B19cBAf087F")
@@ -180,6 +184,7 @@ class TestBlockchainExplorer(TestCase):
 
     def test_get_transaction_hash_data(self):
         t_hash = self.explore_eth.get_transaction_hash_data(self.eth_test_hash)
+        print(t_hash)
         self.assertIn("blockHash", t_hash)
 
     def test_get_transaction_receipt(self):
