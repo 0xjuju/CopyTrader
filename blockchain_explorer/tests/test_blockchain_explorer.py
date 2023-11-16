@@ -157,14 +157,11 @@ class TestBlockchainExplorer(TestCase):
         block = self.explore_eth.get_block()["transactions"]
         c = block[0].hex()
         tx = self.explore_eth.get_transaction_hash_data(c)
+        print(tx)
 
 
     # def test_get_contract_abi(self):
     #     v = self.explore_eth.get_contract_abi(contract="0x4C54Ff7F1c424Ff5487A32aaD0b48B19cBAf087F")
-
-    def test_get_block_range(self):
-        blocks = self.explore_eth.get_block_range(block_start=5000)
-
 
     def test_get_block_before_timestamp(self):
         pass
@@ -177,6 +174,7 @@ class TestBlockchainExplorer(TestCase):
                                              address="0xa022AE9cfADefd62d70B510c27DC3D5DB67CA43b")
         for l in logs:
             print(l)
+
 
     def test_get_paginated_event_filter(self):
         logs = self.explore_polygon.get_paginated_event_filters(max_chunk=3500, fromBlock=31138230, toBlock=31294249,

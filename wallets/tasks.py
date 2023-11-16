@@ -16,6 +16,7 @@ def check_balance():
     """
 
     try:
+
         wallet = TargetWallet.objects.get(name="bloktopia vesting wallet")
         ex = Explorer(chain=wallet.chain)
         balance = ex.get_balance_of_token(wallet_address=wallet.address, token_contract_address=wallet.contract,
