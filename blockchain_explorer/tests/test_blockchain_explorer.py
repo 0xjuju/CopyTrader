@@ -160,6 +160,7 @@ class TestBlockchainExplorer(TestCase):
         print(tx)
 
 
+
     # def test_get_contract_abi(self):
     #     v = self.explore_eth.get_contract_abi(contract="0x4C54Ff7F1c424Ff5487A32aaD0b48B19cBAf087F")
 
@@ -170,18 +171,18 @@ class TestBlockchainExplorer(TestCase):
         # 0x96167d79e03A37d114FEDb14bD9DeCA2a49ea870
         # 0xa022AE9cfADefd62d70B510c27DC3D5DB67CA43b
         # 0x229b1b6C23ff8953D663C4cBB519717e323a0a84
-        logs = self.explore_polygon.get_logs(max_chunk=3500, fromBlock=31138230, toBlock=31294249,
-                                             address="0xa022AE9cfADefd62d70B510c27DC3D5DB67CA43b")
+        logs = self.explore_eth.get_logs(max_chunk=20000, fromBlock=17154835, toBlock=17154836)
+
         for l in logs:
             print(l)
 
-
     def test_get_paginated_event_filter(self):
-        logs = self.explore_polygon.get_paginated_event_filters(max_chunk=3500, fromBlock=31138230, toBlock=31294249,
+        logs = self.explore_polygon.get_paginated_event_filters(max_chunk=3500, fromBlock=31294240, toBlock=31294249,
                                                                 address="0xa022AE9cfADefd62d70B510c27DC3D5DB67CA43b")
 
     def test_get_transaction_hash_data(self):
         t_hash = self.explore_eth.get_transaction_hash_data(self.eth_test_hash)
+        t_hash = self.explore_eth.get_transaction_hash_data("0x847ce13bcfd2fd5b5de6453eeb9de5e3895829ccfbf58bf6f0c2c8cf095684cb")
         print(t_hash)
         self.assertIn("blockHash", t_hash)
 

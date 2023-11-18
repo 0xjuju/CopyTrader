@@ -341,6 +341,7 @@ class Explorer:
         else:
             return self.web3.eth.get_block('latest')
 
+
     @check_keyword_args
     def get_logs(self, *, max_chunk=None, **kwargs):
         """
@@ -365,7 +366,6 @@ class Explorer:
         :param kwargs: Query params for filter
         :return: list of filtered transaction between block range
         """
-
         event_filter_list = list()
         from_block = kwargs["fromBlock"]
         to_block = kwargs["toBlock"]
@@ -374,7 +374,8 @@ class Explorer:
         pages = self.paginate(from_block, to_block, increment=max_chunk)
 
         for index, page in enumerate(pages):
-            time.sleep(1)
+            print(index)
+            time.sleep(0.5)
             # polygon network needs to use get_logs. HTTPS does not support eth_newFilter
             if self.chain == "polygon":
                 event_filter = self.get_logs(
