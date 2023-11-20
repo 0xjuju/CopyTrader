@@ -1,6 +1,5 @@
 
 from pycoingecko import CoinGeckoAPI
-from wallets.models import ONP
 
 
 class GeckoClient:
