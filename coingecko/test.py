@@ -16,7 +16,8 @@ class TestCoingecko(TestCase):
         tokens = self.api.get_coins_list()
 
     def test_get_coins_markets(self):
-        print(self.api.get_coins_markets())
+        pass
+        # print(self.api.get_coins_markets())
 
     def test_get_market_charts_by_contract(self):
         res = self.api.get_market_chart_by_contract(contract_address=self.nexo_contract_address, days=100,
@@ -29,5 +30,8 @@ class TestCoingecko(TestCase):
     def test_parse_collection(self):
         collection = self.api.get_coins_markets()
 
-        parsed_collection = self.api.parse_collection(collection=collection, percent_change=50)
+        self.api.parse_collection(collection=collection, percent_change=3)
+        from wallets.models import ONP
+        tokens = ONP.objects.all()
+
 

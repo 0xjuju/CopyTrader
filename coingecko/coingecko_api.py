@@ -1,5 +1,6 @@
 
 from pycoingecko import CoinGeckoAPI
+from wallets.models import ONP
 
 
 class GeckoClient:
@@ -12,7 +13,7 @@ class GeckoClient:
     def get_coins_list(self):
         return self.client.get_coins_list()
 
-    def get_coins_markets(self, per_page=100, page=1):
+    def get_coins_markets(self, per_page=250, page=1):
         if per_page > 250:
             raise ValueError("250 max results per page")
 
@@ -33,7 +34,7 @@ class GeckoClient:
         """
         :param collection: list of token attributes
         :param percent_change: 24 hour price change
-        :return: list of tokens that changes x percent in the last 24 hours
+        :return: None, upload hits to database
         """
 
         token_list = list()  # List of tokens meeting price-change requirements
@@ -50,8 +51,26 @@ class GeckoClient:
                 market_cap_change_24hr = f"{token['market_cap_change_24h']:,.2f}"
 
                 token_list.append(
-
+                    ONP(
+                        name=name,
+                        symbol=symbol,
+                        token_id=token_id,
+                        price_change=price_change_24hr
+                    )
                 )
+
+        ONP.objects.bulk_create(token_list)
+
+    def search_for_top_movers(self, pages:int):
+        """
+        :param pages: Number of pages to search (250 hits per page)
+        :return:
+        """
+        for page in range(pages):
+            collection = self.get_coins_markets(page=page)
+            self.parse_collection(collection=collection, percent_change=50)
+
+
 
 
 
