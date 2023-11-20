@@ -39,7 +39,7 @@ class GeckoClient:
         token_list = list()  # List of tokens meeting price-change requirements
 
         for token in collection:
-            price_change_24hr = f"{token['price_change_24h']:,.2f}"
+            price_change_24hr = token["price_change_24h"]
 
             if price_change_24hr >= percent_change:
                 token_id = token["id"]
