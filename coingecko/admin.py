@@ -4,4 +4,4 @@ from .models import *
 
 @admin.register(ONP)
 class ONPAdmin(admin.ModelAdmin):
-    list_display = ["name", "symbol", "token_id", "price_change", "date_added"]
+    list_display = ["name", "symbol", "token_id", "price_change", "rank", "date_added"]
