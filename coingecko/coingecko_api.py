@@ -87,9 +87,7 @@ class GeckoClient:
         :param percent_change_7d: 7 dat price change
         :return:
         """
-
         for page in range(pages):
-            print(f"searching in Page {page + 1}")
             collection = self.get_coins_markets(page=page+1)
             self.parse_collection(collection=collection, percent_change_24h=percent_change_24h,
                                   percent_change_7d=percent_change_7d)
