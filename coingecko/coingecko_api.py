@@ -12,7 +12,7 @@ class GeckoClient:
         return self.client.get_asset_platforms()
 
     def get_coin_contract(self, token_id: str):
-        return self.client.get_coin_by_id(token_id)
+        return self.client.get_coin_by_id(token_id)["platforms"]
 
     def get_coins_list(self):
         return self.client.get_coins_list()
