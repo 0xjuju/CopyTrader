@@ -12,11 +12,15 @@ class TestCoingecko(TestCase):
     def test_get_asset_platforms(self):
         v = self.api.get_asset_platforms()
 
+    def test_get_coin_contract(self):
+        data = self.api.get_coin_contract("bancor")
+        print(data)
+
     def test_get_coins_list(self):
         tokens = self.api.get_coins_list()
 
     def test_get_coins_markets(self):
-        print(self.api.get_coins_markets()[0])
+        print(self.api.get_coins_markets(page=3))
 
     def test_get_market_charts_by_contract(self):
         res = self.api.get_market_chart_by_contract(contract_address=self.nexo_contract_address, days=100,

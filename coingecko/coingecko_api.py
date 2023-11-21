@@ -1,6 +1,8 @@
+import time
 
 from pycoingecko import CoinGeckoAPI
 from .models import ONP
+
 
 class GeckoClient:
     def __init__(self):
@@ -9,14 +11,20 @@ class GeckoClient:
     def get_asset_platforms(self):
         return self.client.get_asset_platforms()
 
+    def get_coin_contract(self, token_id: str):
+        return self.client.get_coin_by_id(token_id)
+
     def get_coins_list(self):
         return self.client.get_coins_list()
 
-    def get_coins_markets(self, per_page=250, page=1):
+    def get_coins_markets(self, per_page=100, page=1):
         if per_page > 250:
             raise ValueError("250 max results per page")
 
-        return self.client.get_coins_markets(vs_currency="usd", per_page=per_page, page=page)
+        data = self.client.get_coins_markets(vs_currency="usd", page=page)
+        if data:
+            return data
+
 
     def get_market_chart_by_contract(self, *, contract_address: str, chain: str, days: int = 100, currency="usd"):
         chain_map = {
@@ -37,11 +45,11 @@ class GeckoClient:
         """
 
         token_list = list()  # List of tokens meeting price-change requirements
-
         for token in collection:
             price_change_24hr = token["price_change_percentage_24h"]
+            print(token["market_cap_rank"])
 
-            if price_change_24hr >= percent_change:
+            if price_change_24hr is not None and price_change_24hr >= percent_change:
                 token_id = token["id"]
                 symbol = token["symbol"]
                 name = token["name"]
@@ -49,15 +57,17 @@ class GeckoClient:
                 market_cap_rank = token["market_cap_rank"]
                 market_cap_change_24hr = f"{token['market_cap_change_24h']:,.2f}"
 
-                token_list.append(
-                    ONP(
-                        name=name,
-                        symbol=symbol,
-                        token_id=token_id,
-                        price_change=price_change_24hr,
-                        rank=market_cap_rank
+                if not ONP.objects.filter(token_id=token_id).exists():
+
+                    token_list.append(
+                        ONP(
+                            name=name,
+                            symbol=symbol,
+                            token_id=token_id,
+                            price_change=price_change_24hr,
+                            rank=market_cap_rank
+                        )
                     )
-                )
 
         ONP.objects.bulk_create(token_list)
 
@@ -67,7 +77,8 @@ class GeckoClient:
         :return:
         """
         for page in range(pages):
-            collection = self.get_coins_markets(page=page)
+            print(f"searching in Page {page + 1}")
+            collection = self.get_coins_markets(page=page+1)
             self.parse_collection(collection=collection, percent_change=50)
 
 
