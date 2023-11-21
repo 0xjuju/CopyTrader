@@ -152,12 +152,13 @@ class TestBlockchainExplorer(TestCase):
         x = self.explore_bsc.filter_contract(max_chunk=10, address=address, fromBlock=19442105, toBlock=19442409)
 
     def test_get_block(self):
+        print(self.explore_eth.get_block())
         block = self.explore_eth.get_block(12411591)
         self.assertEqual(str(datetime.fromtimestamp(block["timestamp"])), "2021-05-11 06:47:16")
         block = self.explore_eth.get_block()["transactions"]
         c = block[0].hex()
         tx = self.explore_eth.get_transaction_hash_data(c)
-        print(tx)
+
 
 
 
@@ -166,6 +167,10 @@ class TestBlockchainExplorer(TestCase):
 
     def test_get_block_before_timestamp(self):
         pass
+
+    def test_get_last_n_blocks(self):
+        blocks = self.explore_eth.get_last_n_blocks(50)
+        self.assertEqual(blocks[1] - blocks[0], 50)
 
     def test_get_logs(self):
         # 0x96167d79e03A37d114FEDb14bD9DeCA2a49ea870

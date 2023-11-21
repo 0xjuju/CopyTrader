@@ -341,6 +341,12 @@ class Explorer:
         else:
             return self.web3.eth.get_block('latest')
 
+    def get_last_n_blocks(self, n: int):
+        latest_block = self.get_block()["number"]
+        start = latest_block - n
+
+        return start, latest_block
+
 
     @check_keyword_args
     def get_logs(self, *, max_chunk=None, **kwargs):
@@ -349,6 +355,7 @@ class Explorer:
         :param kwargs: Filter params for log data. fromBlock, toBlock, address...
         :return: Event log filter
         """
+
         from_block = kwargs.get("fromBlock")
         to_block = kwargs.get("toBlock")
         block_range = to_block - from_block
@@ -357,7 +364,6 @@ class Explorer:
             logs = self.get_paginated_event_filters(max_chunk=max_chunk, **kwargs)
         else:
             logs = self.web3.eth.get_logs(kwargs)
-
         return logs
 
     def get_paginated_event_filters(self, *, max_chunk, **kwargs):
