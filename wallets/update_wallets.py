@@ -4,8 +4,8 @@ import json
 import time
 
 from algorithms.token_dataset_algos import percent_difference_from_dataset
-from blockchain_explorer.blockchain_explorer import Explorer
-from blockchain_explorer.blockscsan import Blockscan
+from blockchain.blockchain_explorer import Explorer
+from blockchain.blockscsan import Blockscan
 from coingecko.coingecko_api import GeckoClient
 from wallets.models import Bot, Transaction, Wallet, PoolContract, Token, PairContract
 

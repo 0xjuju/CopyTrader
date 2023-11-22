@@ -1,4 +1,3 @@
-import time
 
 from pycoingecko import CoinGeckoAPI
 from .models import ONP

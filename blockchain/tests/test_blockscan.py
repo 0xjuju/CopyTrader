@@ -4,7 +4,7 @@ import time
 
 from decouple import config
 from django.test import TestCase
-from blockchain_explorer.blockscsan import Blockscan
+from blockchain.blockscsan import Blockscan
 
 
 class TestBlockscan(TestCase):

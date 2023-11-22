@@ -1,7 +1,7 @@
 from functools import lru_cache
 
 from asyc_modules.periodic_functions import end_task
-from blockchain_explorer.blockchain_explorer import Explorer
+from blockchain.blockchain_explorer import Explorer
 from celery import shared_task
 from wallets.models import TargetWallet
 

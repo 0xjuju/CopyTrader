@@ -4,7 +4,7 @@ from datetime import (datetime, )
 import socket
 import ssl
 
-from blockchain_explorer.blockchain_explorer import Explorer
+from blockchain.blockchain_explorer import Explorer
 from django.test import TestCase
 
 

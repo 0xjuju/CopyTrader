@@ -10,7 +10,7 @@ from typing import Literal
 from websockets import connect
 
 
-from blockchain_explorer.decorators import *
+from blockchain.decorators import *
 from decouple import config
 from eth_utils import event_abi_to_log_topic, to_hex
 from hexbytes import HexBytes
