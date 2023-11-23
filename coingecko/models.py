@@ -13,6 +13,7 @@ class ONP(models.Model):
 
 class GeckoToken(models.Model):
     name = models.CharField(max_length=255, default="")
+    token_id = models.CharField(unique=True, max_length=255, default="")
 
 
 class Address(models.Model):
