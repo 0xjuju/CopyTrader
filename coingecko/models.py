@@ -11,3 +11,13 @@ class ONP(models.Model):
     rank = models.IntegerField(default=0)
 
 
+class GeckoToken(models.Model):
+    name = models.CharField(max_length=255, default="")
+
+
+class Address(models.Model):
+    address = models.CharField(max_length=255, default="")
+    chain = models.CharField(max_length=255, default="")
+    token = models.ForeignKey(GeckoToken, on_delete=models.CASCADE, default=None)
+
+
