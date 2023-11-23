@@ -21,8 +21,10 @@ class Command(BaseCommand):
         for page in range(2, 11):
             print(f" This page:::: {page}")
             tokens = gecko_client.get_coins_markets(page=page)
+            print(tokens)
             for token in tokens:
                 token_id = token["id"]
+                print(token_id)
                 contracts = gecko_client.get_coin_contract(token_id)
                 for name, contract in contracts.items():
 
