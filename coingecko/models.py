@@ -24,7 +24,5 @@ class Address(models.Model):
     chain = models.CharField(max_length=255, default="")
     token = models.ForeignKey(GeckoToken, on_delete=models.CASCADE, default=None)
 
-    def __str__(self):
-        return self.token
 
 

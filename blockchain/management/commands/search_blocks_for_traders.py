@@ -11,18 +11,21 @@ class Command(BaseCommand):
         gecko_client = GeckoClient()
         existing_tokens = GeckoToken.objects.all()
 
-
-
         # Lists of token contract addresses belonging to their respective chains
         chain_list = {
-            # "ethereum",
+            "ethereum": list(),
             "arbitrum-one": list(),
             "polygon": list(),
             "binance-smart-chain": list(),
-            "polygon-pos": list()
+            "polygon-pos": list(),
+            "optimistic-ethereum": list(),
+            "avalanche": list(),
+            "solana": list(),
+            "base": list(),
+            "moonbeam": list(),
+            "dogechain": list(),
+
         }
-
-
 
         for page in range(1, 11):
             print(f" This page:::: {page}")
