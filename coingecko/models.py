@@ -15,10 +15,16 @@ class GeckoToken(models.Model):
     name = models.CharField(max_length=255, default="")
     token_id = models.CharField(unique=True, max_length=255, default="")
 
+    def __str__(self):
+        return self.name
+
 
 class Address(models.Model):
-    address = models.CharField(max_length=255, default="")
+    contract = models.CharField(max_length=255, default="")
     chain = models.CharField(max_length=255, default="")
     token = models.ForeignKey(GeckoToken, on_delete=models.CASCADE, default=None)
+
+    def __str__(self):
+        return self.token
 
 
