@@ -22,6 +22,7 @@ from web3.middleware import geth_poa_middleware
 
 
 class Explorer:
+
     def __init__(self, chain: str, version: int = 3, use_testnet: bool = False, ):
         """
         :param chain: which chain to explore
