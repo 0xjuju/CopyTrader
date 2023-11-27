@@ -7,7 +7,6 @@ from webstuff.web_functions import request_get_data
 
 class Blockscan:
     def __init__(self, chain):
-        self.API_KEY = config("ETHERSCAN_API_KEY")
 
         self.BASE_URL, self.API_KEY = self.chain_map(chain)
 
@@ -18,6 +17,7 @@ class Blockscan:
         :return: (API URL of chain, API KEY)
         """
         chain_data = {
+            "arbitrum": ("https://api.arbiscan.io/api", config("ARBITRUM_API_KEY")),
             "ethereum": ("https://api.etherscan.io/api", config("ETHERSCAN_API_KEY"), ),
             "bsc": ("https://api.bscscan.com/api", config("BSC_API_KEY"),),
             "polygon": ("https://api.polygonscan.com/api", config("POLYGONSCAN_API_KEY"), ),
