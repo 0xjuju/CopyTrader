@@ -28,6 +28,27 @@ class Etherscan:
     Returns:
         Decimal(123849579385)
     '''
+
+    def get_block_by_timestamp(self, timestamp: str):
+        """
+
+        :param timestamp: timestamp
+        :return: block with closest timestamp
+        """
+
+        params = {
+            "module": "block",
+            "action": "getblocknobytime",
+            "timestamp": timestamp,
+            "closest": "before",
+            "apikey": self.API_KEY
+        }
+        res = self.request_get_data(params=params)
+        if res.get("message") == "OK":
+            return res["result"]
+
+
+
     def get_eth_balance(self, address: str) -> dict:
         params = {
             "module": "account",

@@ -19,6 +19,14 @@ class TestEtherScanApi(TestCase):
         self.assertEqual(test1["message"], "OK", msg=test1)
         self.assertIsInstance(test1["result"], str, msg="Must be a String")
 
+    def test_get_block_by_timestamp(self):
+        from datetime import datetime
+        d = datetime.now().timestamp()
+        print(f"{int(d)}")
+
+        block = self.test.get_block_by_timestamp(timestamp=f"{int(d)}")
+        print(block)
+
     def test_get_multi_eth_balances(self):
         test_data = ["0xC05189824bF36f2ad9d0f64a222c1C156Df28DA1", "0xFea856912F20bc4f7C877C52d60a2cdC797C6Ef8"]
         test1 = self.test.get_multi_eth_balances(test_data)
