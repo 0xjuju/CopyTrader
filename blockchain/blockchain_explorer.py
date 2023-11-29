@@ -44,6 +44,7 @@ class Explorer:
         # Set Provider URL Based on selected chain, then connect
         self.web3 = self.set_connection()
 
+
     def convert_from_hex(self, value: hex) -> int:
         """
         :param value: encoded hex values from transactiond ata
@@ -54,7 +55,10 @@ class Explorer:
         elif self.chain == "bsc":
             return self.web3.toInt(hexstr=value) // 1000000000000000000
 
-    def convert_to_checksum_address(self, address: hex) -> str:
+    def convert_to_checksum_address(self, address: str):
+        return self.web3.toChecksumAddress(address)
+
+    def convert_to_checksum_address_from_hex(self, address: hex) -> str:
         """
         Convert address to unique checksum counterpart
         :param address: wallet or contract address

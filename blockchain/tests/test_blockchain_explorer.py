@@ -59,6 +59,9 @@ class TestBlockchainExplorer(TestCase):
         address = self.explore_eth.convert_to_checksum_address(address)
         self.assertEqual(address.lower(), "0xfea856912f20bc4f7c877c52d60a2cdc797c6ef8")
 
+        address = "0xFea856912F20bc4f7C877C52d60a2cdC797C6Ef8"
+        address = self.explore_eth.convert_to_checksum(address)
+
     def test_custom_filter(self):
         val = self.explore_eth.custom_filter(from_block=31963060, to_block=31963066,
                                              address="0x96167d79e03A37d114FEDb14bD9DeCA2a49ea870")
