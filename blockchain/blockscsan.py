@@ -59,7 +59,7 @@ class Blockscan:
                     elif tries > max_tries_hours:
                         break
 
-        return res["result"]
+        return int(res["result"])
 
     '''
     Get ETH balance of a single address

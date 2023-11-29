@@ -398,7 +398,6 @@ class Explorer:
                     "toBlock": page[1],
                     "address": kwargs["address"],
                 })
-
                 entries = event_filter.get_all_entries()
 
             # Create single list of all event filters
@@ -423,6 +422,7 @@ class Explorer:
         event_abi = [a for a in abi if a['type'] == 'event']
         topic2abi = {event_abi_to_log_topic(_): _ for _ in event_abi}
         return topic2abi
+
 
     @transaction_not_found_exception
     def get_transaction_receipt(self, transaction_hash):

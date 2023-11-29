@@ -176,7 +176,9 @@ class TestBlockchainExplorer(TestCase):
         # 0x96167d79e03A37d114FEDb14bD9DeCA2a49ea870
         # 0xa022AE9cfADefd62d70B510c27DC3D5DB67CA43b
         # 0x229b1b6C23ff8953D663C4cBB519717e323a0a84
-        logs = self.explore_eth.get_logs(max_chunk=20000, fromBlock=17154835, toBlock=17154836)
+        logs = self.explore_eth.get_logs(max_chunk=20000, fromBlock=17154835, toBlock=17154836,
+                                         address=["0xDb8d79C775452a3929b86ac5DEaB3e9d38e1c006",
+                                                  "0x4DAe20c6DF4ef1a8f9B99637DaF9626153fb77d2"])
 
         for l in logs:
             print(l)
