@@ -205,7 +205,7 @@ class Updater:
             max_chunk = 500
 
         # Infura HTTPS for Polygon does not support eth.get_newFilter so get_logs is used instead
-        if contract.chain == "polygon":
+        if contract.chain == "polygon" or contract.chain == "polygon-pos":
             max_chunk = 3500
 
             transactions = blockchain.get_logs(max_chunk=max_chunk, address=contract.contract_address,
