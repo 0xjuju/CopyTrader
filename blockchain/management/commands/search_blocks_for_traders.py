@@ -7,6 +7,7 @@ from coingecko.coingecko_api import GeckoClient
 from coingecko.models import Address, GeckoToken
 from wallets.rank_wallets import get_wallets
 from wallets.models import WalletFilter
+from web3.exceptions import InvalidAddress
 
 
 class Command(BaseCommand):
@@ -25,7 +26,12 @@ class Command(BaseCommand):
             "bsc",
         ]
 
+        excluded_tokens = [
+            "USDC", "USDT", "USDD", "Tether", "Ethereum", "BNB"
+        ]
+
         for chain in chain_list:
+            print(chain)
             blockscan = Blockscan(chain)
             exp = Explorer(chain)
 
@@ -34,16 +40,27 @@ class Command(BaseCommand):
             latest_block = exp.get_block()["number"]
             start_block = blockscan.get_block_by_timestamp(timestamp)
             max_chunk = 5000
-            print(type(start_block))
-            print(type(latest_block))
 
-            gecko_tokens = Address.objects.filter(chain=chain).values_list("contract", flat=True)
-            gecko_tokens = [exp.convert_to_checksum_address(i) for i in gecko_tokens]
+            gecko_tokens = Address.objects.filter(chain=chain) \
+                .exclude(token__name__in=excluded_tokens) \
+                .exclude(contract="") \
+                .values_list("contract", flat=True)
 
-            logs = exp.get_logs(max_chunk=max_chunk, fromBlock=start_block, toBlock=latest_block, address=gecko_tokens)
-            print(logs)
+            contract_list = list()
 
+            for each in gecko_tokens:
+                # skip contracrt address if it's not compatible for that chain
+                try:
+                    contract_list.append(exp.convert_to_checksum_address(each))
+                except InvalidAddress:
+                    pass
 
+            print(len(contract_list))
+
+            logs = exp.get_logs(max_chunk=max_chunk, fromBlock=start_block, toBlock=latest_block, address=contract_list)
+            print(len(logs))
+
+            break
 
 
 

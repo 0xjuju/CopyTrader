@@ -349,9 +349,28 @@ class Explorer:
     def get_last_n_blocks(self, n: int):
         latest_block = self.get_block()["number"]
         start = latest_block - n
-
         return start, latest_block
 
+    def __get_logs(self, **kwargs):
+        """
+
+        :param kwargs: query parameters for blockchain query [toBlock, fromBlock, address, ...]
+        :return: Blockchain logs
+        """
+
+        try:
+            logs = self.web3.eth.get_logs(kwargs)
+        except Exception as e:
+            # Recursively break query into two calls, until each log returns less tha 10,000 results
+            start1, stop1 = None, None
+            start2, stop2 = None, None
+            logs_1 = self.__get_logs(fromBlock=start1, toBlock=stop1, address=kwargs.get("address"))
+            logs_2 = self.__get_logs(fromBlock=start2, toBlock=stop2, address=kwargs.get("address"))
+
+            logs = None
+            print(e)
+
+        return logs
 
     @check_keyword_args
     def get_logs(self, *, max_chunk=None, **kwargs):

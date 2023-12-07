@@ -9,6 +9,7 @@ class AddressAdmin(admin.ModelAdmin):
 @admin.register(GeckoToken)
 class GeckoTokenAdmin(admin.ModelAdmin):
     list_display = ["name", "token_id"]
+    search_fields = ["name"]
 
 @admin.register(ONP)
 class ONPAdmin(admin.ModelAdmin):
