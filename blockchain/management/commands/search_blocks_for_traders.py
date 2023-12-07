@@ -30,7 +30,7 @@ class Command(BaseCommand):
             "USDC", "USDT", "USDD", "Tether", "Ethereum", "BNB"
         ]
 
-        for chain in chain_list:
+        for chain in chain_list[1:]:
             print(chain)
             blockscan = Blockscan(chain)
             exp = Explorer(chain)

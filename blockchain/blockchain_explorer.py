@@ -40,6 +40,8 @@ class Explorer:
         self.connection_type = None
         if self.chain == "ethereum" or self.chain == "eth":
             self.connection_type = "goerli" if self.use_testnet else "mainnet"
+        elif self.chain == "arbitrum":
+            self.connection_type = "arbitrum-mainnet"
 
         # Set Provider URL Based on selected chain, then connect
         self.web3 = self.set_connection()
@@ -473,6 +475,7 @@ class Explorer:
         map_rpc = {
             "eth": f"https://{self.connection_type}.infura.io/v{self.version}/{config('INFURA_ID')}",
             "ethereum": f"https://{self.connection_type}.infura.io/v{self.version}/{config('INFURA_ID')}",
+            "arbitrum": f"https://{self.connection_type}.infura.io/v{self.version}/{config('INFURA_ID')}",
             "bsc": "https://bsc-dataseed.binance.org/",
             "polygon": config("INFURA_POLYGON_RPC_URL"),
         }
@@ -480,6 +483,7 @@ class Explorer:
         rpc_url = map_rpc.get(self.chain)
         connection = Web3(Web3.HTTPProvider(rpc_url))
         self.provider_url = rpc_url
+        print(connection)
 
         # Must set middleware to explore blocks on bsc using web3
         if self.chain == "bsc":
