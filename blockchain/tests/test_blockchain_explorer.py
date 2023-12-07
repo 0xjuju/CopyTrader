@@ -12,8 +12,8 @@ class TestBlockchainExplorer(TestCase):
     def setUp(self):
         self.explore_eth = Explorer("eth")
         self.explore_bsc = Explorer("bsc")
-        self.explore_polygon = Explorer("polygon")
-        self.explore_arbitrum = Explorer("arbitrum")
+        self.explore_polygon = Explorer("polygon-pos")
+        self.explore_arbitrum = Explorer("arbitrum-one")
         self.test_wallet = "0xC05189824bF36f2ad9d0f64a222c1C156Df28DA1"
         self.eth_test_hash = "0x5aca3af227b511ec21b801c97616442039674bca46936c4ee3ab4359067c9ae6"
         self.bsc_test_hash = "0x31342f70f8f379999a22ca91fc6595f3b24b841f8019f21f966be84467fc4c5a"
@@ -26,7 +26,6 @@ class TestBlockchainExplorer(TestCase):
 
     def test_set_connection(self):
         e = self.explore_eth.provider_url
-        print(e)
         self.assertEqual(self.explore_eth.set_connection().isConnected(), True)
         self.explore_eth.use_test_net = True
         self.assertEqual(self.explore_eth.set_connection().isConnected(), True)

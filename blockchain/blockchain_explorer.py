@@ -31,6 +31,7 @@ class Explorer:
         """
 
         self.chain = chain
+
         self.use_testnet = use_testnet
         self.version = version
 
@@ -40,7 +41,7 @@ class Explorer:
         self.connection_type = None
         if self.chain == "ethereum" or self.chain == "eth":
             self.connection_type = "goerli" if self.use_testnet else "mainnet"
-        elif self.chain == "arbitrum":
+        elif self.chain == "arbitrum" or self.chain == "arbitrum-one":
             self.connection_type = "arbitrum-mainnet"
 
         # Set Provider URL Based on selected chain, then connect
@@ -406,10 +407,10 @@ class Explorer:
         pages = self.paginate(from_block, to_block, increment=max_chunk)
 
         for index, page in enumerate(pages):
-            print(index)
             time.sleep(0.5)
             # polygon network needs to use get_logs. HTTPS does not support eth_newFilter
-            if self.chain == "polygon":
+
+            if self.chain == "polygon-pos" or self.chain == "arbitrum-one":
                 event_filter = self.get_logs(
                     fromBlock=page[0],
                     toBlock=page[1],
@@ -476,17 +477,16 @@ class Explorer:
             "eth": f"https://{self.connection_type}.infura.io/v{self.version}/{config('INFURA_ID')}",
             "ethereum": f"https://{self.connection_type}.infura.io/v{self.version}/{config('INFURA_ID')}",
             "arbitrum": f"https://{self.connection_type}.infura.io/v{self.version}/{config('INFURA_ID')}",
+            "arbitrum-one": f"https://{self.connection_type}.infura.io/v{self.version}/{config('INFURA_ID')}",
             "bsc": "https://bsc-dataseed.binance.org/",
-            "polygon": config("INFURA_POLYGON_RPC_URL"),
+            "polygon-pos": config("INFURA_POLYGON_RPC_URL"),
         }
 
         rpc_url = map_rpc.get(self.chain)
         connection = Web3(Web3.HTTPProvider(rpc_url))
         self.provider_url = rpc_url
-        print(connection)
-
         # Must set middleware to explore blocks on bsc using web3
-        if self.chain == "bsc":
+        if self.chain == "bsc" or self.chain == "polygon-pos":
             connection.middleware_onion.inject(geth_poa_middleware, layer=0)
         return connection
 

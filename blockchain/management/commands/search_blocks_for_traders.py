@@ -20,21 +20,21 @@ class Command(BaseCommand):
         gecko_client = GeckoClient()
 
         chain_list = [
+            "polygon-pos",
             "ethereum",
-            "arbitrum",
-            "polygon",
-            "bsc",
+            "arbitrum-one",
+
+
         ]
 
         excluded_tokens = [
             "USDC", "USDT", "USDD", "Tether", "Ethereum", "BNB"
         ]
 
-        for chain in chain_list[1:]:
+        for chain in chain_list:
             print(chain)
             blockscan = Blockscan(chain)
             exp = Explorer(chain)
-
             last_hour = datetime.now() - timedelta(hours=1)
             timestamp = int(last_hour.timestamp())
             latest_block = exp.get_block()["number"]
@@ -45,7 +45,6 @@ class Command(BaseCommand):
                 .exclude(token__name__in=excluded_tokens) \
                 .exclude(contract="") \
                 .values_list("contract", flat=True)
-
             contract_list = list()
 
             for each in gecko_tokens:
@@ -55,10 +54,11 @@ class Command(BaseCommand):
                 except InvalidAddress:
                     pass
 
-            print(len(contract_list))
-
-            logs = exp.get_logs(max_chunk=max_chunk, fromBlock=start_block, toBlock=latest_block, address=contract_list)
-            print(len(logs))
+            print(f"Number of contracts {len(contract_list)}")
+            if contract_list:
+                logs = exp.get_logs(max_chunk=max_chunk, fromBlock=start_block, toBlock=latest_block, address=contract_list)
+                print(f"Number of Logs {len(logs)}")
+                print(logs[788])
 
             break
 
