@@ -20,9 +20,11 @@ class Command(BaseCommand):
         gecko_client = GeckoClient()
 
         chain_list = [
+            "avalanche",
             "polygon-pos",
             "ethereum",
             "arbitrum-one",
+            "binance-smart-chain"
 
 
         ]

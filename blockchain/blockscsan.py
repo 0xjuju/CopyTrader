@@ -20,7 +20,7 @@ class Blockscan:
             "arbitrum": ("https://api.arbiscan.io/api", config("ARBITRUM_API_KEY")),
             "arbitrum-one": ("https://api.arbiscan.io/api", config("ARBITRUM_API_KEY")),
             "ethereum": ("https://api.etherscan.io/api", config("ETHERSCAN_API_KEY"), ),
-            "bsc": ("https://api.bscscan.com/api", config("BSC_API_KEY"),),
+            "binance-smart-chain": ("https://api.bscscan.com/api", config("BSC_API_KEY"),),
             "polygon-pos": ("https://api.polygonscan.com/api", config("POLYGONSCAN_API_KEY"), ),
         }
         return chain_data[chain][0], chain_data[chain][1]

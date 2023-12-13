@@ -55,7 +55,7 @@ class Explorer:
         """
         if self.chain == "eth" or self.chain == "ethereum":
             return self.web3.toInt(hexstr=value) // 1000000
-        elif self.chain == "bsc":
+        elif self.chain == "binance-smart-chain":
             return self.web3.toInt(hexstr=value) // 1000000000000000000
 
     def convert_to_checksum_address(self, address: str):
@@ -112,7 +112,7 @@ class Explorer:
         :param kwargs: filter arguments for web3 event filter [from_block, to_block, address...]
         :return: Event filter based on keyword arguments
         """
-        excepted_chains = ["eth", "ethereum", "bsc"]
+        excepted_chains = ["eth", "ethereum", "binance-smart-chain"]
         if self.chain in excepted_chains:
             event_filter = self.web3.eth.filter(kwargs)
             return event_filter
@@ -282,7 +282,7 @@ class Explorer:
         to_block = kwargs.get("toBlock")
 
         # BSC Scan is rate-limited 5000 txs for block-range per query
-        if self.chain == "bsc" and isinstance(max_chunk, int) and to_block - from_block > max_chunk:
+        if self.chain == "binance-smart-chain" and isinstance(max_chunk, int) and to_block - from_block > max_chunk:
             event_filter_list = self.get_paginated_event_filters(max_chunk=max_chunk, **kwargs)
             return event_filter_list
 
@@ -492,7 +492,7 @@ class Explorer:
             "ethereum": f"https://{self.connection_type}.infura.io/v{self.version}/{config('INFURA_ID')}",
             "arbitrum": f"https://{self.connection_type}.infura.io/v{self.version}/{config('INFURA_ID')}",
             "arbitrum-one": f"https://{self.connection_type}.infura.io/v{self.version}/{config('INFURA_ID')}",
-            "bsc": "https://bsc-dataseed.binance.org/",
+            "binance-smart-chain": "https://bsc-dataseed.binance.org/",
             "polygon-pos": config("INFURA_POLYGON_RPC_URL"),
         }
 
@@ -500,7 +500,7 @@ class Explorer:
         connection = Web3(Web3.HTTPProvider(rpc_url))
         self.provider_url = rpc_url
         # Must set middleware to explore blocks on bsc using web3
-        if self.chain == "bsc" or self.chain == "polygon-pos":
+        if self.chain == "binanace-smart-chain" or self.chain == "polygon-pos":
             connection.middleware_onion.inject(geth_poa_middleware, layer=0)
         return connection
 

@@ -11,7 +11,7 @@ from django.test import TestCase
 class TestBlockchainExplorer(TestCase):
     def setUp(self):
         self.explore_eth = Explorer("eth")
-        self.explore_bsc = Explorer("bsc")
+        self.explore_bsc = Explorer("binance-smart-chain")
         self.explore_polygon = Explorer("polygon-pos")
         self.explore_arbitrum = Explorer("arbitrum-one")
         self.test_wallet = "0xC05189824bF36f2ad9d0f64a222c1C156Df28DA1"
