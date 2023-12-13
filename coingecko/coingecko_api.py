@@ -1,6 +1,6 @@
 
 from pycoingecko import CoinGeckoAPI
-from .models import ONP
+from .models import GeckoToken
 
 
 class GeckoClient:
@@ -63,20 +63,11 @@ class GeckoClient:
 
                 if price_change_24hr or price_change_7d:
 
-                    if not ONP.objects.filter(token_id=token_id).exists():
-
-                        token_list.append(
-                            ONP(
-                                name=name,
-                                symbol=symbol,
-                                token_id=token_id,
-                                price_change_24hr=price_change_24hr,
-                                price_change_7d=price_change_7d,
-                                rank=market_cap_rank
-                            )
-                        )
-        if token_list:
-            ONP.objects.bulk_create(token_list)
+                    gecko_token, _ = GeckoToken.objects.get_or_create(name=name, symbol=symbol, token_id=token_id)
+                    gecko_token.price_change_24h = price_change_24hr
+                    gecko_token.price_change_7d = price_change_7d
+                    gecko_token.rank = market_cap_rank
+                    gecko_token.save()
 
     def search_for_top_movers(self, pages:int, percent_change_24h: float, percent_change_7d: float):
 

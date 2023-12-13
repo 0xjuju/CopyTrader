@@ -29,13 +29,22 @@ class Command(BaseCommand):
             print(tokens)
             for token in tokens:
                 token_id = token["id"]
-                print(token_id)
+                symbol = token["symbol"]
 
                 if not existing_tokens.filter(token_id=token_id).exists():
+                    price_change_24hr = 0 if not token["price_change_percentage_24h"] else token[
+                        "price_change_percentage_24h"]
+                    price_change_7d = 0 if not token["price_change_percentage_7d_in_currency"] else token[
+                        "price_change_percentage_7d_in_currency"]
+                    market_cap_rank = token["market_cap_rank"]
 
                     new_token = GeckoToken.objects.create(
                         name=token["name"],
-                        token_id=token_id
+                        token_id=token_id,
+                        symbol=symbol,
+                        price_change_24hr=price_change_24hr,
+                        price_change_7d=price_change_7d,
+                        rank=market_cap_rank
                     )
                     new_token.save()
 

@@ -34,8 +34,9 @@ class TestCoingecko(TestCase):
         collection = self.api.get_coins_markets()
 
         self.api.parse_collection(collection=collection, percent_change_24h=3, percent_change_7d=20)
-        from .models import ONP
-        tokens = ONP.objects.all()
+        from .models import GeckoToken
+        tokens = GeckoToken.objects.all()
+        print(tokens)
 
 
 

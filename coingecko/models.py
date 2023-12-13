@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class ONP(models.Model):
+class GeckoToken(models.Model):
     name = models.CharField(max_length=255, default="")
     symbol = models.CharField(max_length=255, default="")
     token_id = models.CharField(unique=True, max_length=255, default="")
@@ -9,11 +9,6 @@ class ONP(models.Model):
     price_change_24hr = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     price_change_7d = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     rank = models.IntegerField(default=0)
-
-
-class GeckoToken(models.Model):
-    name = models.CharField(max_length=255, default="")
-    token_id = models.CharField(unique=True, max_length=255, default="")
 
     def __str__(self):
         return self.name
