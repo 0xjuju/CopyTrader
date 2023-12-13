@@ -8,5 +8,5 @@ class AddressAdmin(admin.ModelAdmin):
 
 @admin.register(GeckoToken)
 class GeckoTokenAdmin(admin.ModelAdmin):
-    list_display = ["name", "token_id"]
+    list_display = ["name", "token_id", "symbol", "price_change_24hr", "price_change_7d", "rank", "date_added"]
     search_fields = ["name"]
