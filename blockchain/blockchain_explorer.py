@@ -6,7 +6,7 @@ import json
 import sys
 import time
 import traceback
-from typing import Literal
+import types
 from websockets import connect
 
 
@@ -364,7 +364,6 @@ class Explorer:
         :param kwargs: query parameters for blockchain query [toBlock, fromBlock, address, ...]
         :return: get_logs query
         """
-        print("Getting Logs Now...")
         try:
             logs = self.web3.eth.get_logs(kwargs)
             yield logs
@@ -374,13 +373,9 @@ class Explorer:
                 start_block = kwargs["fromBlock"]
                 end_block = kwargs["toBlock"]
 
-                print(f"Original {start_block} --- {end_block}")
-                print(abs(start_block - end_block))
                 # Split blocks in half
                 start1, stop1 = start_block, start_block + abs(start_block - end_block) // 2
                 start2, stop2 = stop1 + 1, end_block
-                print(f"New Blocks 1st {start1} - {stop1}")
-                print(f"New Blocks 2nd {start2} - {stop2}")
 
                 # Recursively break query into two calls, until each log returns less tha 10,000 results
                 yield from self._get_logs(fromBlock=start1, toBlock=stop1, address=kwargs.get("address"))
@@ -407,7 +402,7 @@ class Explorer:
         else:
             logs = self._get_logs(**kwargs)
 
-        return logs
+        return list(logs) if isinstance(logs, types.GeneratorType) else logs
 
     def get_paginated_event_filters(self, *, max_chunk, **kwargs):
         """

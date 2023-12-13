@@ -20,10 +20,10 @@ class Command(BaseCommand):
         gecko_client = GeckoClient()
 
         chain_list = [
+            "arbitrum-one",
             "avalanche",
             "polygon-pos",
             "ethereum",
-            "arbitrum-one",
             "binance-smart-chain"
         ]
 
@@ -34,8 +34,8 @@ class Command(BaseCommand):
         for chain in chain_list:
             blockscan = Blockscan(chain)
             exp = Explorer(chain)
-            last_hour = datetime.now() - timedelta(hours=1)
-            timestamp = int(last_hour.timestamp())
+            last_30 = datetime.now() - timedelta(minutes=30)
+            timestamp = int(last_30.timestamp())
             latest_block = exp.get_block()["number"]
             start_block = blockscan.get_block_by_timestamp(timestamp)
             max_chunk = 5000
@@ -54,7 +54,8 @@ class Command(BaseCommand):
             print(f"Number of contracts {len(contract_list)}")
             if contract_list:
                 logs = exp.get_logs(max_chunk=max_chunk, fromBlock=start_block, toBlock=latest_block, address=contract_list)
-                print(f"Number of Logs {list(logs)}")
+                for tx in logs:
+                    pass
 
             break
 
