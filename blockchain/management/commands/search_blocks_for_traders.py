@@ -25,8 +25,6 @@ class Command(BaseCommand):
             "ethereum",
             "arbitrum-one",
             "binance-smart-chain"
-
-
         ]
 
         excluded_tokens = [
@@ -56,7 +54,7 @@ class Command(BaseCommand):
             print(f"Number of contracts {len(contract_list)}")
             if contract_list:
                 logs = exp.get_logs(max_chunk=max_chunk, fromBlock=start_block, toBlock=latest_block, address=contract_list)
-                # print(f"Number of Logs {list(logs)[32]}")
+                print(f"Number of Logs {list(logs)}")
 
             break
 

@@ -43,6 +43,8 @@ class Explorer:
             self.connection_type = "goerli" if self.use_testnet else "mainnet"
         elif self.chain == "arbitrum" or self.chain == "arbitrum-one":
             self.connection_type = "arbitrum-mainnet"
+        elif self.chain == "avalanche":
+            self.connection_type = "avalanche-mainnet"
 
         # Set Provider URL Based on selected chain, then connect
         self.web3 = self.set_connection()
@@ -494,9 +496,13 @@ class Explorer:
             "arbitrum-one": f"https://{self.connection_type}.infura.io/v{self.version}/{config('INFURA_ID')}",
             "binance-smart-chain": "https://bsc-dataseed.binance.org/",
             "polygon-pos": config("INFURA_POLYGON_RPC_URL"),
+            "avalanche": f"https://{self.connection_type}.infura.io/v{self.version}/{config('INFURA_ID')}",
         }
 
         rpc_url = map_rpc.get(self.chain)
+        if rpc_url is None:
+            raise ValueError(f"RPC not identified. Value: {self.chain}")
+
         connection = Web3(Web3.HTTPProvider(rpc_url))
         self.provider_url = rpc_url
         # Must set middleware to explore blocks on bsc using web3
