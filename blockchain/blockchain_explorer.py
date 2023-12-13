@@ -354,26 +354,39 @@ class Explorer:
         start = latest_block - n
         return start, latest_block
 
-    def __get_logs(self, **kwargs):
+    def _get_logs(self, **kwargs):
         """
+        Recursive get_logs function to handle -32005 error when query returns too many results.
+        Split blocks in half until all queries are completed successfully
 
         :param kwargs: query parameters for blockchain query [toBlock, fromBlock, address, ...]
-        :return: Blockchain logs
+        :return: get_logs query
         """
-
+        print("Getting Logs Now...")
         try:
             logs = self.web3.eth.get_logs(kwargs)
-        except Exception as e:
-            # Recursively break query into two calls, until each log returns less tha 10,000 results
-            start1, stop1 = None, None
-            start2, stop2 = None, None
-            logs_1 = self.__get_logs(fromBlock=start1, toBlock=stop1, address=kwargs.get("address"))
-            logs_2 = self.__get_logs(fromBlock=start2, toBlock=stop2, address=kwargs.get("address"))
+            yield logs
 
-            logs = None
-            print(e)
+        except ValueError as e:
+            if "-32005" in str(e):
+                start_block = kwargs["fromBlock"]
+                end_block = kwargs["toBlock"]
 
-        return logs
+                print(f"Original {start_block} --- {end_block}")
+                print(abs(start_block - end_block))
+                # Split blocks in half
+                start1, stop1 = start_block, start_block + abs(start_block - end_block) // 2
+                start2, stop2 = stop1 + 1, end_block
+                print(f"New Blocks 1st {start1} - {stop1}")
+                print(f"New Blocks 2nd {start2} - {stop2}")
+
+                # Recursively break query into two calls, until each log returns less tha 10,000 results
+                yield from self._get_logs(fromBlock=start1, toBlock=stop1, address=kwargs.get("address"))
+                yield from self._get_logs(fromBlock=start2, toBlock=stop2, address=kwargs.get("address"))
+            else:
+                raise ValueError(e)
+
+
 
     @check_keyword_args
     def get_logs(self, *, max_chunk=None, **kwargs):
@@ -390,7 +403,8 @@ class Explorer:
         if max_chunk and from_block and to_block and block_range > max_chunk:
             logs = self.get_paginated_event_filters(max_chunk=max_chunk, **kwargs)
         else:
-            logs = self.web3.eth.get_logs(kwargs)
+            logs = self._get_logs(**kwargs)
+
         return logs
 
     def get_paginated_event_filters(self, *, max_chunk, **kwargs):
@@ -410,7 +424,7 @@ class Explorer:
             time.sleep(0.5)
             # polygon network needs to use get_logs. HTTPS does not support eth_newFilter
 
-            if self.chain == "polygon-pos" or self.chain == "arbitrum-one":
+            if self.chain == "arbitrum-one":
                 event_filter = self.get_logs(
                     fromBlock=page[0],
                     toBlock=page[1],
