@@ -16,6 +16,7 @@ class Command(BaseCommand):
 
         wallets = get_wallets()
         wallets.values_list(flat=True)
+        top_wallets = wallets[wallet_filter.min_wallets]
 
         gecko_client = GeckoClient()
 
@@ -39,10 +40,12 @@ class Command(BaseCommand):
             latest_block = exp.get_block()["number"]
             start_block = blockscan.get_block_by_timestamp(timestamp)
             max_chunk = 5000
+
             gecko_tokens = Address.objects.filter(chain=chain) \
                 .exclude(token__name__in=excluded_tokens) \
                 .exclude(contract="") \
                 .values_list("contract", flat=True)
+
             contract_list = list()
             for each in gecko_tokens:
                 # skip contract address if it's not compatible for that chain
@@ -55,8 +58,17 @@ class Command(BaseCommand):
             if contract_list:
                 logs = exp.get_logs(max_chunk=max_chunk, fromBlock=start_block, toBlock=latest_block, address=contract_list)
                 for tx in logs:
-                    pass
+                    data = tx["data"]
+                    topics = tx["topics"]
+                    abi = ""
+                    decoded_log = exp.decode_log(data=data, topics=topics, abi=abi)
+                    if decoded_log[0] == "swap":
+                        wallet = None
+                        if wallet in top_wallets:
+                            pass
 
+
+                    break
             break
 
 

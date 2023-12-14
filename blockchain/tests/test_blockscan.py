@@ -43,9 +43,8 @@ class TestBlockscan(TestCase):
         print(block)
 
     def test_get_contract_source_code(self):
-        v = self.test.get_contract_source_code("0x4C54Ff7F1c424Ff5487A32aaD0b48B19cBAf087F")
+        v = self.test.get_contract_source_code("0x549020a9cb845220d66d3e9c6d9f9ef61c981102")
         print(v)
-        time.sleep(0.5)
 
     def test_get_multi_eth_balances(self):
         test_data = ["0xC05189824bF36f2ad9d0f64a222c1C156Df28DA1", "0xFea856912F20bc4f7C877C52d60a2cdC797C6Ef8"]

@@ -402,7 +402,7 @@ class Explorer:
         else:
             logs = self._get_logs(**kwargs)
 
-        return list(logs) if isinstance(logs, types.GeneratorType) else logs
+        return list(*logs) if isinstance(logs, types.GeneratorType) else logs
 
     def get_paginated_event_filters(self, *, max_chunk, **kwargs):
         """
