@@ -9,7 +9,7 @@ class Command(BaseCommand):
         wallets = get_wallets()
 
         for wallet in wallets:
-            held_tokens = wallet.owned_token_set.all()
+            held_tokens = wallet.owned_token_set.f
             for token in held_tokens:
 
                 pass
