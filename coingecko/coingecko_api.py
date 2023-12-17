@@ -7,6 +7,9 @@ class GeckoClient:
     def __init__(self):
         self.client = CoinGeckoAPI()
 
+    def get_coin_data(self, token_id):
+        return self.client.get_coins_markets(ids=token_id, vs_currency="usd")
+
     def get_asset_platforms(self):
         return self.client.get_asset_platforms()
 
@@ -23,7 +26,6 @@ class GeckoClient:
         data = self.client.get_coins_markets(vs_currency="usd", page=page, price_change_percentage="7d")
         if data:
             return data
-
 
     def get_market_chart_by_contract(self, *, contract_address: str, chain: str, days: int = 100, currency="usd"):
         chain_map = {

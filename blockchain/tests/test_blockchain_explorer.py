@@ -1,15 +1,15 @@
 
 import asyncio
 from datetime import (datetime, )
-import socket
-import ssl
 
 from blockchain.blockchain_explorer import Explorer
+from blockchain.tests.build_test_data import build_generic_abi
 from django.test import TestCase
 
 
 class TestBlockchainExplorer(TestCase):
     def setUp(self):
+        build_generic_abi()
         self.explore_eth = Explorer("eth")
         self.explore_bsc = Explorer("binance-smart-chain")
         self.explore_polygon = Explorer("polygon-pos")
@@ -165,11 +165,15 @@ class TestBlockchainExplorer(TestCase):
         c = block[0].hex()
         tx = self.explore_eth.get_transaction_hash_data(c)
 
-
-
-
-    # def test_get_contract_abi(self):
-    #     v = self.explore_eth.get_contract_abi(contract="0x4C54Ff7F1c424Ff5487A32aaD0b48B19cBAf087F")
+    def test_get_contract(self):
+        import json
+        import re
+        from blockchain.models import ABI
+        abi = ABI.objects.first().text
+        abi = re.sub("'", '"', abi)
+        abi2 = '[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"remaining","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"}]'
+        v = self.explore_eth.get_contract("0x33349B282065b0284d756F0577FB39c158F935e6", abi=abi2)
+        print(list(v.functions))
 
     def test_get_block_before_timestamp(self):
         pass

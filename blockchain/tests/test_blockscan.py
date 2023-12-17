@@ -10,6 +10,7 @@ from blockchain.blockscsan import Blockscan
 class TestBlockscan(TestCase):
     def setUp(self):
         self.test = Blockscan(chain="ethereum")
+        self.test_polygon = Blockscan(chain="polygon-pos")
 
     def test_ping(self):
         chains = ["ethereum", "bsc", "polygon"]
@@ -43,7 +44,7 @@ class TestBlockscan(TestCase):
         print(block)
 
     def test_get_contract_source_code(self):
-        v = self.test.get_contract_source_code("0x549020a9cb845220d66d3e9c6d9f9ef61c981102")
+        v = self.test_polygon.get_contract_source_code("0x229b1b6C23ff8953D663C4cBB519717e323a0a84")
         print(v)
 
     def test_get_multi_eth_balances(self):

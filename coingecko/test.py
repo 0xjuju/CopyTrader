@@ -9,6 +9,11 @@ class TestCoingecko(TestCase):
         self.api = GeckoClient()
         self.nexo_contract_address = "0xB62132e35a6c13ee1EE0f84dC5d40bad8d815206"
 
+    def test_get_coin_data(self):
+        data = self.api.get_coin_data("sidus")
+        for d in data:
+            print(d)
+
     def test_get_asset_platforms(self):
         v = self.api.get_asset_platforms()
 
