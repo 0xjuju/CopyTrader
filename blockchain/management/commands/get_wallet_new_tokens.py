@@ -1,6 +1,6 @@
 
+from blockchain.blockchain_explorer import Explorer
 from django.core.management.base import BaseCommand
-from wallets.models import WalletFilter
 from wallets.rank_wallets import get_wallets
 
 
@@ -9,7 +9,10 @@ class Command(BaseCommand):
         wallets = get_wallets()
 
         for wallet in wallets:
-            pass
+            held_tokens = wallet.owned_token_set.all()
+            for token in held_tokens:
+
+                pass
 
 
 
