@@ -7,6 +7,7 @@ class Bot(models.Model):
     def __str__(self):
         return self.address
 
+
 class WalletFilter(models.Model):
     top_percent = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     min_wallets = models.IntegerField(default=0)
@@ -73,9 +74,13 @@ class Token(models.Model):
     name = models.CharField(max_length=255, default="")
     address = models.CharField(max_length=255, default="")
 
-
     def __str__(self):
         return self.name
+
+
+class OwnedToken(Token):
+    date_added = models.DateTimeField(auto_now_add=True)
+    wallet = models.ForeignKey("Wallet", on_delete=models.CASCADE)
 
 
 class Transaction(models.Model):
@@ -107,6 +112,7 @@ class TargetWallet(models.Model):
 class Wallet(models.Model):
     address = models.CharField(max_length=255, default="")
     token = models.ManyToManyField(Token)
+
 
     def __str__(self):
         return self.address

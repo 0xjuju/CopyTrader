@@ -128,7 +128,6 @@ class TestBlockchainExplorer(TestCase):
         wallet_address = "0x96167d79e03A37d114FEDb14bD9DeCA2a49ea870"
         v = self.explore_polygon.get_balance_of_token(wallet_address=wallet_address, abi=self.blok_abi,
                                                       token_contract_address=contract_address)
-        print(f"{v:,.2f}")
 
     # def test_get_event(self):
     #     hostname = 'www.python.org'
