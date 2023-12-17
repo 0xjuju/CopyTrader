@@ -80,7 +80,7 @@ class Token(models.Model):
 
 class OwnedToken(Token):
     date_added = models.DateTimeField(auto_now_add=True)
-    wallet = models.ForeignKey("Wallet", on_delete=models.CASCADE)
+    owner_wallet = models.ForeignKey("Wallet", on_delete=models.CASCADE, default=None)
 
 
 class Transaction(models.Model):
