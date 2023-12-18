@@ -10,7 +10,7 @@ from wallets.models import Wallet, OwnedToken
 class Command(BaseCommand):
     def handle(self, *args, **options):
         wallets = get_wallets()
-        wallets = Wallet.objects.values_list("address", flat=True)
+        wallets = Wallet.objects.all()
         chain_list = Chain.objects.values_list("name", flat=True)
         abi = ABI.objects.first().text
         gecko_tokens = Address.objects.all()
@@ -20,16 +20,24 @@ class Command(BaseCommand):
             explorer = Explorer(chain)
             gecko_tokens_filtered = gecko_tokens.filter(chain=chain)
             for wallet in wallets:
-                print(wallet)
                 for token in gecko_tokens_filtered:
                     if token.contract:
                         balance = explorer.get_balance_of_token(
-                            wallet_address=wallet,
+                            wallet_address=wallet.address,
                             token_contract_address=token.contract,
                             abi=abi,
                         )
 
-                        if balance > 0:
+                        if balance and balance > 0:
+                            token = OwnedToken.objects.get_or_create(
+                                name=token.token.name,
+                                address=token.contract,
+                                owner_wallet=wallet,
+                                balance=balance
+                            )
+
+
+
                             print(chain, token.token.name, balance)
 
 

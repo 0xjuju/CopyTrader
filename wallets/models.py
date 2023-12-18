@@ -79,9 +79,9 @@ class Token(models.Model):
 
 
 class OwnedToken(Token):
-    date_added = models.DateTimeField(auto_now_add=True)
+    date_added = models.DateTimeField(auto_now=True)
     owner_wallet = models.ForeignKey("Wallet", on_delete=models.CASCADE, default=None)
-    balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    balance = models.BigIntegerField( default=0)
 
 
 class Transaction(models.Model):

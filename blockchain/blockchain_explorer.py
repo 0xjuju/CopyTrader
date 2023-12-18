@@ -338,13 +338,13 @@ class Explorer:
 
             # catch occasional API error
             except BadFunctionCallOutput:
-                time.sleep(20)
+                time.sleep(10)
                 continue
 
             else:
                 break
 
-        return balance / (10 ** 18)
+        return balance  # / (10 ** 18)
 
     def get_block(self, block_num=None):
         if block_num:
