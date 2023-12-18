@@ -330,6 +330,7 @@ class Explorer:
         """
 
         wallet_address = self.web3.toChecksumAddress(wallet_address)
+        token_contract_address = self.web3.toChecksumAddress(token_contract_address)
         contract = self.get_contract(token_contract_address, abi)
         while True:
             try:
