@@ -79,9 +79,17 @@ class Token(models.Model):
 
 
 class OwnedToken(Token):
+    balance_change_options = (
+        ("increase", "increase", ),
+        ("decrease", "decrease", )
+    )
     date_added = models.DateTimeField(auto_now=True)
     owner_wallet = models.ForeignKey("Wallet", on_delete=models.CASCADE, default=None)
     balance = models.BigIntegerField( default=0)
+    balance_change = models.CharField(max_length=255, default="", choices=balance_change_options)
+
+    def __str__(self):
+        return self.owner_wallet.address
 
 
 class Transaction(models.Model):
