@@ -36,11 +36,6 @@ class WalletAdmin(admin.ModelAdmin):
     search_fields = ("address", )
 
 
-@admin.register(TargetWallet)
-class TargetWalletAdmin(admin.ModelAdmin):
-    pass
-
-
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     search_fields = ("wallet", )
