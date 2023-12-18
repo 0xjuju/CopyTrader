@@ -39,11 +39,12 @@ class Command(BaseCommand):
                             # save triggers auto_add for date_added field
                             if balance != token.balance:
                                 token.balance = balance
-                                token.save()
 
                             if balance > 0:
                                 # Token has been bought or transferred in account
-                                pass
+                                token.balance_change = "increase"
+                            else:
+                                token.balance_chance = "decrease"
 
                             print(chain, token.token.name, balance)
 
