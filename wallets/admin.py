@@ -3,6 +3,10 @@ from django.contrib import admin
 from wallets.models import *
 
 
+@admin.register(OwnedToken)
+class OwnedTokenAdmnin(admin.ModelAdmin):
+    pass
+
 @admin.register(PairContract)
 class PairContractAdmin(admin.ModelAdmin):
     list_display = ["dex", "token", "pair", "chain"]

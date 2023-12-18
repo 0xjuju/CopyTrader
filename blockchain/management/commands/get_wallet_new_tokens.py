@@ -29,7 +29,7 @@ class Command(BaseCommand):
                         )
 
                         if balance and balance > 0:
-                            token, _ = OwnedToken.objects.get_or_create(
+                            token_obj, created = OwnedToken.objects.get_or_create(
                                 name=token.token.name,
                                 address=token.contract,
                                 owner_wallet=wallet,
@@ -37,14 +37,19 @@ class Command(BaseCommand):
 
                             # Check if balance is different. If so, update the value and save.
                             # save triggers auto_add for date_added field
-                            if balance != token.balance:
+                            if balance != token_obj.balance:
                                 token.balance = balance
 
-                            if balance > 0:
-                                # Token has been bought or transferred in account
-                                token.balance_change = "increase"
+                            if created:
+                                token_obj.balance_increase = False
                             else:
-                                token.balance_chance = "decrease"
+                                if balance > 0:
+                                    # Token has been bought or transferred in account
+                                    token_obj.balance_increase = True
+                                else:
+                                    token_obj.balance_increase = False
+
+                            token.save()
 
                             print(chain, token.token.name, balance)
 

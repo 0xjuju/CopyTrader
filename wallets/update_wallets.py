@@ -7,6 +7,7 @@ from algorithms.token_dataset_algos import percent_difference_from_dataset
 from blockchain.blockchain_explorer import Explorer
 from blockchain.blockscsan import Blockscan
 from coingecko.coingecko_api import GeckoClient
+from coingecko.models import GeckoToken
 from wallets.models import Bot, Transaction, Wallet, PoolContract, Token, PairContract
 
 
@@ -276,8 +277,8 @@ class Updater:
 
         return buyers, sellers
 
-    def update(self, token, percent_threshold: float):
-        contracts = token.paircontract_set.all()
+    def update(self, percent_threshold: float):
+
         print(contracts)
 
         for contract in contracts:
@@ -295,7 +296,6 @@ class Updater:
             # determine if a price increase that meets threshold is reached and add to list
             price_breakouts = self.determine_price_breakouts(diffs=diffs, timestamps=timestamps,
                                                              percent_threshold=percent_threshold)
-
             if price_breakouts:
                 # Exclude known bot wallets from processing
                 blacklisted = Bot.objects.values_list("address", flat=True)
