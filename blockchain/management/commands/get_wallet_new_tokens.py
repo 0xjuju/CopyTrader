@@ -4,7 +4,7 @@ from blockchain.models import Chain, ABI
 from coingecko.models import Address
 from django.core.management.base import BaseCommand
 from wallets.rank_wallets import get_wallets
-from wallets.models import Wallet
+from wallets.models import Wallet, OwnedToken
 
 
 class Command(BaseCommand):
