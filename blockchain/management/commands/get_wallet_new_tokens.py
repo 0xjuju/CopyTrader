@@ -18,11 +18,10 @@ class Command(BaseCommand):
             gecko_tokens_filtered = gecko_tokens.filter(chain=chain)
             for wallet in wallets:
                 for token in gecko_tokens_filtered:
-                    address = token.address
 
                     balance = explorer.get_balance_of_token(
                         wallet_address=wallet,
-                        token_contract_address=address,
+                        token_contract_address=token.contract,
                         abi=abi
                     )
 

@@ -49,12 +49,13 @@ class Command(BaseCommand):
                     new_token.save()
 
                     contracts = gecko_client.get_coin_contract(token_id)
-                    for chain, contract in contracts.items():
+                    for contract_name in contracts:
 
-                        if chain in chain_list:
+                        if contract_name in chain_list:
                             new_address = Address.objects.create(
-                                contract=contract,
-                                chain=chain,
+                                contract=contracts[contract_name]["contract_address"],
+                                chain=contract_name,
+                                decimals=contracts[contract_name]["decimal_places"],
                                 token=new_token
                             )
                             new_address.save()

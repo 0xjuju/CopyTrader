@@ -19,7 +19,7 @@ class TestCoingecko(TestCase):
 
     def test_get_coin_contract(self):
         data = self.api.get_coin_contract("usd-coin")
-        print(data)
+        print(data["detail_platforms"])
 
     def test_get_coins_list(self):
         tokens = self.api.get_coins_list()
