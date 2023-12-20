@@ -47,6 +47,9 @@ class TestBlockscan(TestCase):
         v = self.test_polygon.get_contract_source_code("0x229b1b6C23ff8953D663C4cBB519717e323a0a84")
         print(v)
 
+    def test_get_gas_price(self):
+        gas = self.test.get_gas_price()
+
     def test_get_multi_eth_balances(self):
         test_data = ["0xC05189824bF36f2ad9d0f64a222c1C156Df28DA1", "0xFea856912F20bc4f7C877C52d60a2cdC797C6Ef8"]
         test1 = self.test.get_multi_eth_balances(test_data)

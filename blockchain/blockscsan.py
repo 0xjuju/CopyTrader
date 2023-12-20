@@ -30,6 +30,14 @@ class Blockscan:
         balance = Decimal(balance)
         return Decimal(balance / (10 ** decimals))
 
+    def get_gas_price(self):
+        params = {
+            "module": "gastracker",
+            "action": "gasoracle",
+            "apikey": self.API_KEY
+        }
+        return request_get_data(url=self.BASE_URL, params=params)
+
     def get_block_by_timestamp(self, timestamp, look_for_previous_block_if_error: bool = False, max_tries_hours: int = 5):
 
         params = {
