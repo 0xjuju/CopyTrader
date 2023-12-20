@@ -6,8 +6,10 @@ import time
 from algorithms.token_dataset_algos import percent_difference_from_dataset
 from blockchain.blockchain_explorer import Explorer
 from blockchain.blockscsan import Blockscan
+from blockchain.models import Chain
 from coingecko.coingecko_api import GeckoClient
-from coingecko.models import GeckoToken
+from coingecko.models import Address
+from django.db.models import Q
 from wallets.models import Bot, Transaction, Wallet, PoolContract, Token, PairContract
 
 
@@ -32,8 +34,8 @@ class Updater:
             return True
 
     @staticmethod
-    def create_database_entry(filtered_transactions: list[tuple[str, dict, float]], token: Token, chain: str, percentage: str,
-                              timestamp: int, index: int) -> None:
+    def create_database_entry(filtered_transactions: list[tuple[str, dict, float]], token: Token, chain: str,
+                              percentage: str, timestamp: int, index: int) -> None:
         """
         :param filtered_transactions: transaction data with possible bots / unwanted accounts filtered out
         :param token: Token model
@@ -191,7 +193,7 @@ class Updater:
         return timestamps, prices
 
     @staticmethod
-    def get_transactions(from_block: int, to_block: int, contract: PairContract, blockchain: Explorer):
+    def get_transactions(from_block: int, to_block: int, contract: Address, blockchain: Explorer):
         """
         :param from_block: start of block range
         :param to_block: end of block range
@@ -199,6 +201,8 @@ class Updater:
         :param blockchain: blockchain explorer
         :return: List of transactions filtered by token-pair contract from various dex
         """
+        print(f"Number of blocks: {abs(from_block - to_block):,}")
+        address = blockchain.convert_to_checksum_address(contract.contract)
 
         # Block range for query
         max_chunk = None
@@ -206,13 +210,13 @@ class Updater:
             max_chunk = 500
 
         # Infura HTTPS for Polygon does not support eth.get_newFilter so get_logs is used instead
-        if contract.chain == "polygon" or contract.chain == "polygon-pos":
+        if contract.chain == "polygon-pos":
             max_chunk = 3500
 
-            transactions = blockchain.get_logs(max_chunk=max_chunk, address=contract.contract_address,
+            transactions = blockchain.get_logs(max_chunk=max_chunk, address=address,
                                                fromBlock=from_block, toBlock=to_block)
         else:
-            transactions = blockchain.filter_contract(max_chunk=max_chunk, address=contract.contract_address,
+            transactions = blockchain.filter_contract(max_chunk=max_chunk, address=address,
                                                       fromBlock=from_block, toBlock=to_block)
 
         return transactions
@@ -278,17 +282,23 @@ class Updater:
         return buyers, sellers
 
     def update(self, percent_threshold: float):
-
-        print(contracts)
+        chains = Chain.objects.values_list("name", flat=True)
+        contracts = Address.objects.filter(chain__in=chains).exclude(chain="binance-smart-chain") \
+            .filter(
+            Q(token__price_change_24hr__gte=percent_threshold) | Q(token__price_change_7d__gte=percent_threshold)
+        )
+        print("Number of Contracts ", len(contracts))
 
         for contract in contracts:
-            # Blockchain (etherscan, bscscan) service explorer
+            print("Starting...")
+
+            # Blockchain (etherscan, etc...) service explorer
             explorer = Blockscan(contract.chain)
 
             # web3.py
             blockchain = Explorer(contract.chain)
 
-            timestamps, prices = self.get_prices_data(token.address, chain=contract.chain)
+            timestamps, prices = self.get_prices_data(contract.contract, chain=contract.chain)
 
             # Percentage difference of each price relative to the next day, 3 days, and 7 days from price
             diffs = percent_difference_from_dataset(prices)
@@ -314,15 +324,18 @@ class Updater:
                     timestamp = int(timestamp / 1000)
 
                     # Convert datetime to range of blocks to look through
-                    from_block, to_block = self.create_block_range(duration=duration, timestamp=timestamp, explorer=explorer)
+                    from_block, to_block = self.create_block_range(duration=duration, timestamp=timestamp,
+                                                                   explorer=explorer)
                     if from_block and to_block:
 
+                        print("Getting txs")
                         transactions = self.get_transactions(from_block=from_block, to_block=to_block, contract=contract,
                                                              blockchain=blockchain)
+                        print("Done getting txs...")
 
                         print(f"Number of transactions: {len(transactions)}")
 
-                        # Separate Buy ers from Sellers for each transaction and create Dictionary representations
+                        # Separate Buyers from Sellers for each transaction and create Dictionary representations
                         # Wallet address (EOA) as KEY
                         buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
                                                                       blacklisted=blacklisted, whitelisted=whitelisted,
@@ -332,7 +345,7 @@ class Updater:
                         filtered_transactions = self.filter_transactions(buyers, sellers)
 
                         # Update Database with new wallets and transactions
-                        self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
+                        self.create_database_entry(filtered_transactions=filtered_transactions, token=contract.token,
                                                    chain=contract.chain, timestamp=timestamp, percentage=str(percentage)
                                                    ,index=index)
             print("Finished")

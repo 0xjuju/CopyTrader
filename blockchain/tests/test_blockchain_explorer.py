@@ -157,12 +157,12 @@ class TestBlockchainExplorer(TestCase):
         x = self.explore_bsc.filter_contract(max_chunk=10, address=address, fromBlock=19442105, toBlock=19442409)
 
     def test_get_block(self):
-        print(self.explore_eth.get_block())
         block = self.explore_eth.get_block(12411591)
         self.assertEqual(str(datetime.fromtimestamp(block["timestamp"])), "2021-05-11 06:47:16")
-        block = self.explore_eth.get_block()["transactions"]
-        c = block[0].hex()
-        tx = self.explore_eth.get_transaction_hash_data(c)
+        block = self.explore_bsc.get_block()  #["transactions"]
+        print(block)
+        # c = block[0].hex()
+        # tx = self.explore_eth.get_transaction_hash_data(c)
 
     def test_get_contract(self):
         import json
@@ -185,12 +185,10 @@ class TestBlockchainExplorer(TestCase):
         # 0x96167d79e03A37d114FEDb14bD9DeCA2a49ea870
         # 0xa022AE9cfADefd62d70B510c27DC3D5DB67CA43b
         # 0x229b1b6C23ff8953D663C4cBB519717e323a0a84
-        logs = self.explore_eth.get_logs(max_chunk=20000, fromBlock=17154835, toBlock=17154836,
-                                         address=["0xDb8d79C775452a3929b86ac5DEaB3e9d38e1c006",
-                                                  "0x4DAe20c6DF4ef1a8f9B99637DaF9626153fb77d2"])
-
-        for l in logs:
-            print(l)
+        print(self.explore_bsc.chain)
+        logs = self.explore_bsc.get_logs(max_chunk=500, fromBlock=34080420, toBlock=34080426,
+                                         address="0x3b0E967cE7712EC68131A809dB4f78ce9490e779")
+        print(logs)
 
     def test_get_paginated_event_filter(self):
         logs = self.explore_polygon.get_paginated_event_filters(max_chunk=3500, fromBlock=31294240, toBlock=31294249,

@@ -31,7 +31,6 @@ class Explorer:
         """
 
         self.chain = chain
-
         self.use_testnet = use_testnet
         self.version = version
 
@@ -373,11 +372,12 @@ class Explorer:
             if "-32005" in str(e):
                 start_block = kwargs["fromBlock"]
                 end_block = kwargs["toBlock"]
+                print(e)
 
                 # Split blocks in half
                 start1, stop1 = start_block, start_block + abs(start_block - end_block) // 2
                 start2, stop2 = stop1 + 1, end_block
-
+                # print(f"Number of Blocks: {abs(start_block - end_block):,}")
                 # Recursively break query into two calls, until each log returns less tha 10,000 results
                 yield from self._get_logs(fromBlock=start1, toBlock=stop1, address=kwargs.get("address"))
                 yield from self._get_logs(fromBlock=start2, toBlock=stop2, address=kwargs.get("address"))
@@ -420,7 +420,7 @@ class Explorer:
 
         for index, page in enumerate(pages):
             time.sleep(0.5)
-            # polygon network needs to use get_logs. HTTPS does not support eth_newFilter
+            # arbitrum-one network needs to use get_logs. HTTPS does not support eth_newFilter
 
             if self.chain == "arbitrum-one":
                 event_filter = self.get_logs(
@@ -496,13 +496,14 @@ class Explorer:
         }
 
         rpc_url = map_rpc.get(self.chain)
+
         if rpc_url is None:
             raise ValueError(f"RPC not identified. Value: {self.chain}")
 
         connection = Web3(Web3.HTTPProvider(rpc_url))
         self.provider_url = rpc_url
         # Must set middleware to explore blocks on bsc using web3
-        if self.chain == "binanace-smart-chain" or self.chain == "polygon-pos":
+        if self.chain == "binance-smart-chain" or self.chain == "polygon-pos":
             connection.middleware_onion.inject(geth_poa_middleware, layer=0)
         return connection
 
