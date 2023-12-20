@@ -76,7 +76,7 @@ class GeckoClient:
                     gecko_token.rank = market_cap_rank
                     gecko_token.save()
 
-    def search_for_top_movers(self, pages:int, percent_change_24h: float, percent_change_7d: float):
+    def search_for_top_movers(self, pages: int, percent_change_24h: float, percent_change_7d: float):
 
         """
         :param pages: Number of pages to paginate through

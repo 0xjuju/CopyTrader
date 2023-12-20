@@ -6,7 +6,7 @@ import time
 from algorithms.token_dataset_algos import percent_difference_from_dataset
 from blockchain.blockchain_explorer import Explorer
 from blockchain.blockscsan import Blockscan
-from blockchain.models import Chain
+from blockchain.models import Chain, ABI
 from coingecko.coingecko_api import GeckoClient
 from coingecko.models import Address
 from django.db.models import Q
@@ -28,6 +28,7 @@ class Updater:
         """
 
         to_address = checked_topics[1]
+
         if checked_topics[1] in whitelisted_contracts and checked_topics[2] \
                 not in whitelisted_contracts and blockchain.web3.eth.get_code(checked_topics[2]) == b'' \
                 and to_address not in blacklisted and to_address[0:12] != "0x0000000000":
@@ -283,6 +284,7 @@ class Updater:
 
     def update(self, percent_threshold: float):
         chains = Chain.objects.values_list("name", flat=True)
+        abi = ABI.objects.get(abi_type="generic").text
         contracts = Address.objects.filter(chain__in=chains).exclude(chain="binance-smart-chain") \
             .filter(
             Q(token__price_change_24hr__gte=percent_threshold) | Q(token__price_change_7d__gte=percent_threshold)
@@ -339,7 +341,7 @@ class Updater:
                         # Wallet address (EOA) as KEY
                         buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
                                                                       blacklisted=blacklisted, whitelisted=whitelisted,
-                                                                      abi=contract.abi)
+                                                                      abi=abi)
 
                         # transactions with unwanted accounts filtered out
                         filtered_transactions = self.filter_transactions(buyers, sellers)
