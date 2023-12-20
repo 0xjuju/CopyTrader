@@ -67,7 +67,6 @@ class GeckoClient:
                 market_cap_rank = token["market_cap_rank"]
                 # market_cap_change_24hr = f"{token['market_cap_change_24h']:,.2f}"
 
-
                 if price_change_24hr or price_change_7d:
 
                     gecko_token, _ = GeckoToken.objects.get_or_create(name=name, symbol=symbol, token_id=token_id)
@@ -85,6 +84,7 @@ class GeckoClient:
         :return:
         """
         for page in range(pages):
+            print(f"Done page: {page}")
             collection = self.get_coins_markets(page=page+1)
             self.parse_collection(collection=collection, percent_change_24h=percent_change_24h,
                                   percent_change_7d=percent_change_7d)

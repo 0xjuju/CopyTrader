@@ -372,7 +372,8 @@ class Explorer:
             if "-32005" in str(e):
                 start_block = kwargs["fromBlock"]
                 end_block = kwargs["toBlock"]
-                print(e)
+                if abs(start_block - end_block) == 0:
+                    raise ValueError("Block Range reduced to 0. Infinite recursion...")
 
                 # Split blocks in half
                 start1, stop1 = start_block, start_block + abs(start_block - end_block) // 2
