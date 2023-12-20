@@ -12,7 +12,6 @@ class Command(BaseCommand):
         chain_list = {
             "ethereum": list(),
             "arbitrum-one": list(),
-            "polygon": list(),
             "binance-smart-chain": list(),
             "polygon-pos": list(),
             "optimistic-ethereum": list(),
@@ -26,7 +25,6 @@ class Command(BaseCommand):
         for page in range(1, 11):
             print(f" This page:::: {page}")
             tokens = gecko_client.get_coins_markets(page=page)
-            print(tokens)
             for token in tokens:
                 token_id = token["id"]
                 symbol = token["symbol"]

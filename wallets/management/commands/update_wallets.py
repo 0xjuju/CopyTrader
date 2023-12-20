@@ -6,7 +6,5 @@ from wallets.update_wallets import Updater
 class Command(BaseCommand):
     def handle(self, *args, **options):
         threshold = float(input("percent > "))
-        threshold = (threshold / 100) + 1
-        print(threshold)
         print("starting...")
         Updater().update(percent_threshold=threshold)
