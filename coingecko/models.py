@@ -6,8 +6,8 @@ class GeckoToken(models.Model):
     symbol = models.CharField(max_length=255, default="")
     token_id = models.CharField(unique=True, max_length=255, default="")
     date_added = models.DateTimeField(auto_now_add=True)
-    price_change_24hr = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    price_change_7d = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    price_change_24hr = models.FloatField(default=0)
+    price_change_7d = models.FloatField(default=0)
     rank = models.IntegerField(default=0)
 
     def __str__(self):

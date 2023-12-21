@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.core.management.base import BaseCommand
 from coingecko.coingecko_api import GeckoClient
 from coingecko.models import Address, GeckoToken
@@ -26,35 +27,44 @@ class Command(BaseCommand):
             print(f" This page:::: {page}")
             tokens = gecko_client.get_coins_markets(page=page)
             for token in tokens:
+                print(f"On Token {token['name']}")
                 token_id = token["id"]
                 symbol = token["symbol"]
 
-                if not existing_tokens.filter(token_id=token_id).exists():
+                gecko_token, created = GeckoToken.objects.get_or_create(
+                    token_id=token_id,
+                )
+
+                if created:
                     price_change_24hr = 0 if not token["price_change_percentage_24h"] else token[
                         "price_change_percentage_24h"]
+
                     price_change_7d = 0 if not token["price_change_percentage_7d_in_currency"] else token[
                         "price_change_percentage_7d_in_currency"]
+
                     market_cap_rank = token["market_cap_rank"]
 
-                    new_token = GeckoToken.objects.create(
-                        name=token["name"],
-                        token_id=token_id,
-                        symbol=symbol,
-                        price_change_24hr=price_change_24hr,
-                        price_change_7d=price_change_7d,
-                        rank=market_cap_rank
-                    )
-                    new_token.save()
+                    gecko_token.price_change_24hr = price_change_24hr,
+                    gecko_token.price_change_7d = price_change_7d,
+                    gecko_token.rank = market_cap_rank
+                    gecko_token.name = token["name"]
+                    gecko_token.symbol = symbol
 
+                gecko_token.save()
+
+                if gecko_token.address_set.count == 0:
                     contracts = gecko_client.get_coin_contract(token_id)
-                    for contract_name in contracts:
+
+                    for contract_name in contracts["detail_platforms"]:
+                        contract = contracts[contract_name]["contract_address"]
+                        decimals = contracts[contract_name]["decimal_places"]
 
                         if contract_name in chain_list:
                             new_address = Address.objects.create(
-                                contract=contracts[contract_name]["contract_address"],
+                                contract=contract,
                                 chain=contract_name,
-                                decimals=contracts[contract_name]["decimal_places"],
-                                token=new_token
+                                decimals=decimals,
+                                token=gecko_token
                             )
                             new_address.save()
 
