@@ -284,8 +284,12 @@ class Updater:
 
     def update(self, percent_threshold: float):
         chains = Chain.objects.values_list("name", flat=True)
-        abi = ABI.objects.get(abi_type="generic").text
-        contracts = Address.objects.filter(chain__in=chains).exclude(chain="binance-smart-chain") \
+        abi = ABI.objects.get(abi_type="erc_generic").text
+
+        contracts = Address.objects.filter(chain__in=chains)\
+            .exclude(chain="avalanche")\
+            .exclude(chain="binance-smart-chain")\
+            .exclude(chain="solana")\
             .filter(
             Q(token__price_change_24hr__gte=percent_threshold) | Q(token__price_change_7d__gte=percent_threshold)
         )

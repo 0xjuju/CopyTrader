@@ -1,4 +1,6 @@
 
+from blockchain.models import Chain
+from coingecko.models import Address
 from pycoingecko import CoinGeckoAPI
 from .models import GeckoToken
 
@@ -51,6 +53,7 @@ class GeckoClient:
         :return: None, upload hits to database
         """
 
+        chain_list = Chain.objects.values_list()
         token_list = list()  # List of tokens meeting price-change requirements
         for token in collection:
 
@@ -58,7 +61,6 @@ class GeckoClient:
             price_change_7d = 0 if not token["price_change_percentage_7d_in_currency"] else token["price_change_percentage_7d_in_currency"]
 
             if price_change_24hr >= percent_change_24h or price_change_7d >= percent_change_7d:
-
 
                 token_id = token["id"]
                 symbol = token["symbol"]
@@ -74,6 +76,22 @@ class GeckoClient:
                     gecko_token.price_change_7d = price_change_7d
                     gecko_token.rank = market_cap_rank
                     gecko_token.save()
+
+                    if gecko_token.address_set.count() == 0:
+                        contracts = self.get_coin_contract(token_id)
+                        for contract_name in contracts["detail_platforms"]:
+                            if contract_name:
+                                contract = contracts["detail_platforms"][contract_name]["contract_address"]
+                                decimals = contracts["detail_platforms"][contract_name]["decimal_place"]
+                                if contract_name in chain_list and contract and decimals:
+                                    print(contracts["detail_platforms"])
+                                    new_address = Address.objects.create(
+                                        contract=contract,
+                                        chain=contract_name,
+                                        decimals=decimals,
+                                        token=gecko_token
+                                    )
+                                    new_address.save()
 
     def search_for_top_movers(self, pages: int, percent_change_24h: float, percent_change_7d: float):
 

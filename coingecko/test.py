@@ -25,7 +25,8 @@ class TestCoingecko(TestCase):
         tokens = self.api.get_coins_list()
 
     def test_get_coins_markets(self):
-        print(self.api.get_coins_markets(page=2))
+        res = self.api.get_coins_markets(page=2)
+        print(res[0])
 
     def test_get_market_charts_by_contract(self):
         res = self.api.get_market_chart_by_contract(contract_address=self.nexo_contract_address, days=100,
