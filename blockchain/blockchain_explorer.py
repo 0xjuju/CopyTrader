@@ -365,11 +365,13 @@ class Explorer:
         :return: get_logs query
         """
         try:
+            print(f"Number of Blocks {abs(kwargs['fromBlock'] - kwargs['toBlock'])}")
             logs = self.web3.eth.get_logs(kwargs)
             yield logs
 
         except ValueError as e:
             if "-32005" in str(e):
+                print(e)
                 start_block = kwargs["fromBlock"]
                 end_block = kwargs["toBlock"]
                 if abs(start_block - end_block) == 0:

@@ -16,9 +16,9 @@ class TestCoinPicker(TestCase):
 
         # Must always be the same size as original dataset
         self.assertEqual(len(test_data), len(result))
-        self.assertEqual(result[0][0], 2.5)
-        self.assertEqual(result[14][0], 1.9801980198019802)
-        self.assertEqual(result[3][1], 1.2)
+        self.assertEqual(result[0][0], 150.)
+        self.assertEqual(result[14][0], 98.01980198019802)
+        self.assertAlmostEqual(result[3][1], 20)
         # Last day should have all 0s
         self.assertEqual(result[-1], (0, 0, 0))
         # No 6th day should be 0

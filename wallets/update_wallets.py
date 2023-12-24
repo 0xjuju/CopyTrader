@@ -137,6 +137,7 @@ class Updater:
             elif d[2] > percent_threshold:
                 start_date = 7
 
+            print(start_date)
             # only append data if a start date of price increase is found
             if start_date:
 
@@ -296,6 +297,7 @@ class Updater:
         print("Number of Contracts ", len(contracts))
 
         for contract in contracts:
+            print(contract.token.name)
 
             # Blockchain (etherscan, etc...) service explorer
             explorer = Blockscan(contract.chain)
@@ -311,6 +313,8 @@ class Updater:
             # determine if a price increase that meets threshold is reached and add to list
             price_breakouts = self.determine_price_breakouts(diffs=diffs, timestamps=timestamps,
                                                              percent_threshold=percent_threshold)
+
+
             if price_breakouts:
                 # Exclude known bot wallets from processing
                 blacklisted = Bot.objects.values_list("address", flat=True)
@@ -353,7 +357,6 @@ class Updater:
                         self.create_database_entry(filtered_transactions=filtered_transactions, token=contract.token,
                                                    chain=contract.chain, timestamp=timestamp, percentage=str(percentage)
                                                    ,index=index)
-            print("Finished")
 
 
 
