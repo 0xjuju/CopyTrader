@@ -367,7 +367,6 @@ class Explorer:
         :return: get_logs query
         """
         try:
-            print(f"Number of Blocks {abs(kwargs['fromBlock'] - kwargs['toBlock'])}")
             logs = self.web3.eth.get_logs(kwargs)
             yield logs
 

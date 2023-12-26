@@ -29,8 +29,7 @@ class Updater:
 
         to_address = checked_topics[1]
 
-        if checked_topics[1] in whitelisted_contracts and checked_topics[2] \
-                not in whitelisted_contracts and blockchain.web3.eth.get_code(checked_topics[2]) == b'' \
+        if checked_topics[2] not in whitelisted_contracts and blockchain.web3.eth.get_code(checked_topics[2]) == b'' \
                 and to_address not in blacklisted and to_address[0:12] != "0x0000000000":
             return True
 
