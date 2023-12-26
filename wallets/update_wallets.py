@@ -137,7 +137,6 @@ class Updater:
             elif d[2] > percent_threshold:
                 start_date = 7
 
-            print(start_date)
             # only append data if a start date of price increase is found
             if start_date:
 
@@ -215,11 +214,11 @@ class Updater:
         if contract.chain == "polygon-pos":
             max_chunk = 3500
 
-            transactions = blockchain.get_logs(max_chunk=max_chunk, address=address,
+        transactions = blockchain.get_logs(max_chunk=max_chunk, address=address,
                                                fromBlock=from_block, toBlock=to_block)
-        else:
-            transactions = blockchain.filter_contract(max_chunk=max_chunk, address=address,
-                                                      fromBlock=from_block, toBlock=to_block)
+        # else:
+        #     transactions = blockchain.filter_contract(max_chunk=max_chunk, address=address,
+        #                                               fromBlock=from_block, toBlock=to_block)
 
         return transactions
 
@@ -238,7 +237,8 @@ class Updater:
         for transaction in all_entries:
             # We want at least 2 topics to filter out Sync event, and other non-swap events
             if len(transaction["topics"]) > 2:
-                checked_topics = [blockchain.convert_to_checksum_address(i) for i in transaction["topics"]]
+                checked_topics = [transaction["topics"][0].hex()] +\
+                                 [blockchain.convert_to_checksum_address_from_hex(i) for i in transaction["topics"][1:]]
 
                 # Various checks to filter out contracts that execute buy/sell events
                 # Expect real person to always interact directly with DEX
@@ -297,7 +297,7 @@ class Updater:
         print("Number of Contracts ", len(contracts))
 
         for contract in contracts:
-            print(contract.token.name)
+            print(contract.token.name,  contract.chain)
 
             # Blockchain (etherscan, etc...) service explorer
             explorer = Blockscan(contract.chain)
@@ -313,7 +313,6 @@ class Updater:
             # determine if a price increase that meets threshold is reached and add to list
             price_breakouts = self.determine_price_breakouts(diffs=diffs, timestamps=timestamps,
                                                              percent_threshold=percent_threshold)
-
 
             if price_breakouts:
                 # Exclude known bot wallets from processing

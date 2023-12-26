@@ -12,7 +12,7 @@ from websockets import connect
 
 from blockchain.decorators import *
 from decouple import config
-from eth_utils import event_abi_to_log_topic, to_hex
+from eth_utils import event_abi_to_log_topic, to_hex, to_checksum_address
 from hexbytes import HexBytes
 from web3 import Web3
 from web3.auto import w3
@@ -59,8 +59,10 @@ class Explorer:
         elif self.chain == "binance-smart-chain":
             return self.web3.toInt(hexstr=value) // 1000000000000000000
 
-    def convert_to_checksum_address(self, address: str):
-        return self.web3.toChecksumAddress(address)
+    @staticmethod
+    def convert_to_checksum_address(address: str):
+
+        return to_checksum_address(address)
 
     def convert_to_checksum_address_from_hex(self, address: hex) -> str:
         """
@@ -406,7 +408,9 @@ class Explorer:
         else:
             logs = self._get_logs(**kwargs)
 
-        return list(*logs) if isinstance(logs, types.GeneratorType) else logs
+        if isinstance(logs, types.GeneratorType):
+            logs = list(logs)
+        return logs
 
     def get_paginated_event_filters(self, *, max_chunk, **kwargs):
         """
@@ -425,7 +429,7 @@ class Explorer:
             time.sleep(0.5)
             # arbitrum-one network needs to use get_logs. HTTPS does not support eth_newFilter
 
-            if self.chain == "arbitrum-one":
+            if self.chain == "arbitrum-one" or self.chain == "polygon-pos":
                 event_filter = self.get_logs(
                     fromBlock=page[0],
                     toBlock=page[1],
