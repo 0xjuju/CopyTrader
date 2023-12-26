@@ -235,6 +235,7 @@ class Updater:
         sellers = defaultdict(list)
 
         for transaction in all_entries:
+
             # We want at least 2 topics to filter out Sync event, and other non-swap events
             if len(transaction["topics"]) > 2:
                 checked_topics = [transaction["topics"][0].hex()] +\

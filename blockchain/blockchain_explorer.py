@@ -9,7 +9,7 @@ import traceback
 import types
 from websockets import connect
 
-
+from algorithms.basic_tools import flatten_list
 from blockchain.decorators import *
 from decouple import config
 from eth_utils import event_abi_to_log_topic, to_hex, to_checksum_address
@@ -389,8 +389,6 @@ class Explorer:
             else:
                 raise ValueError(e)
 
-
-
     @check_keyword_args
     def get_logs(self, *, max_chunk=None, **kwargs):
         """
@@ -409,7 +407,8 @@ class Explorer:
             logs = self._get_logs(**kwargs)
 
         if isinstance(logs, types.GeneratorType):
-            logs = list(logs)
+            logs = flatten_list(list(logs))
+
         return logs
 
     def get_paginated_event_filters(self, *, max_chunk, **kwargs):
@@ -429,21 +428,21 @@ class Explorer:
             time.sleep(0.5)
             # arbitrum-one network needs to use get_logs. HTTPS does not support eth_newFilter
 
-            if self.chain == "arbitrum-one" or self.chain == "polygon-pos":
-                event_filter = self.get_logs(
-                    fromBlock=page[0],
-                    toBlock=page[1],
-                    address=kwargs["address"],
-                )
-                entries = event_filter
+            # if self.chain == "arbitrum-one" or self.chain == "polygon-pos":
+            event_filter = self.get_logs(
+                fromBlock=page[0],
+                toBlock=page[1],
+                address=kwargs["address"],
+            )
+            entries = event_filter
 
-            else:
-                event_filter = self.web3.eth.filter({
-                    "fromBlock": page[0],
-                    "toBlock": page[1],
-                    "address": kwargs["address"],
-                })
-                entries = event_filter.get_all_entries()
+            # else:
+            #     event_filter = self.web3.eth.filter({
+            #         "fromBlock": page[0],
+            #         "toBlock": page[1],
+            #         "address": kwargs["address"],
+            #     })
+            #     entries = event_filter.get_all_entries()
 
             # Create single list of all event filters
             for entry in entries:
