@@ -27,6 +27,7 @@ class FactoryContract(models.Model):
         ("solana", "solana", ),
     )
     name = models.CharField(max_length=255, default="")
+    address = models.CharField(max_length=255, default="")
     abi = models.TextField(default="")
     chain = models.TextField(default="")
     version = models.IntegerField(default=0)

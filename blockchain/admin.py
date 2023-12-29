@@ -9,3 +9,4 @@ class ABIAdmin(admin.ModelAdmin):
 @admin.register(Chain)
 class ChainAdmin(admin.ModelAdmin):
     pass
+
