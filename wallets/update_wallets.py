@@ -31,6 +31,7 @@ class Updater:
 
         if checked_topics[2] not in whitelisted_contracts and blockchain.web3.eth.get_code(checked_topics[2]) == b'' \
                 and to_address not in blacklisted and to_address[0:12] != "0x0000000000":
+
             return True
 
     @staticmethod
@@ -154,6 +155,7 @@ class Updater:
         :param sellers: ...
         :return:
         """
+        print(buyers)
         # Loop through buyers and sellers to create list of transaction excluding ones likely done by bots
         filtered_transactions = list()
         for buyer, values in buyers.items():
@@ -251,8 +253,9 @@ class Updater:
 
                     data = transaction["data"]
                     topics = [i.hex() for i in transaction["topics"]]
-
                     decoded_log = blockchain.decode_log(data=data, topics=topics, abi=abi)
+
+                    print(decoded_log)
 
                     if decoded_log[0] == "Swap":
                         log_data = json.loads(decoded_log[1])
