@@ -3,7 +3,7 @@ import asyncio
 from datetime import (datetime, )
 
 from blockchain.blockchain_explorer import Explorer
-from blockchain.tests.build_test_data import build_generic_abi
+from blockchain.tests.build_test_data import *
 from django.test import TestCase
 
 
@@ -149,6 +149,11 @@ class TestBlockchainExplorer(TestCase):
         #     print(each)
 
         x = self.explore_bsc.filter_contract(max_chunk=10, address=address, fromBlock=19442105, toBlock=19442409)
+
+    def test_filter_dex_transactions(self):
+        contract = build_factory_contract()
+        # txs = self.explore_eth.filter_dex_transactions(contract)
+        print(list(contract.events))
 
     def test_get_block(self):
         block = self.explore_eth.get_block(12411591)

@@ -7,6 +7,8 @@ import sys
 import time
 import traceback
 import types
+
+import web3.contract
 from websockets import connect
 
 from algorithms.basic_tools import flatten_list
@@ -154,7 +156,7 @@ class Explorer:
         :param data: Encoded data containing specific transcaction information like swap amounts, values, items swapped
         :param topics: EOAs and contracts associated with transaction
         :param abi: Functions of contract
-        :return: Type of transcation event and  Transaction metadata
+        :return: Type of transaction event and  Transaction metadata
         """
         if abi is not None:
             try:
@@ -235,6 +237,21 @@ class Explorer:
 
         finally:
             loop.close()
+
+    def get_contract_pools(self, contract: web3.contract.Contract, from_block=0, to_block=None, argument_filters=None):
+        if not to_block:
+            to_block = self.web3.eth.block_number
+
+        arguments = dict()
+        if argument_filters and isinstance(argument_filters, dict):
+            arguments.update(argument_filters)
+        else:
+            raise TypeError(f"Expecting type Dict not {type(argument_filters)}")
+
+        pools = contract.events.PoolCreated.createFilter(
+            fromBlock=from_block,
+            toBlock=to_block,
+        )
 
     @staticmethod
     async def get_event():
