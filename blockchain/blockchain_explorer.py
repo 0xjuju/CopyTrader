@@ -243,15 +243,18 @@ class Explorer:
             to_block = self.web3.eth.block_number
 
         arguments = dict()
-        if argument_filters and isinstance(argument_filters, dict):
-            arguments.update(argument_filters)
-        else:
-            raise TypeError(f"Expecting type Dict not {type(argument_filters)}")
+        if argument_filters:
+            if isinstance(argument_filters, dict):
+                arguments.update(argument_filters)
+            else:
+                raise TypeError(f"Expecting type Dict, not {type(argument_filters)}")
 
         pools = contract.events.PoolCreated.createFilter(
             fromBlock=from_block,
             toBlock=to_block,
         )
+
+        print(pools.get_all_entries())
 
     @staticmethod
     async def get_event():
@@ -375,7 +378,7 @@ class Explorer:
         start = latest_block - n
         return start, latest_block
 
-    def _get_logs(self, **kwargs):
+    def _get_logs(self, filter_object, **kwargs):
         """
         Recursive get_logs function to handle -32005 error when query returns too many results.
         Split blocks in half until all queries are completed successfully
@@ -384,7 +387,7 @@ class Explorer:
         :return: get_logs query
         """
         try:
-            logs = self.web3.eth.get_logs(kwargs)
+            logs = filter_object(kwargs)
             yield logs
 
         except ValueError as e:
@@ -400,8 +403,8 @@ class Explorer:
                 start2, stop2 = stop1 + 1, end_block
                 # print(f"Number of Blocks: {abs(start_block - end_block):,}")
                 # Recursively break query into two calls, until each log returns less tha 10,000 results
-                yield from self._get_logs(fromBlock=start1, toBlock=stop1, address=kwargs.get("address"))
-                yield from self._get_logs(fromBlock=start2, toBlock=stop2, address=kwargs.get("address"))
+                yield from self._get_logs(filter_object, fromBlock=start1, toBlock=stop1, address=kwargs.get("address"))
+                yield from self._get_logs(filter_object, fromBlock=start2, toBlock=stop2, address=kwargs.get("address"))
             else:
                 raise ValueError(e)
 
@@ -420,7 +423,7 @@ class Explorer:
         if max_chunk and from_block and to_block and block_range > max_chunk:
             logs = self.get_paginated_event_filters(max_chunk=max_chunk, **kwargs)
         else:
-            logs = self._get_logs(**kwargs)
+            logs = self._get_logs(self.web3.eth.get_logs, **kwargs)
 
         if isinstance(logs, types.GeneratorType):
             logs = flatten_list(list(logs))
