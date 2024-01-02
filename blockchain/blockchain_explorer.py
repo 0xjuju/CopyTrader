@@ -249,12 +249,10 @@ class Explorer:
             else:
                 raise TypeError(f"Expecting type Dict, not {type(argument_filters)}")
 
-        pools = contract.events.PoolCreated.createFilter(
-            fromBlock=from_block,
-            toBlock=to_block,
-        )
+        pools = contract.events.PoolCreated.createFilter
 
-        print(pools.get_all_entries())
+        events = self._get_logs(pools, fromBlock=from_block, toBlock=to_block)
+        return events
 
     @staticmethod
     async def get_event():
@@ -386,8 +384,16 @@ class Explorer:
         :param kwargs: query parameters for blockchain query [toBlock, fromBlock, address, ...]
         :return: get_logs query
         """
-        try:
-            logs = filter_object(kwargs)
+
+        try:  # Catch error when quert limit is exceeded
+            try:  # createFilter requires individual keyword arguments, so TypeError expected to convert arguemnt type
+                logs = filter_object(kwargs)
+            except TypeError as e:
+                if "createFilter" in str(e):
+                    logs = filter_object(**kwargs).get_all_entries()
+                else:
+                    raise TypeError(e)
+
             yield logs
 
         except ValueError as e:
@@ -408,7 +414,7 @@ class Explorer:
             else:
                 raise ValueError(e)
 
-    @check_keyword_args
+    # @check_keyword_args
     def get_logs(self, *, max_chunk=None, **kwargs):
         """
         :param max_chunk: max block size to filter

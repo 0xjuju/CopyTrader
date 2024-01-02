@@ -152,7 +152,11 @@ class TestBlockchainExplorer(TestCase):
 
     def test_filter_dex_transactions(self):
         contract = build_factory_contract()
-        txs = self.explore_eth.get_contract_pools(contract)
+        events = self.explore_eth.get_contract_pools(contract)
+        for event in events:
+            print(event)
+
+
 
     def test_get_block(self):
         block = self.explore_eth.get_block(12411591)
