@@ -389,6 +389,7 @@ class Explorer:
             try:  # createFilter requires individual keyword arguments, so TypeError expected to convert arguemnt type
                 logs = filter_object(kwargs)
             except TypeError as e:
+                # Check if contract.createFilter function inside error message.
                 if "createFilter" in str(e):
                     logs = filter_object(**kwargs).get_all_entries()
                 else:
