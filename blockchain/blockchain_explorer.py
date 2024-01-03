@@ -265,10 +265,12 @@ class Explorer:
 
         for event in events:
             for pool in event:
-                token_pools["token0"] = pool["args"]["token0"]
-                token_pools["token1"] = pool["args"]["token1"]
-                token_pools["pool"] = pool["args"]["pool"]
 
+                token_pools["pool"] = {
+                    "token0": pool["args"]["token0"],
+                    "token1": pool["args"]["token1"],
+                    "pool": pool["args"]["pool"],
+                }
         return pools
 
     @staticmethod
