@@ -239,10 +239,21 @@ class Explorer:
             loop.close()
 
     def get_contract_pools(self, contract: web3.contract.Contract, from_block=0, to_block=None, argument_filters=None):
+        """
+
+        :param contract: Factory contract address
+        :param from_block: start block
+        :param to_block: end block
+        :param argument_filters: query filters
+        :return:
+        """
+        token_pools = dict()
+
         if not to_block:
             to_block = self.web3.eth.block_number
 
         arguments = dict()
+
         if argument_filters:
             if isinstance(argument_filters, dict):
                 arguments.update(argument_filters)
@@ -250,9 +261,15 @@ class Explorer:
                 raise TypeError(f"Expecting type Dict, not {type(argument_filters)}")
 
         pools = contract.events.PoolCreated.createFilter
+        events = self._get_logs(pools, fromBlock=from_block, toBlock=to_block, argument_filters=arguments)
 
-        events = self._get_logs(pools, fromBlock=from_block, toBlock=to_block)
-        return events
+        for event in events:
+            for pool in event:
+                token_pools["token0"] = pool["args"]["token0"]
+                token_pools["token1"] = pool["args"]["token1"]
+                token_pools["pool"] = pool["args"]["pool"]
+
+        return pools
 
     @staticmethod
     async def get_event():

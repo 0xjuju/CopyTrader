@@ -152,9 +152,8 @@ class TestBlockchainExplorer(TestCase):
 
     def test_filter_dex_transactions(self):
         contract = build_factory_contract()
-        events = self.explore_eth.get_contract_pools(contract)
-        for event in events:
-            print(event)
+        pools = self.explore_eth.get_contract_pools(contract)
+
 
 
 
