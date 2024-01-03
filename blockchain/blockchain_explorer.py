@@ -498,6 +498,12 @@ class Explorer:
         hex_t = HexBytes(t)
         return hex_t
 
+    def get_swap_events(self, pair_contract, from_block, to_block):
+
+        event_filter = pair_contract.events.Swap.createFilter(fromBlock=from_block, toBlock=to_block, topics=[1, 2])
+        # events = self._get_logs(event_filter, fromBlock=from_block, toBlock=to_block)
+        return event_filter
+
     def get_transaction_hash_data(self, transaction_hash):
         return self.web3.eth.get_transaction(transaction_hash)
 
