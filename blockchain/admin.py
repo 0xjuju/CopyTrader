@@ -10,3 +10,7 @@ class ABIAdmin(admin.ModelAdmin):
 class ChainAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(FactoryContract)
+class FactoryContractAdmin(admin.ModelAdmin):
+    list_display = ["name", "address", "chain"]
+
