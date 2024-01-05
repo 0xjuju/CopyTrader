@@ -1,6 +1,6 @@
 
-from blockchain_explorer.blockchain_explorer import Explorer
-from blockchain_explorer.blockscsan import Blockscan
+from blockchain.blockchain_explorer import Explorer
+from blockchain.blockscsan import Blockscan
 from django.test import TestCase
 from wallets.models import Token
 from wallets.tests.build_wallet_models import Build
@@ -27,7 +27,7 @@ class TestUpdateWallets(TestCase):
         self.assertEqual(to_block, 15170801)
 
     def test_determine_price_breakouts(self):
-        percent_threshold = 1.3
+        percent_threshold = 30
 
         diffs = [
             (0.94, 1.45, 1.50),

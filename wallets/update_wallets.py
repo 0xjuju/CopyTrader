@@ -131,18 +131,18 @@ class Updater:
 
             # determine number of days before first price increase
             start_date = None
-            if d[0] > percent_threshold:
+            if (d[0] - 1) * 100 > percent_threshold:
                 start_date = 1
-            elif d[1] > percent_threshold:
+            elif (d[1] - 1) * 100 > percent_threshold:
                 start_date = 3
-            elif d[2] > percent_threshold:
+            elif (d[2] - 1) * 100 > percent_threshold:
                 start_date = 7
 
             # only append data if a start date of price increase is found
             if start_date:
 
                 # largest move percentage within the three timeframes. Used to avoid duplicate data
-                largest_price_move = (max(d) - 1) * 100
+                largest_price_move = max(d)
                 price_breakouts.append(
                     (start_date, timestamps[index], largest_price_move)
                 )
@@ -341,14 +341,15 @@ class Updater:
 
             token_address = blockchain.convert_to_checksum_address(contract.contract)
 
-            # Get pool addresses for dexes on chain
-            if pools.get(contract.chain) is None:
-                pools.update(self.get_dex_pairs(blockchain))
+            # # Get pool addresses for dexes on chain
+            # if pools.get(contract.chain) is None:
+            #     pools.update(self.get_dex_pairs(blockchain))
 
             timestamps, prices = self.get_prices_data(contract.contract, chain=contract.chain)
 
             # Percentage difference of each price relative to the next day, 3 days, and 7 days from price
             diffs = percent_difference_from_dataset(prices)
+
 
             # determine if a price increase that meets threshold is reached and add to list
             price_breakouts = self.determine_price_breakouts(diffs=diffs, timestamps=timestamps,
@@ -383,7 +384,6 @@ class Updater:
                             pool_contract = None
                             for pool_info in data:
                                 if pool_info["token0"] == token_address or pool_info["token1"] == token_address:
-                                    # print(f"WE MAAAADDDEE ITTTTTTT {dex} - {data}")
                                     pool_contract = pool_info["pool"] if pool_info.get("pool") else pool_info["pair"]
                                     break
 
@@ -391,6 +391,7 @@ class Updater:
                                 print("Getting txs")
                                 transactions = self.get_transactions(from_block=from_block, to_block=to_block, contract=pool_contract,
                                                                      blockchain=blockchain)
+
                                 print("Done getting txs...")
 
                                 print(f"Number of transactions: {len(transactions)}")

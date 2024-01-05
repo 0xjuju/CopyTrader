@@ -172,7 +172,6 @@ class Explorer:
                     'transactionHash': None,  # HexBytes(transactionHash),
                     'transactionIndex': None
                 }
-                print(topic2abi)
                 event_abi = topic2abi[log['topics'][0]]
                 evt_name = event_abi['name']
 
@@ -262,7 +261,6 @@ class Explorer:
             else:
                 raise TypeError(f"Expecting type Dict, not {type(argument_filters)}")
 
-        print(list(contract.events))
         try:
             pools = contract.events.PoolCreated.createFilter
         except web3.exceptions.ABIEventFunctionNotFound:
