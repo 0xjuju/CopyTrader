@@ -1,16 +1,17 @@
 from collections import defaultdict, Counter
 from datetime import datetime, timedelta
+from decimal import Decimal
 import json
 import time
 
 from algorithms.token_dataset_algos import percent_difference_from_dataset
 from blockchain.blockchain_explorer import Explorer
 from blockchain.blockscsan import Blockscan
-from blockchain.models import Chain, ABI
+from blockchain.models import Chain, ABI, FactoryContract
 from coingecko.coingecko_api import GeckoClient
 from coingecko.models import Address
 from django.db.models import Q
-from wallets.models import Bot, Transaction, Wallet, PoolContract, Token, PairContract
+from wallets.models import Bot, Transaction, Wallet, PoolContract, Token
 
 
 class Updater:
@@ -54,6 +55,7 @@ class Updater:
 
             # raw tx data
             transaction = transaction_data[1]
+
             amount = transaction_data[2] / (10 ** 18)
 
             wallet, created = Wallet.objects.get_or_create(address=address)
@@ -68,8 +70,8 @@ class Updater:
                     transaction_hash=transaction_hash,
                     token_in=token.name,
                     wallet=wallet,
-                    amount=amount,
-                    percent=percentage,
+                    amount=Decimal(amount),
+                    percent=Decimal(percentage),
                     timestamp=datetime.fromtimestamp(timestamp)
                 )
 
@@ -178,6 +180,31 @@ class Updater:
         filtered_transactions = [i for i in filtered_transactions if tx_count[i[0]] == 1]
         return filtered_transactions
 
+    def get_dex_pairs(self, blockchain: Explorer) -> dict[str, dict[list[str, dict]]]:
+        """
+        Parse through pools created on dexes of chain and get token / pool addresses
+        :param blockchain: Blockchain explorer
+        :return: pool info
+        """
+
+        pools = {
+            blockchain.chain: dict()
+        }
+
+        # Dex factory contracts
+        factory_contracts = FactoryContract.objects.filter(chain=blockchain.chain)
+
+        for factory in factory_contracts:
+            print(factory.name)
+            contract = blockchain.get_contract(factory.address, factory.abi)
+            pools[factory.chain][factory.name] = list()
+            get_pools = blockchain.get_contract_pools(contract)
+            for pool in get_pools:
+                # pools[factory.chain][factory.name]["contract"] = contract
+                pools[factory.chain][factory.name].append(pool)
+
+        return pools
+
     @staticmethod
     def get_prices_data(contract_address: str, chain: str) -> tuple[list, list]:
         """
@@ -195,7 +222,7 @@ class Updater:
         return timestamps, prices
 
     @staticmethod
-    def get_transactions(from_block: int, to_block: int, contract: Address, blockchain: Explorer):
+    def get_transactions(from_block: int, to_block: int, contract: str, blockchain: Explorer):
         """
         :param from_block: start of block range
         :param to_block: end of block range
@@ -204,15 +231,15 @@ class Updater:
         :return: List of transactions filtered by token-pair contract from various dex
         """
         print(f"Number of blocks: {abs(from_block - to_block):,}")
-        address = blockchain.convert_to_checksum_address(contract.contract)
+        address = blockchain.convert_to_checksum_address(contract)
 
         # Block range for query
         max_chunk = None
-        if contract.chain == "binance-smart-chain":
+        if blockchain.chain == "binance-smart-chain":
             max_chunk = 500
 
         # Infura HTTPS for Polygon does not support eth.get_newFilter so get_logs is used instead
-        if contract.chain == "polygon-pos":
+        if blockchain.chain == "polygon-pos":
             max_chunk = 3500
 
         transactions = blockchain.get_logs(max_chunk=max_chunk, address=address,
@@ -227,7 +254,7 @@ class Updater:
         """
         :param blockchain: chain
         :param all_entries: list of transaction from given timeframe
-        :param blacklisted: Known automated addressses
+        :param blacklisted: Known automated addresses
         :param whitelisted: valid addresses
         :param abi: Application Binary Interface
         :return: Parsed list of buyers vs sellers
@@ -252,10 +279,8 @@ class Updater:
                     from_address = checked_topics[2]
 
                     data = transaction["data"]
-                    topics = [i.hex() for i in transaction["topics"]]
+                    topics = [i for i in transaction["topics"]]
                     decoded_log = blockchain.decode_log(data=data, topics=topics, abi=abi)
-
-                    print(decoded_log)
 
                     if decoded_log[0] == "Swap":
                         log_data = json.loads(decoded_log[1])
@@ -288,18 +313,25 @@ class Updater:
 
     def update(self, percent_threshold: float):
         chains = Chain.objects.values_list("name", flat=True)
-        abi = ABI.objects.get(abi_type="erc_generic").text
+        abi = ABI.objects.get(abi_type="token_pool_generic").text
+
+        # Pair contract and token addresses from Dex
+        pools = dict()
 
         contracts = Address.objects.filter(chain__in=chains)\
             .exclude(chain="avalanche")\
             .exclude(chain="binance-smart-chain")\
             .exclude(chain="solana")\
+            .exclude(chain="arbitrum-one")\
+            .exclude(chain="base")\
+            .exclude(chain="polygon-pos")\
             .filter(
             Q(token__price_change_24hr__gte=percent_threshold) | Q(token__price_change_7d__gte=percent_threshold)
         )
         print("Number of Contracts ", len(contracts))
 
         for contract in contracts:
+
             print(contract.token.name,  contract.chain)
 
             # Blockchain (etherscan, etc...) service explorer
@@ -307,6 +339,12 @@ class Updater:
 
             # web3.py
             blockchain = Explorer(contract.chain)
+
+            token_address = blockchain.convert_to_checksum_address(contract.contract)
+
+            # Get pool addresses for dexes on chain
+            if pools.get(contract.chain) is None:
+                pools.update(self.get_dex_pairs(blockchain))
 
             timestamps, prices = self.get_prices_data(contract.contract, chain=contract.chain)
 
@@ -339,26 +377,43 @@ class Updater:
                                                                    explorer=explorer)
                     if from_block and to_block:
 
-                        print("Getting txs")
-                        transactions = self.get_transactions(from_block=from_block, to_block=to_block, contract=contract,
-                                                             blockchain=blockchain)
-                        print("Done getting txs...")
+                        # Check dex and see if there's a match for the token pool, and extract the pool address
+                        dex_list = pools[contract.chain]
 
-                        print(f"Number of transactions: {len(transactions)}")
+                        for dex, data in dex_list.items():
+                            pool_contract = None
+                            for pool_info in data:
+                                if pool_info["token0"] == token_address or pool_info["token1"] == token_address:
+                                    # print(f"WE MAAAADDDEE ITTTTTTT {dex} - {data}")
+                                    pool_contract = pool_info["pool"] if pool_info.get("pool") else pool_info["pair"]
+                                    break
 
-                        # Separate Buyers from Sellers for each transaction and create Dictionary representations
-                        # Wallet address (EOA) as KEY
-                        buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
-                                                                      blacklisted=blacklisted, whitelisted=whitelisted,
-                                                                      abi=abi)
+                            if pool_contract:
+                                print("Getting txs")
+                                transactions = self.get_transactions(from_block=from_block, to_block=to_block, contract=pool_contract,
+                                                                     blockchain=blockchain)
+                                print("Done getting txs...")
 
-                        # transactions with unwanted accounts filtered out
-                        filtered_transactions = self.filter_transactions(buyers, sellers)
+                                print(f"Number of transactions: {len(transactions)}")
 
-                        # Update Database with new wallets and transactions
-                        self.create_database_entry(filtered_transactions=filtered_transactions, token=contract.token,
-                                                   chain=contract.chain, timestamp=timestamp, percentage=str(percentage)
-                                                   ,index=index)
+                                # Separate Buyers from Sellers for each transaction and create Dictionary representations
+                                # Wallet address (EOA) as KEY
+                                buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
+                                                                              blacklisted=blacklisted, whitelisted=whitelisted,
+                                                                              abi=abi)
+
+                                # transactions with unwanted accounts filtered out
+                                filtered_transactions = self.filter_transactions(buyers, sellers)
+
+                                token, _ = Token.objects.get_or_create(
+                                    name=contract.token.name,
+                                    address=contract.contract
+                                )
+
+                                # Update Database with new wallets and transactions
+                                self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
+                                                           chain=contract.chain, timestamp=timestamp, percentage=str(percentage)
+                                                           ,index=index)
 
 
 

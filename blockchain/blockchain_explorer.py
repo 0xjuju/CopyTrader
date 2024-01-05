@@ -172,6 +172,7 @@ class Explorer:
                     'transactionHash': None,  # HexBytes(transactionHash),
                     'transactionIndex': None
                 }
+                print(topic2abi)
                 event_abi = topic2abi[log['topics'][0]]
                 evt_name = event_abi['name']
 
@@ -238,7 +239,8 @@ class Explorer:
         finally:
             loop.close()
 
-    def get_contract_pools(self, contract: web3.contract.Contract, from_block=0, to_block=None, argument_filters=None):
+    def get_contract_pools(self, contract: web3.contract.Contract, from_block=0, to_block=None, argument_filters=None)\
+            -> list[dict]:
         """
 
         :param contract: Factory contract address
@@ -247,7 +249,7 @@ class Explorer:
         :param argument_filters: query filters
         :return:
         """
-        token_pools = dict()
+        token_pools = list()
 
         if not to_block:
             to_block = self.web3.eth.block_number
@@ -260,18 +262,27 @@ class Explorer:
             else:
                 raise TypeError(f"Expecting type Dict, not {type(argument_filters)}")
 
-        pools = contract.events.PoolCreated.createFilter
+        print(list(contract.events))
+        try:
+            pools = contract.events.PoolCreated.createFilter
+        except web3.exceptions.ABIEventFunctionNotFound:
+            pools = contract.events.PairCreated.createFilter
+
         events = self._get_logs(pools, fromBlock=from_block, toBlock=to_block, argument_filters=arguments)
 
         for event in events:
             for pool in event:
+                pool_contract = pool["args"]["pool"] if pool["args"].get("pool") else pool["args"]["pair"]
 
-                token_pools["pool"] = {
-                    "token0": pool["args"]["token0"],
-                    "token1": pool["args"]["token1"],
-                    "pool": pool["args"]["pool"],
-                }
-        return pools
+                token_pools.append(
+                    {
+                        "token0": pool["args"]["token0"],
+                        "token1": pool["args"]["token1"],
+                        "pool": pool_contract,
+                    }
+                )
+
+        return token_pools
 
     @staticmethod
     async def get_event():
