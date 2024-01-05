@@ -1,6 +1,5 @@
 from collections import defaultdict, Counter
 from datetime import datetime, timedelta
-from decimal import Decimal
 import json
 import time
 
@@ -70,8 +69,8 @@ class Updater:
                     transaction_hash=transaction_hash,
                     token_in=token.name,
                     wallet=wallet,
-                    amount=Decimal(amount),
-                    percent=Decimal(percentage),
+                    amount=amount,
+                    percent=percentage,
                     timestamp=datetime.fromtimestamp(timestamp)
                 )
 

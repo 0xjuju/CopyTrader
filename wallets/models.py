@@ -85,8 +85,8 @@ class Transaction(models.Model):
     chain = models.CharField(max_length=255, default='')
     token_in = models.CharField(max_length=255, default="")
     wallet = models.ForeignKey("Wallet", on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    percent = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    amount = models.FloatField(default=0)
+    percent = models.FloatField(default=0)
     timestamp = models.DateTimeField()
 
     def __str__(self):
