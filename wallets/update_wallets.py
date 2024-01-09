@@ -61,12 +61,13 @@ class Updater:
 
             if created:
                 wallet.save()
+
             wallet.token.add(token)
             transaction_hash = transaction["transactionHash"].hex()
-
             if not all_transactions.filter(transaction_hash=transaction_hash).exists():
                 transaction = Transaction.objects.create(
                     transaction_hash=transaction_hash,
+                    chain=chain,
                     token_in=token.name,
                     wallet=wallet,
                     amount=amount,
@@ -142,7 +143,7 @@ class Updater:
             if start_date:
 
                 # largest move percentage within the three timeframes. Used to avoid duplicate data
-                largest_price_move = max(d)
+                largest_price_move = (max(d) - 1) * 100
                 price_breakouts.append(
                     (start_date, timestamps[index], largest_price_move)
                 )
@@ -156,7 +157,6 @@ class Updater:
         :param sellers: ...
         :return:
         """
-        print(buyers)
         # Loop through buyers and sellers to create list of transaction excluding ones likely done by bots
         filtered_transactions = list()
         for buyer, values in buyers.items():
@@ -179,13 +179,13 @@ class Updater:
         filtered_transactions = [i for i in filtered_transactions if tx_count[i[0]] == 1]
         return filtered_transactions
 
-    def get_dex_pairs(self, blockchain: Explorer) -> dict[str, dict[list[str, dict]]]:
+    def get_dex_pairs(self, blockchain: Explorer, token_address: str) -> dict[str, dict[list[str, dict]]]:
         """
         Parse through pools created on dexes of chain and get token / pool addresses
         :param blockchain: Blockchain explorer
+        :param token_address: Token Contract address
         :return: pool info
         """
-
         pools = {
             blockchain.chain: dict()
         }
@@ -197,7 +197,7 @@ class Updater:
             print(factory.name)
             contract = blockchain.get_contract(factory.address, factory.abi)
             pools[factory.chain][factory.name] = list()
-            get_pools = blockchain.get_contract_pools(contract)
+            get_pools = blockchain.get_contract_pools(contract, argument_filters={"token0": token_address})
             for pool in get_pools:
                 # pools[factory.chain][factory.name]["contract"] = contract
                 pools[factory.chain][factory.name].append(pool)
@@ -330,90 +330,107 @@ class Updater:
         print("Number of Contracts ", len(contracts))
 
         for contract in contracts:
+            to_process = input(f"{contract.token.name} or next?")
 
-            print(contract.token.name,  contract.chain)
-
-            # Blockchain (etherscan, etc...) service explorer
-            explorer = Blockscan(contract.chain)
-
-            # web3.py
-            blockchain = Explorer(contract.chain)
-
-            token_address = blockchain.convert_to_checksum_address(contract.contract)
-
-            # # Get pool addresses for dexes on chain
-            # if pools.get(contract.chain) is None:
-            #     pools.update(self.get_dex_pairs(blockchain))
-
-            timestamps, prices = self.get_prices_data(contract.contract, chain=contract.chain)
-
-            # Percentage difference of each price relative to the next day, 3 days, and 7 days from price
-            diffs = percent_difference_from_dataset(prices)
+            if to_process == "yes":
 
 
-            # determine if a price increase that meets threshold is reached and add to list
-            price_breakouts = self.determine_price_breakouts(diffs=diffs, timestamps=timestamps,
-                                                             percent_threshold=percent_threshold)
+                print(contract.token.name,  contract.chain)
 
-            if price_breakouts:
-                # Exclude known bot wallets from processing
-                blacklisted = Bot.objects.values_list("address", flat=True)
+                # Blockchain (etherscan, etc...) service explorer
+                explorer = Blockscan(contract.chain)
 
-                # Contracts that interact with humans
-                whitelisted = PoolContract.objects.values_list("address", flat=True)
+                # web3.py
+                blockchain = Explorer(contract.chain)
 
-                for index, datapoint in enumerate(price_breakouts):
-                    duration = datapoint[0]
-                    timestamp = datapoint[1]
-                    percentage = datapoint[2]
+                token_address = blockchain.convert_to_checksum_address(contract.contract)
 
-                    # Check if format has changed for any timestamp. Expect last 5 digits to always be zero. Date only
-                    if str(timestamp)[-5:] != "00000":
-                        raise Exception("Will not format correctly")
-                    timestamp = int(timestamp / 1000)
+                # Get pool addresses for dexes on chain
+                if pools.get(contract.chain) is None:
+                    pools.update(self.get_dex_pairs(blockchain, token_address))
 
-                    # Convert datetime to range of blocks to look through
-                    from_block, to_block = self.create_block_range(duration=duration, timestamp=timestamp,
-                                                                   explorer=explorer)
-                    if from_block and to_block:
+                timestamps, prices = self.get_prices_data(contract.contract, chain=contract.chain)
 
-                        # Check dex and see if there's a match for the token pool, and extract the pool address
-                        dex_list = pools[contract.chain]
+                # Percentage difference of each price relative to the next day, 3 days, and 7 days from price
+                diffs = percent_difference_from_dataset(prices)
 
-                        for dex, data in dex_list.items():
-                            pool_contract = None
-                            for pool_info in data:
-                                if pool_info["token0"] == token_address or pool_info["token1"] == token_address:
-                                    pool_contract = pool_info["pool"] if pool_info.get("pool") else pool_info["pair"]
-                                    break
+                # determine if a price increase that meets threshold is reached and add to list
+                price_breakouts = self.determine_price_breakouts(diffs=diffs, timestamps=timestamps,
+                                                                 percent_threshold=percent_threshold)
 
-                            if pool_contract:
-                                print("Getting txs")
-                                transactions = self.get_transactions(from_block=from_block, to_block=to_block, contract=pool_contract,
-                                                                     blockchain=blockchain)
+                if price_breakouts:
+                    # Exclude known bot wallets from processing
+                    blacklisted = Bot.objects.values_list("address", flat=True)
 
-                                print("Done getting txs...")
+                    # Contracts that interact with humans
+                    whitelisted = PoolContract.objects.values_list("address", flat=True)
 
-                                print(f"Number of transactions: {len(transactions)}")
+                    for index, datapoint in enumerate(price_breakouts):
+                        duration = datapoint[0]
+                        timestamp = datapoint[1]
+                        percentage = datapoint[2]
 
-                                # Separate Buyers from Sellers for each transaction and create Dictionary representations
-                                # Wallet address (EOA) as KEY
-                                buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
-                                                                              blacklisted=blacklisted, whitelisted=whitelisted,
-                                                                              abi=abi)
+                        # Check if format has changed for any timestamp. Expect last 5 digits to always be zero. Date only
+                        if str(timestamp)[-5:] != "00000":
+                            raise Exception("Will not format correctly")
+                        timestamp = int(timestamp / 1000)
 
-                                # transactions with unwanted accounts filtered out
-                                filtered_transactions = self.filter_transactions(buyers, sellers)
+                        # Convert datetime to range of blocks to look through
+                        from_block, to_block = self.create_block_range(duration=duration, timestamp=timestamp,
+                                                                       explorer=explorer)
+                        if from_block and to_block:
 
-                                token, _ = Token.objects.get_or_create(
-                                    name=contract.token.name,
-                                    address=contract.contract
-                                )
+                            try:
+                                # Check dex and see if there's a match for the token pool, and extract the pool address
+                                dex_list = pools[contract.chain]
+                            except KeyError as e:
+                                print(contract.token.name, print(contract.chain))
+                                raise KeyError(e)
 
-                                # Update Database with new wallets and transactions
-                                self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
-                                                           chain=contract.chain, timestamp=timestamp, percentage=str(percentage)
-                                                           ,index=index)
+                            for dex, data in dex_list.items():
+                                print(dex)
+                                pool_contract = None
+                                print(data)
+                                for pool_info in data:
+                                    if pool_info["token0"] == token_address or pool_info["token1"] == token_address:
+                                        pool_contract = pool_info["pool"] if pool_info.get("pool") else pool_info["pair"]
+                                        break
+
+                                if pool_contract:
+                                    print("Getting txs")
+                                    transactions = self.get_transactions(from_block=from_block, to_block=to_block, contract=pool_contract,
+                                                                         blockchain=blockchain)
+
+                                    print("Done getting txs...")
+
+                                    print(f"Number of transactions: {len(transactions)}")
+
+                                    # Separate Buyers from Sellers for each transaction and create Dictionary representations
+                                    # Wallet address (EOA) as KEY
+                                    buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
+                                                                                  blacklisted=blacklisted, whitelisted=whitelisted,
+                                                                                  abi=abi)
+
+                                    # transactions with unwanted accounts filtered out
+                                    filtered_transactions = self.filter_transactions(buyers, sellers)
+
+                                    token, _ = Token.objects.get_or_create(
+                                        name=contract.token.name,
+                                        address=contract.contract
+                                    )
+
+                                    # Update Database with new wallets and transactions
+                                    self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
+                                                               chain=contract.chain, timestamp=timestamp,
+                                                               percentage=str(percentage), index=index)
+                                else:
+                                    print(f"-------------Pool not found for Token {contract.token.name} - {token_address}")
+
+                next_token = input("Continue ?")
+                if next_token == "yes":
+                    pass
+                else:
+                    break
 
 
 

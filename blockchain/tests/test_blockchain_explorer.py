@@ -154,10 +154,23 @@ class TestBlockchainExplorer(TestCase):
 
     def test_filter_dex_transactions(self):
         contract = build_factory_contract()
-        pools = self.explore_eth.get_contract_pools(contract)
+        # pools = self.explore_eth\
+        #     .get_contract_pools(contract, "ethereum", argument_filters={"token0": "0x1151CB3d861920e07a38e03eEAd12C32178567F6"})
+
+        # pools = self.explore_eth \
+        #     .get_contract_pools(contract, argument_filters={"token0": "0x38e382F74dfb84608F3C1F10187f6bEf5951DE93"})
+
+
+        # tok = self.explore_eth.convert_to_checksum_address("0x8ee325ae3e54e83956ef2d5952d3c8bc1fa6ec27")
+
+        pools = self.explore_eth \
+            .get_contract_pools(contract, "arbitrum-one")
+        print(len(pools))
         for each in pools:
             print(each)
-        print(len(pools))
+            if each["token0"].lower() == "0xaaa6c1e32c55a7bfa8066a6fae9b42650f262418" or each["token1"].lower()\
+                    == "":
+                print("Got itttttttt", each)
 
     def test_get_block(self):
         block = self.explore_eth.get_block(12411591)

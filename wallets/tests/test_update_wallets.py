@@ -36,10 +36,11 @@ class TestUpdateWallets(TestCase):
         ]
 
         # Real timestamp irrelevant for this testcase
-        timestamps = [12345, 12345, 12345]
+        timestamps = [12222, 13333, 14444]
 
         breakouts = Updater.determine_price_breakouts(diffs=diffs, timestamps=timestamps,
                                                       percent_threshold=percent_threshold)
+
         self.assertEqual(breakouts[0][0], 3)
         self.assertEqual(breakouts[0][2], 50)
         self.assertEqual(breakouts[1][0], 1)

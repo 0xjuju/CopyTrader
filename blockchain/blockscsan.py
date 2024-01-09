@@ -61,7 +61,6 @@ class Blockscan:
                     print(t.timestamp())
 
                     res = request_get_data(url=self.BASE_URL, params=params)
-                    print(res)
                     tries += 1
                     if res["result"] != "Error! No closest block found":
                         break

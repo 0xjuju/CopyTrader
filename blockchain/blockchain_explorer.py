@@ -50,7 +50,6 @@ class Explorer:
         # Set Provider URL Based on selected chain, then connect
         self.web3 = self.set_connection()
 
-
     def convert_from_hex(self, value: hex) -> int:
         """
         :param value: encoded hex values from transactiond ata
@@ -238,7 +237,7 @@ class Explorer:
         finally:
             loop.close()
 
-    def get_contract_pools(self, contract: web3.contract.Contract, from_block=0, to_block=None, argument_filters=None)\
+    def get_contract_pools(self, contract: web3.contract.Contract, chain: str, from_block=0, to_block=None, argument_filters=None)\
             -> list[dict]:
         """
 
@@ -261,12 +260,18 @@ class Explorer:
             else:
                 raise TypeError(f"Expecting type Dict, not {type(argument_filters)}")
 
-        try:
-            pools = contract.events.PoolCreated.createFilter
-        except web3.exceptions.ABIEventFunctionNotFound:
-            pools = contract.events.PairCreated.createFilter
+        if chain == "arbitrum-one":
+            pools = contract.events["PoolCreated"]().getLogs
+            events = self._get_logs(pools, fromBlock=from_block, toBlock=to_block)
 
-        events = self._get_logs(pools, fromBlock=from_block, toBlock=to_block, argument_filters=arguments)
+        else:
+            try:
+                pools = contract.events.PoolCreated.createFilter
+
+            except web3.exceptions.ABIEventFunctionNotFound:
+                pools = contract.events.PairCreated.createFilter
+
+            events = self._get_logs(pools, fromBlock=from_block, toBlock=to_block, argument_filters=arguments)
 
         for event in events:
             for pool in event:
@@ -412,14 +417,16 @@ class Explorer:
         :param kwargs: query parameters for blockchain query [toBlock, fromBlock, address, ...]
         :return: get_logs query
         """
-
         try:  # Catch error when quert limit is exceeded
             try:  # createFilter requires individual keyword arguments, so TypeError expected to convert arguemnt type
-                logs = filter_object(kwargs)
+                logs = filter_object(**kwargs)
             except TypeError as e:
                 # Check if contract.createFilter function inside error message.
                 if "createFilter" in str(e):
                     logs = filter_object(**kwargs).get_all_entries()
+
+                elif "unexpected keyword argument 'address'" in str(e):
+                    logs = filter_object(fromBlock=kwargs["fromBlock"], toBlock=kwargs["toBlock"])
                 else:
                     raise TypeError(e)
 
