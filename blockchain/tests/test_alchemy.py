@@ -51,12 +51,18 @@ class TestAlchemy(TestCase):
         self.assertEqual(pools[0]["token0"], "0x229b1b6C23ff8953D663C4cBB519717e323a0a84")
 
         camelotv3 = self.factory_contracts["camelotv3"]
-        # Arbitrum Pool on Camelot dex
+        # Arbitrum Pool on Camelot dex v3
         contract = self.arbitrum_blockchain._get_contract(camelotv3["contract"], abi=camelotv3["abi"])
         pools = self.arbitrum_blockchain.get_factory_pools(
             contract, argument_filters={"token1": "0xf19547f9ed24aa66b03c3a552d181ae334fbb8db"})
         self.assertEqual(pools[0]["token1"], "0xF19547f9ED24aA66b03c3a552D181Ae334FBb8DB")
 
+        camelotv2 = self.factory_contracts["camelotv2"]
+        # Arbitrum Pool on Camelot dex v2
+        contract = self.arbitrum_blockchain._get_contract(camelotv2["contract"], abi=camelotv2["abi"])
+        pools = self.arbitrum_blockchain.get_factory_pools(
+            contract, argument_filters={"token1": "0xf19547f9ed24aa66b03c3a552d181ae334fbb8db"})
+        self.assertEqual(pools[0]["token1"], "0xF19547f9ED24aA66b03c3a552D181Ae334FBb8DB")
 
     def test_query_filter(self):
         from_block = 18967710
