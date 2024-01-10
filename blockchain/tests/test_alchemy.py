@@ -64,6 +64,13 @@ class TestAlchemy(TestCase):
             contract, argument_filters={"token1": "0xf19547f9ed24aa66b03c3a552d181ae334fbb8db"})
         self.assertEqual(pools[0]["token1"], "0xF19547f9ED24aA66b03c3a552D181Ae334FBb8DB")
 
+        sushiswapv3polygon = self.factory_contracts["sushiswapv3polygon"]
+        # Polygon pool on Sushiwap v3
+        contract = self.polygon_blockchain._get_contract(sushiswapv3polygon["contract"], abi=sushiswapv3polygon["abi"])
+        pools = self.polygon_blockchain.get_factory_pools(
+            contract, argument_filters={"token0": "0x071ac29d569a47ebffb9e57517f855cb577dcc4c"})
+        self.assertEqual(pools[0]["token0"], "0x071AC29d569a47EbfFB9e57517F855Cb577DCc4C")
+
     def test_query_filter(self):
         from_block = 18967710
         to_block = from_block + 100
