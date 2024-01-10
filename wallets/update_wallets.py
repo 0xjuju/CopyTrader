@@ -4,7 +4,7 @@ import json
 import time
 
 from algorithms.token_dataset_algos import percent_difference_from_dataset
-from blockchain.blockchain_explorer import Explorer
+from blockchain.alchemy import Blockchain
 from blockchain.blockscsan import Blockscan
 from blockchain.models import Chain, ABI, FactoryContract
 from coingecko.coingecko_api import GeckoClient
@@ -16,7 +16,7 @@ from wallets.models import Bot, Transaction, Wallet, PoolContract, Token
 class Updater:
 
     @staticmethod
-    def contract_and_address_validated(checked_topics, whitelisted_contracts, blacklisted, blockchain):
+    def contract_and_address_validated(checked_topics, whitelisted_contracts, blacklisted, blockchain: Blockchain):
         """
         Validate address against known automated addresses
 
@@ -29,7 +29,7 @@ class Updater:
 
         to_address = checked_topics[1]
 
-        if checked_topics[2] not in whitelisted_contracts and blockchain.web3.eth.get_code(checked_topics[2]) == b'' \
+        if checked_topics[2] not in whitelisted_contracts and blockchain.w3.eth.get_code(checked_topics[2]) == b'' \
                 and to_address not in blacklisted and to_address[0:12] != "0x0000000000":
 
             return True
@@ -179,7 +179,7 @@ class Updater:
         filtered_transactions = [i for i in filtered_transactions if tx_count[i[0]] == 1]
         return filtered_transactions
 
-    def get_dex_pairs(self, blockchain: Explorer, token_address: str) -> dict[str, dict[list[str, dict]]]:
+    def get_dex_pairs(self, blockchain: Blockchain, token_address: str) -> dict[str, dict[list[str, dict]]]:
         """
         Parse through pools created on dexes of chain and get token / pool addresses
         :param blockchain: Blockchain explorer
@@ -197,7 +197,11 @@ class Updater:
             print(factory.name)
             contract = blockchain.get_contract(factory.address, factory.abi)
             pools[factory.chain][factory.name] = list()
-            get_pools = blockchain.get_contract_pools(contract, argument_filters={"token0": token_address})
+
+            get_pools = blockchain.get_factory_pools(contract, argument_filters={"token1": token_address})
+            if not get_pools:
+                get_pools = blockchain.get_factory_pools(contract, argument_filters={"token0": token_address})
+
             for pool in get_pools:
                 # pools[factory.chain][factory.name]["contract"] = contract
                 pools[factory.chain][factory.name].append(pool)
@@ -221,7 +225,7 @@ class Updater:
         return timestamps, prices
 
     @staticmethod
-    def get_transactions(from_block: int, to_block: int, contract: str, blockchain: Explorer):
+    def get_transactions(from_block: int, to_block: int, contract: str, blockchain: Blockchain):
         """
         :param from_block: start of block range
         :param to_block: end of block range
@@ -230,7 +234,7 @@ class Updater:
         :return: List of transactions filtered by token-pair contract from various dex
         """
         print(f"Number of blocks: {abs(from_block - to_block):,}")
-        address = blockchain.convert_to_checksum_address(contract)
+        address = blockchain.checksum_address(contract)
 
         # Block range for query
         max_chunk = None
@@ -249,7 +253,7 @@ class Updater:
 
         return transactions
 
-    def map_buyers_and_sellers(self, blockchain, all_entries, blacklisted, whitelisted, abi):
+    def map_buyers_and_sellers(self, blockchain: Blockchain, all_entries, blacklisted, whitelisted, abi):
         """
         :param blockchain: chain
         :param all_entries: list of transaction from given timeframe
@@ -266,7 +270,7 @@ class Updater:
             # We want at least 2 topics to filter out Sync event, and other non-swap events
             if len(transaction["topics"]) > 2:
                 checked_topics = [transaction["topics"][0].hex()] +\
-                                 [blockchain.convert_to_checksum_address_from_hex(i) for i in transaction["topics"][1:]]
+                                 [blockchain.checksum_address(i.hex()) for i in transaction["topics"][1:]]
 
                 # Various checks to filter out contracts that execute buy/sell events
                 # Expect real person to always interact directly with DEX
@@ -334,16 +338,15 @@ class Updater:
 
             if to_process == "yes":
 
-
                 print(contract.token.name,  contract.chain)
 
                 # Blockchain (etherscan, etc...) service explorer
                 explorer = Blockscan(contract.chain)
 
                 # web3.py
-                blockchain = Explorer(contract.chain)
+                blockchain = Blockchain(contract.chain)
 
-                token_address = blockchain.convert_to_checksum_address(contract.contract)
+                token_address = blockchain.checksum_address(contract.contract)
 
                 # Get pool addresses for dexes on chain
                 if pools.get(contract.chain) is None:

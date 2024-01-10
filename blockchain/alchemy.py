@@ -1,12 +1,16 @@
 from functools import lru_cache
+from hexbytes import HexBytes
 import time
+import traceback
 import json
 import types
 
 from algorithms.basic_tools import flatten_list
-from decouple import config
+import decouple
+from eth_utils import event_abi_to_log_topic, to_hex
 import web3
 from web3 import Web3
+from web3._utils.events import get_event_data
 from web3.contract import Contract
 from web3.exceptions import ABIEventFunctionNotFound
 
@@ -14,12 +18,17 @@ from web3.exceptions import ABIEventFunctionNotFound
 class Blockchain:
     def __init__(self, chain: str):
 
-        self.API_KEY = config("ALCHEMY_API_KEY")
+        self.API_KEY = decouple.config("ALCHEMY_API_KEY")
         self.chain = chain
         self.chain_map = self.chain_to_rpc(chain)
 
         self.url = f"https://{self.chain_map}-mainnet.g.alchemy.com/v2/{self.API_KEY}"
         self.w3 = Web3(Web3.HTTPProvider(self.url))
+
+    @lru_cache(maxsize=None)
+    def _get_hex_topic(self, t):
+        hex_t = HexBytes(t)
+        return hex_t
 
     @staticmethod
     def chain_to_rpc(chain: str) -> str:
@@ -38,6 +47,104 @@ class Blockchain:
         :return: checksum address
         """
         return self.w3.toChecksumAddress(address)
+
+    def convert_to_hex(self, arg, target_schema):
+        """
+        :param arg:
+        :param target_schema:
+        :return:
+        """
+
+        output = dict()
+        for k in arg:
+            if isinstance(arg[k], (bytes, bytearray)):
+                output[k] = to_hex(arg[k])
+            elif isinstance(arg[k], list) and len(arg[k]) > 0:
+                target = [a for a in target_schema if 'name' in a and a['name'] == k][0]
+                if target['type'] == 'tuple[]':
+                    target_field = target['components']
+                    output[k] = self.decode_list_tuple(arg[k], target_field)
+                else:
+                    output[k] = self.decode_list(arg[k])
+            elif isinstance(arg[k], tuple):
+                target_field = [a['components'] for a in target_schema if 'name' in a and a['name'] == k][0]
+                output[k] = self.decode_tuple(arg[k], target_field)
+            else:
+                output[k] = arg[k]
+        return output
+
+    @staticmethod
+    def decode_list(l: list[(bytes, bytearray)]) -> list[hex]:
+        """
+        Decode list of bytes / bytesarray in hex
+        :param l: list of tuples with two values (byte, bytearray)
+        :return: list of hex values
+        """
+        output = l
+        for i in range(len(l)):
+            if isinstance(l[i], (bytes, bytearray)):
+                output[i] = to_hex(l[i])
+            else:
+                output[i] = l[i]
+        return output
+
+    def decode_list_tuple(self, l, target_field):
+        """
+        :param l:
+        :param target_field:
+        :return:
+        """
+        output = l
+        for i in range(len(l)):
+            output[i] = self.decode_tuple(l[i], target_field)
+        return output
+
+    def decode_log(self, data: list[hex], topics: list[hex], abi: str):
+        """
+
+        :param data: Encoded data containing specific transcaction information like swap amounts, values, items swapped
+        :param topics: EOAs and contracts associated with transaction
+        :param abi: Functions of contract
+        :return: Type of transaction event and  Transaction metadata
+        """
+        if abi is not None:
+            try:
+                topic2abi = self._get_topic2abi(abi)
+
+                log = {
+                    'address': None,  # Web3.toChecksumAddress(address),
+                    'blockHash': None,  # HexBytes(blockHash),
+                    'blockNumber': None,
+                    'data': data,
+                    'logIndex': None,
+                    'topics': [self._get_hex_topic(_) for _ in topics],
+                    'transactionHash': None,  # HexBytes(transactionHash),
+                    'transactionIndex': None
+                }
+                event_abi = topic2abi[log['topics'][0]]
+                evt_name = event_abi['name']
+
+                data = get_event_data(self.w3.codec, event_abi, log)['args']
+                target_schema = event_abi['inputs']
+                decoded_data = self.convert_to_hex(data, target_schema)
+
+                return evt_name, json.dumps(decoded_data), json.dumps(target_schema)
+            except Exception:
+                return 'decode error', traceback.format_exc(), None
+
+        else:
+            return 'no matching abi', None, None
+
+    def decode_tuple(self, t, target_field):
+        output = dict()
+        for i in range(len(t)):
+            if isinstance(t[i], (bytes, bytearray)):
+                output[target_field[i]['name']] = to_hex(t[i])
+            elif isinstance(t[i], tuple):
+                output[target_field[i]['name']] = self.decode_tuple(t[i], target_field[i]['components'])
+            else:
+                output[target_field[i]['name']] = t[i]
+        return output
 
     def _query_filter(self,filter_object, **kwargs):
         """
@@ -78,7 +185,7 @@ class Blockchain:
                 raise ValueError(e)
 
     @lru_cache(maxsize=None)
-    def _get_contract(self, address: str, abi: str) -> web3.contract.Contract:
+    def get_contract(self, address: str, abi: str) -> web3.contract.Contract:
         """
         This helps speed up execution of decoding across a large dataset by caching the contract object
         It assumes that we are decoding a small set, on the order of thousands, of target smart contracts
@@ -220,6 +327,15 @@ class Blockchain:
 
             start += increment
         return ranges
+
+    @lru_cache(maxsize=None)
+    def _get_topic2abi(self, abi):
+        if isinstance(abi, str):
+            abi = json.loads(abi)
+
+        event_abi = [a for a in abi if a['type'] == 'event']
+        topic2abi = {event_abi_to_log_topic(_): _ for _ in event_abi}
+        return topic2abi
 
     def is_connected(self) -> bool:
         return self.w3.isConnected()
