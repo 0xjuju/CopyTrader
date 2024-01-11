@@ -30,6 +30,54 @@ class Blockchain:
         hex_t = HexBytes(t)
         return hex_t
 
+    @lru_cache(maxsize=None)
+    def _get_topic2abi(self, abi):
+        if isinstance(abi, str):
+            abi = json.loads(abi)
+
+        event_abi = [a for a in abi if a['type'] == 'event']
+        topic2abi = {event_abi_to_log_topic(_): _ for _ in event_abi}
+        return topic2abi
+
+
+    def _query_filter(self,filter_object, **kwargs):
+        """
+        Recursive get_logs function to handle -32005 error when query returns too many results.
+        Split blocks in half until all queries are completed successfully
+
+        :param kwargs: query parameters for blockchain query [toBlock, fromBlock, address, ...]
+        :return: get_logs query
+        """
+
+        try:  # Catch error when query limit is exceeded
+            logs = filter_object(**kwargs).get_all_entries()
+            yield logs
+
+        except TypeError as e:
+            if "unexpected keyword argument 'fromBlock'" in str(e):
+                logs = filter_object(kwargs)
+                yield logs
+            else:
+                raise TypeError(e)
+
+        except ValueError as e:
+            if "-32602" in str(e):
+                print(e)
+                start_block = kwargs["fromBlock"]
+                end_block = kwargs["toBlock"]
+                if abs(start_block - end_block) == 0:
+                    raise ValueError("Block Range reduced to 0. Infinite recursion...")
+
+                # Split blocks in half
+                start1, stop1 = start_block, start_block + abs(start_block - end_block) // 2
+                start2, stop2 = stop1 + 1, end_block
+                # print(f"Number of Blocks: {abs(start_block - end_block):,}")
+                # Recursively break query into two calls, until each log returns less tha 10,000 results
+                yield from self._query_filter(filter_object, fromBlock=start1, toBlock=stop1, address=kwargs.get("address"))
+                yield from self._query_filter(filter_object, fromBlock=start2, toBlock=stop2, address=kwargs.get("address"))
+            else:
+                raise ValueError(e)
+
     @staticmethod
     def chain_to_rpc(chain: str) -> str:
         rpc_list = {
@@ -145,44 +193,6 @@ class Blockchain:
             else:
                 output[target_field[i]['name']] = t[i]
         return output
-
-    def _query_filter(self,filter_object, **kwargs):
-        """
-        Recursive get_logs function to handle -32005 error when query returns too many results.
-        Split blocks in half until all queries are completed successfully
-
-        :param kwargs: query parameters for blockchain query [toBlock, fromBlock, address, ...]
-        :return: get_logs query
-        """
-
-        try:  # Catch error when query limit is exceeded
-            logs = filter_object(**kwargs).get_all_entries()
-            yield logs
-
-        except TypeError as e:
-            if "unexpected keyword argument 'fromBlock'" in str(e):
-                logs = filter_object(kwargs)
-                yield logs
-            else:
-                raise TypeError(e)
-
-        except ValueError as e:
-            if "-32602" in str(e):
-                print(e)
-                start_block = kwargs["fromBlock"]
-                end_block = kwargs["toBlock"]
-                if abs(start_block - end_block) == 0:
-                    raise ValueError("Block Range reduced to 0. Infinite recursion...")
-
-                # Split blocks in half
-                start1, stop1 = start_block, start_block + abs(start_block - end_block) // 2
-                start2, stop2 = stop1 + 1, end_block
-                # print(f"Number of Blocks: {abs(start_block - end_block):,}")
-                # Recursively break query into two calls, until each log returns less tha 10,000 results
-                yield from self._query_filter(filter_object, fromBlock=start1, toBlock=stop1, address=kwargs.get("address"))
-                yield from self._query_filter(filter_object, fromBlock=start2, toBlock=stop2, address=kwargs.get("address"))
-            else:
-                raise ValueError(e)
 
     @lru_cache(maxsize=None)
     def get_contract(self, address: str, abi: str) -> web3.contract.Contract:
@@ -327,15 +337,6 @@ class Blockchain:
 
             start += increment
         return ranges
-
-    @lru_cache(maxsize=None)
-    def _get_topic2abi(self, abi):
-        if isinstance(abi, str):
-            abi = json.loads(abi)
-
-        event_abi = [a for a in abi if a['type'] == 'event']
-        topic2abi = {event_abi_to_log_topic(_): _ for _ in event_abi}
-        return topic2abi
 
     def is_connected(self) -> bool:
         return self.w3.isConnected()
