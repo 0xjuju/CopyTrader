@@ -395,6 +395,7 @@ class Updater:
                                 pool_contract = None
                                 print(data)
                                 for pool_info in data:
+                                    print(pool_info)
                                     if pool_info["token0"] == token_address or pool_info["token1"] == token_address:
                                         pool_contract = pool_info["pool"] if pool_info.get("pool") else pool_info["pair"]
                                         break

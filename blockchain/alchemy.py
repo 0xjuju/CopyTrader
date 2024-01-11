@@ -39,7 +39,6 @@ class Blockchain:
         topic2abi = {event_abi_to_log_topic(_): _ for _ in event_abi}
         return topic2abi
 
-
     def _query_filter(self,filter_object, **kwargs):
         """
         Recursive get_logs function to handle -32005 error when query returns too many results.
@@ -54,7 +53,7 @@ class Blockchain:
             yield logs
 
         except TypeError as e:
-            if "unexpected keyword argument 'fromBlock'" in str(e):
+            if "unexpected keyword argument" in str(e):
                 logs = filter_object(kwargs)
                 yield logs
             else:
