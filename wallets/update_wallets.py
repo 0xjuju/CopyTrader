@@ -270,7 +270,7 @@ class Updater:
             # We want at least 2 topics to filter out Sync event, and other non-swap events
             if len(transaction["topics"]) > 2:
                 checked_topics = [transaction["topics"][0].hex()] +\
-                                 [blockchain.checksum_address(i.hex()) for i in transaction["topics"][1:]]
+                                 [blockchain.checksum_address(i) for i in transaction["topics"][1:]]
 
                 # Various checks to filter out contracts that execute buy/sell events
                 # Expect real person to always interact directly with DEX
@@ -393,7 +393,6 @@ class Updater:
                             for dex, data in dex_list.items():
                                 print(dex)
                                 pool_contract = None
-                                print(data)
                                 for pool_info in data:
                                     print(pool_info)
                                     if pool_info["token0"] == token_address or pool_info["token1"] == token_address:
