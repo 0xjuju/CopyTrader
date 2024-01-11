@@ -102,7 +102,7 @@ class Blockchain:
         :return:
         """
         address = address.hex()
-        return self.web3.toChecksumAddress('0x' + address[-40:])
+        return self.w3.toChecksumAddress('0x' + address[-40:])
 
     def convert_to_hex(self, arg, target_schema):
         """
