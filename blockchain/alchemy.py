@@ -95,6 +95,15 @@ class Blockchain:
         """
         return self.w3.toChecksumAddress(address)
 
+    def convert_to_checksum_address_from_hex(self, address: hex) -> str:
+        """
+        Convert address to unique checksum counterpart
+        :param address: wallet or contract address
+        :return:
+        """
+        address = address.hex()
+        return self.web3.toChecksumAddress('0x' + address[-40:])
+
     def convert_to_hex(self, arg, target_schema):
         """
         :param arg:
