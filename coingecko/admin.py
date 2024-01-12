@@ -4,7 +4,11 @@ from .models import *
 
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
-    list_display = ["token", "chain", "contract"]
+    list_display = ["token","token_name", "chain", "contract"]
+    search_fields = ["token"]
+
+    def token_name(self, obj):
+        return obj.token.name
 
 
 @admin.register(GeckoToken)
