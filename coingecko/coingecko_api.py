@@ -57,7 +57,7 @@ class GeckoClient:
             price_change_24hr=0, price_change_7d=0
         )
 
-        chain_list = Chain.objects.values_list()
+        chain_list = Chain.objects.values_list("name", flat=True)
         token_list = list()  # List of tokens meeting price-change requirements
         for token in collection:
 
@@ -84,11 +84,13 @@ class GeckoClient:
                     if gecko_token.address_set.count() == 0:
                         contracts = self.get_coin_contract(token_id)
                         for contract_name in contracts["detail_platforms"]:
+
                             if contract_name:
+
                                 contract = contracts["detail_platforms"][contract_name]["contract_address"]
                                 decimals = contracts["detail_platforms"][contract_name]["decimal_place"]
+
                                 if contract_name in chain_list and contract and decimals:
-                                    print(contracts["detail_platforms"])
                                     new_address = Address.objects.create(
                                         contract=contract,
                                         chain=contract_name,

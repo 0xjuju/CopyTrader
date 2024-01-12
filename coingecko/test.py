@@ -18,7 +18,7 @@ class TestCoingecko(TestCase):
         v = self.api.get_asset_platforms()
 
     def test_get_coin_contract(self):
-        data = self.api.get_coin_contract("usd-coin")
+        data = self.api.get_coin_contract("poof-token")
         print(data["detail_platforms"])
 
     def test_get_coins_list(self):
