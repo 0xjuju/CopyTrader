@@ -321,6 +321,8 @@ class Updater:
         # Pair contract and token addresses from Dex
         pools = dict()
 
+        minus_24_hours = datetime.now() - timedelta(hours=24)
+
         contracts = Address.objects.filter(chain__in=chains)\
             .exclude(chain="avalanche")\
             .exclude(chain="binance-smart-chain")\
@@ -328,13 +330,16 @@ class Updater:
             .exclude(chain="arbitrum-one")\
             .exclude(chain="base")\
             .exclude(chain="polygon-pos")\
+            . filter(token__date_added__gte=minus_24_hours)\
             .filter(
             Q(token__price_change_24hr__gte=percent_threshold) | Q(token__price_change_7d__gte=percent_threshold)
         )
         print("Number of Contracts ", len(contracts))
 
         for contract in contracts:
+
             to_process = input(f"{contract.token.name} or next?")
+
 
             if to_process == "yes":
 
