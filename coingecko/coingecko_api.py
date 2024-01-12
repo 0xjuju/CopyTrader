@@ -45,6 +45,7 @@ class GeckoClient:
         return self.client.get_coin_market_chart_from_contract_address_by_id(id=chain_map.get(chain, chain),
                                                                                  contract_address=contract_address,
                                                                                  vs_currency=currency, days=days)
+
     def parse_collection(self, collection: list[dict], percent_change_24h: float, percent_change_7d: float):
         """
         :param collection: list of token attributes
@@ -52,6 +53,9 @@ class GeckoClient:
         :param percent_change_7d: 7 day change
         :return: None, upload hits to database
         """
+        GeckoToken.objects.all().update(
+            price_change_24hr=0, price_change_7d=0
+        )
 
         chain_list = Chain.objects.values_list()
         token_list = list()  # List of tokens meeting price-change requirements

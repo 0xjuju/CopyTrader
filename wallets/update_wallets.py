@@ -321,12 +321,10 @@ class Updater:
         # Pair contract and token addresses from Dex
         pools = dict()
 
-        minus_24_hours = datetime.now() - timedelta(hours=24)
         exclude_list = ["avalanche", "binance-smart-chain", "solana", "base"]
 
         contracts = Address.objects.filter(chain__in=chains)\
             .exclude(chain__in=exclude_list)\
-            . filter(token__date_added__gte=minus_24_hours)\
             .filter(
             Q(token__price_change_24hr__gte=percent_threshold) | Q(token__price_change_7d__gte=percent_threshold)
         )
