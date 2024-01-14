@@ -196,15 +196,18 @@ class Updater:
         for factory in factory_contracts:
             print(factory.name)
             contract = blockchain.get_contract(factory.address, factory.abi)
-            pools[factory.chain][factory.name] = list()
+
+            pools[factory.chain][factory.name] = {
+                "pools": list(),
+                "abi": factory.abi
+            }
 
             get_pools = blockchain.get_factory_pools(contract, argument_filters={"token1": token_address})
             if not get_pools:
                 get_pools = blockchain.get_factory_pools(contract, argument_filters={"token0": token_address})
 
             for pool in get_pools:
-                # pools[factory.chain][factory.name]["contract"] = contract
-                pools[factory.chain][factory.name].append(pool)
+                pools[factory.chain][factory.name]["pools"].append(pool)
 
         return pools
 
@@ -253,13 +256,13 @@ class Updater:
 
         return transactions
 
-    def map_buyers_and_sellers(self, blockchain: Blockchain, all_entries, blacklisted, whitelisted, abi):
+    def map_buyers_and_sellers(self, blockchain: Blockchain, all_entries, blacklisted, whitelisted, abi: str):
         """
         :param blockchain: chain
         :param all_entries: list of transaction from given timeframe
         :param blacklisted: Known automated addresses
         :param whitelisted: valid addresses
-        :param abi: Application Binary Interface
+        :param abi: Factory contract abi
         :return: Parsed list of buyers vs sellers
         """
         buyers = defaultdict(list)
@@ -278,12 +281,14 @@ class Updater:
                                                        whitelisted_contracts=whitelisted,
                                                        blockchain=blockchain):
 
+
                     # main wallet or EOA (Externally Operated Account)
                     from_address = checked_topics[2]
 
                     data = transaction["data"]
                     topics = [i for i in transaction["topics"]]
                     decoded_log = blockchain.decode_log(data=data, topics=topics, abi=abi)
+                    print(decoded_log)
 
                     if decoded_log[0] == "Swap":
                         log_data = json.loads(decoded_log[1])
@@ -316,7 +321,8 @@ class Updater:
 
     def update(self, percent_threshold: float):
         chains = Chain.objects.values_list("name", flat=True)
-        abi = ABI.objects.get(abi_type="token_pool_generic").text
+
+        generic_pool_abi = ABI.objects.get(abi_type="token_pool_generic").text
 
         # Pair contract and token addresses from Dex
         pools = dict()
@@ -331,7 +337,6 @@ class Updater:
         print("Number of Contracts ", len(contracts))
 
         for contract in contracts:
-
             to_process = input(f"{contract.token.name} or next?")
 
             if to_process == "yes":
@@ -390,40 +395,45 @@ class Updater:
 
                             for dex, data in dex_list.items():
                                 print(dex)
-                                pool_contract = None
-                                for pool_info in data:
-                                    print(pool_info)
+                                pool_contracts = list()
+                                # factory_abi = data["abi"]
+                                for pool_info in data["pools"]:
                                     if pool_info["token0"] == token_address or pool_info["token1"] == token_address:
-                                        pool_contract = pool_info["pool"] if pool_info.get("pool") else pool_info["pair"]
-                                        break
+                                        pool_contracts.append(
+                                            pool_info["pool"] if pool_info.get("pool") else pool_info["pair"]
+                                        )
 
-                                if pool_contract:
-                                    print("Getting txs")
-                                    transactions = self.get_transactions(from_block=from_block, to_block=to_block, contract=pool_contract,
-                                                                         blockchain=blockchain)
+                                if pool_contracts:
+                                    for pool_contract in pool_contracts:
 
-                                    print("Done getting txs...")
+                                        print("Getting txs")
+                                        transactions = self.get_transactions(
+                                            from_block=from_block, to_block=to_block,
+                                            contract=pool_contract, blockchain=blockchain
+                                        )
 
-                                    print(f"Number of transactions: {len(transactions)}")
+                                        print("Done getting txs...")
 
-                                    # Separate Buyers from Sellers for each transaction and create Dictionary representations
-                                    # Wallet address (EOA) as KEY
-                                    buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
-                                                                                  blacklisted=blacklisted, whitelisted=whitelisted,
-                                                                                  abi=abi)
+                                        print(f"Number of transactions: {len(transactions)}")
 
-                                    # transactions with unwanted accounts filtered out
-                                    filtered_transactions = self.filter_transactions(buyers, sellers)
+                                        # Separate Buyers from Sellers for each transaction and create Dictionary representations
+                                        # Wallet address (EOA) as KEY
+                                        buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
+                                                                                      blacklisted=blacklisted, whitelisted=whitelisted,
+                                                                                      abi=generic_pool_abi)
 
-                                    token, _ = Token.objects.get_or_create(
-                                        name=contract.token.name,
-                                        address=contract.contract
-                                    )
+                                        # transactions with unwanted accounts filtered out
+                                        filtered_transactions = self.filter_transactions(buyers, sellers)
 
-                                    # Update Database with new wallets and transactions
-                                    self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
-                                                               chain=contract.chain, timestamp=timestamp,
-                                                               percentage=str(percentage), index=index)
+                                        token, _ = Token.objects.get_or_create(
+                                            name=contract.token.name,
+                                            address=contract.contract
+                                        )
+
+                                        # Update Database with new wallets and transactions
+                                        self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
+                                                                   chain=contract.chain, timestamp=timestamp,
+                                                                   percentage=str(percentage), index=index)
                                 else:
                                     print(f"-------------Pool not found for Token {contract.token.name} - {token_address}")
 
