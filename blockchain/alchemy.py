@@ -371,7 +371,7 @@ class Webhook:
             "NFT_METADATA_UPDATE"
         ]
 
-    def make_request(self, chain: str, webhook_type: str, payload_opts: dict) -> dict:
+    def _make_request(self, chain: str, webhook_type: str, payload_opts: dict) -> dict:
         network = self.networks[chain]
 
         if webhook_type not in self.WEBHOOK_OPTIONS:
