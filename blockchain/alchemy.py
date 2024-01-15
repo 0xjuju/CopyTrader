@@ -1,6 +1,7 @@
 from functools import lru_cache
 from hexbytes import HexBytes
 import json
+import requests
 import time
 import traceback
 import types
@@ -348,6 +349,58 @@ class Blockchain:
 
     def is_connected(self) -> bool:
         return self.w3.isConnected()
+
+
+class Webhook:
+    def __init__(self):
+        self.WEBHOOK_URL = "https://dashboard.alchemy.com/api/create-webhook"
+        self.WEBHOOK_KEY = decouple.config("ALCHEMY_WEBHOOK_KEY")
+
+        self.networks = {
+            "ethereum": "ETH_MAINNET",
+            "arbitrum-one": "ARB_MAINNET",
+            "polygon-pos": "MATIC_MAINNET"
+        }
+
+        self.WEBHOOK_OPTIONS = [
+            "ADDRESS_ACTIVITY",
+            "MINED_TRANSACTION",
+            "GRAPHQL",
+            "DROPPED_TRANSACTION",
+            "NFT_ACTIVITY",
+            "NFT_METADATA_UPDATE"
+        ]
+
+    def make_request(self, chain: str, webhook_type: str, payload_opts: dict) -> dict:
+        network = self.networks[chain]
+
+        if webhook_type not in self.WEBHOOK_OPTIONS:
+            raise ValueError(f"{webhook_type} not a valid option from {self.WEBHOOK_OPTIONS}")
+
+        payload = {
+            "network": network,
+            "webhook_type": webhook_type,
+            "webhook_url": None
+        }
+        if payload_opts:
+            payload.update(payload_opts)
+
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "X-Alchemy-Token": self.WEBHOOK_KEY,
+        }
+
+        response = requests.post(self.WEBHOOK_URL, json=payload, headers=headers)
+
+        return response.json()
+
+    def create_wallet_activity_webhook(self, chain: str, webhook_type:str, address_list: list[str]) -> None:
+        payload = {"addresses": address_list}
+        self.make_request(chain=chain, webhook_type=webhook_type, payload_opts=payload)
+
+
+
 
 
 
