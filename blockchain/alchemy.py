@@ -1,8 +1,8 @@
 from functools import lru_cache
 from hexbytes import HexBytes
+import json
 import time
 import traceback
-import json
 import types
 
 from algorithms.basic_tools import flatten_list
@@ -348,9 +348,6 @@ class Blockchain:
 
     def is_connected(self) -> bool:
         return self.w3.isConnected()
-
-
-
 
 
 

@@ -8,11 +8,11 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-BASE_URL = "http://localhost:8000"
-
-DEV_SERVER = len(sys.argv) > 1 and sys.argv[1] == "runserver"
-
-USE_NGROK = os.environ.get("USE_NGROK", "False") == "True" and os.environ.get("RUN_MAIN", None) != "true"
+# BASE_URL = "http://localhost:8000"
+#
+# DEV_SERVER = len(sys.argv) > 1 and sys.argv[1] == "runserver"
+#
+# USE_NGROK = os.environ.get("USE_NGROK", "False") == "True" and os.environ.get("RUN_MAIN", None) != "true"
 
 
 # Celery settings
@@ -41,8 +41,9 @@ SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    "71e0-173-48-93-29.ngrok-free.app"
+]
 
 # Application definition
 
