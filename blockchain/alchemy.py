@@ -397,7 +397,7 @@ class Webhook:
 
     def create_wallet_activity_webhook(self, chain: str, webhook_type:str, address_list: list[str]) -> None:
         payload = {"addresses": address_list}
-        self.make_request(chain=chain, webhook_type=webhook_type, payload_opts=payload)
+        self._make_request(chain=chain, webhook_type=webhook_type, payload_opts=payload)
 
 
 
