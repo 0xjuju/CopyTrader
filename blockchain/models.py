@@ -18,13 +18,13 @@ class Chain(models.Model):
 
 class FactoryContract(models.Model):
     chains = (
-        ("ethereum", "ethereum", ),
-        ("binance-smart-chain", "binance-smart-chain", ),
-        ("polygon-pos", "polygon-pos", ),
-        ("arbitrum-one", "arbitrum-one", ),
-        ("base", "base", ),
-        ("avalanche", "avalanche", ),
-        ("solana", "solana", ),
+        ("ethereum", "ethereum",),
+        ("binance-smart-chain", "binance-smart-chain",),
+        ("polygon-pos", "polygon-pos",),
+        ("arbitrum-one", "arbitrum-one",),
+        ("base", "base",),
+        ("avalanche", "avalanche",),
+        ("solana", "solana",),
     )
     name = models.CharField(max_length=255, default="")
     address = models.CharField(max_length=255, default="")
@@ -32,3 +32,7 @@ class FactoryContract(models.Model):
     chain = models.CharField(max_length=255, default="")
     version = models.IntegerField(default=0)
 
+
+class Webhook(models.Model):
+    webhook_id = models.CharField(max_length=255, default="")
+    chain = models.CharField(max_length=255, default="")
