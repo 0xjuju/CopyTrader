@@ -396,6 +396,10 @@ class Webhook:
 
         return response.json()
 
+    def add_remove_webhook_address(self, webhook_id):
+        pass
+
+
     def create_wallet_activity_webhook(self, chain: str, webhook_type: str, address_list: list[str]) -> None:
         payload = {"addresses": address_list}
 
