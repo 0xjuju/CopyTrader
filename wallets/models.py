@@ -8,6 +8,13 @@ class Bot(models.Model):
         return self.address
 
 
+class Gem(models.Model):
+    name = models.CharField(max_length=255, default="")
+    wallet = models.ManyToManyField("Wallet")
+    address = models.CharField(max_length=255, default="")
+    date_added = models.DateTimeField(auto_now=True)
+
+
 class WalletFilter(models.Model):
     top_percent = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     min_wallets = models.IntegerField(default=0)
