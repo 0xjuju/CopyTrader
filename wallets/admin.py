@@ -3,22 +3,9 @@ from django.contrib import admin
 from wallets.models import *
 
 
-@admin.register(OwnedToken)
-class OwnedTokenAdmnin(admin.ModelAdmin):
-    pass
-
-@admin.register(PairContract)
-class PairContractAdmin(admin.ModelAdmin):
-    list_display = ["dex", "token", "pair", "chain"]
-
 @admin.register(WalletFilter)
 class FilterParamsAdmin(admin.ModelAdmin):
     list_display = ("top_percent", "min_wallets", "max_wallets", "min_token_wins")
-
-
-@admin.register(PoolContract)
-class PoolContractAdmin(admin.ModelAdmin):
-    pass
 
 
 @admin.register(Token)

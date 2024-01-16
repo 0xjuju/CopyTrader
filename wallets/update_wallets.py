@@ -10,18 +10,17 @@ from blockchain.models import Chain, ABI, FactoryContract
 from coingecko.coingecko_api import GeckoClient
 from coingecko.models import Address
 from django.db.models import Q
-from wallets.models import Bot, Transaction, Wallet, PoolContract, Token
+from wallets.models import Bot, Transaction, Wallet, Token
 
 
 class Updater:
 
     @staticmethod
-    def contract_and_address_validated(checked_topics, whitelisted_contracts, blacklisted, blockchain: Blockchain):
+    def contract_and_address_validated(checked_topics, blacklisted, blockchain: Blockchain):
         """
         Validate address against known automated addresses
 
         :param checked_topics: transaction data containing various contract interactions
-        :param whitelisted_contracts: Accepted addresses interacted..
         :param blacklisted: Known automated addresses
         :param blockchain: chain
         :return: Boolean whitelisted or not
@@ -29,7 +28,7 @@ class Updater:
 
         to_address = checked_topics[1]
 
-        if checked_topics[2] not in whitelisted_contracts and blockchain.w3.eth.get_code(checked_topics[2]) == b'' \
+        if blockchain.w3.eth.get_code(checked_topics[2]) == b'' \
                 and to_address not in blacklisted and to_address[0:12] != "0x0000000000":
 
             return True
@@ -256,12 +255,11 @@ class Updater:
 
         return transactions
 
-    def map_buyers_and_sellers(self, blockchain: Blockchain, all_entries, blacklisted, whitelisted, abi: str):
+    def map_buyers_and_sellers(self, blockchain: Blockchain, all_entries, blacklisted, abi: str):
         """
         :param blockchain: chain
         :param all_entries: list of transaction from given timeframe
         :param blacklisted: Known automated addresses
-        :param whitelisted: valid addresses
         :param abi: Factory contract abi
         :return: Parsed list of buyers vs sellers
         """
@@ -278,9 +276,7 @@ class Updater:
                 # Various checks to filter out contracts that execute buy/sell events
                 # Expect real person to always interact directly with DEX
                 if self.contract_and_address_validated(checked_topics=checked_topics, blacklisted=blacklisted,
-                                                       whitelisted_contracts=whitelisted,
                                                        blockchain=blockchain):
-
 
                     # main wallet or EOA (Externally Operated Account)
                     from_address = checked_topics[2]
@@ -368,9 +364,6 @@ class Updater:
                     # Exclude known bot wallets from processing
                     blacklisted = Bot.objects.values_list("address", flat=True)
 
-                    # Contracts that interact with humans
-                    whitelisted = PoolContract.objects.values_list("address", flat=True)
-
                     for index, datapoint in enumerate(price_breakouts):
                         duration = datapoint[0]
                         timestamp = datapoint[1]
@@ -416,10 +409,10 @@ class Updater:
 
                                         print(f"Number of transactions: {len(transactions)}")
 
-                                        # Separate Buyers from Sellers for each transaction and create Dictionary representations
-                                        # Wallet address (EOA) as KEY
+                                        # Separate Buyers from Sellers for each transaction and create Dictionary
+                                        # representations Wallet address (EOA) as KEY
                                         buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
-                                                                                      blacklisted=blacklisted, whitelisted=whitelisted,
+                                                                                      blacklisted=blacklisted,
                                                                                       abi=generic_pool_abi)
 
                                         # transactions with unwanted accounts filtered out
