@@ -41,8 +41,10 @@ SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+NGROK_TEMP_HOST = config("NGROK_TEMP_HOST")
+
 ALLOWED_HOSTS = [
-    "71e0-173-48-93-29.ngrok-free.app",
+    NGROK_TEMP_HOST,
     "127.0.0.1",
 ]
 
