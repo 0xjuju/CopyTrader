@@ -32,5 +32,6 @@ pytz==2021.3
 six==1.16.0
 sqlparse==0.4.3
 virtualenv==20.7.2
+whitenoise==6.2.0
 yarl==1.9.4
 zipp==3.14.0
