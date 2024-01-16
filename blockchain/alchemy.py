@@ -353,7 +353,7 @@ class Blockchain:
 
 class Webhook:
     def __init__(self):
-        self.WEBHOOK_URL = "https://dashboard.alchemy.com/api/create-webhook"
+        self.WEBHOOK_URL = "https://dashboard.alchemy.com/api/"
         self.WEBHOOK_KEY = decouple.config("ALCHEMY_WEBHOOK_KEY")
 
         self.networks = {
@@ -371,9 +371,10 @@ class Webhook:
             "NFT_METADATA_UPDATE"
         ]
 
-    def _make_request(self, chain: str, webhook_type: str, payload_opts: dict) -> dict:
+    def _make_request(self,endpoint: str, chain: str, webhook_type: str, payload_opts: dict) -> dict:
         network = self.networks[chain]
 
+        url = self.WEBHOOK_URL + endpoint
         if webhook_type not in self.WEBHOOK_OPTIONS:
             raise ValueError(f"{webhook_type} not a valid option from {self.WEBHOOK_OPTIONS}")
 
@@ -391,13 +392,23 @@ class Webhook:
             "X-Alchemy-Token": self.WEBHOOK_KEY,
         }
 
-        response = requests.post(self.WEBHOOK_URL, json=payload, headers=headers)
+        response = requests.post(url, json=payload, headers=headers)
 
         return response.json()
 
-    def create_wallet_activity_webhook(self, chain: str, webhook_type:str, address_list: list[str]) -> None:
+    def create_wallet_activity_webhook(self, chain: str, webhook_type: str, address_list: list[str]) -> None:
         payload = {"addresses": address_list}
-        self._make_request(chain=chain, webhook_type=webhook_type, payload_opts=payload)
+
+        self._make_request("create-webhook", chain=chain, webhook_type=webhook_type, payload_opts=payload)
+
+    def get_all_webhooks(self) -> dict:
+        url = self.WEBHOOK_URL + "team-webhooks"
+        headers = {
+            "accept": "application/json",
+            "X-Alchemy-Token": self.WEBHOOK_KEY
+        }
+        response = requests.get(url, headers=headers)
+        return response.json()
 
 
 
