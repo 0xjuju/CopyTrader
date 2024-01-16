@@ -11,7 +11,7 @@ class Bot(models.Model):
 class Gem(models.Model):
     name = models.CharField(max_length=255, default="")
     wallet = models.ManyToManyField("Wallet")
-    address = models.CharField(max_length=255, default="")
+    contract_address = models.CharField(max_length=255, default="")
     date_added = models.DateTimeField(auto_now=True)
 
 

@@ -20,7 +20,7 @@ class BotAdmin(admin.ModelAdmin):
 
 @admin.register(Gem)
 class GemAdmin(admin.ModelAdmin):
-    list_display = ["name", "address", "wallet", "date_added"]
+    list_display = ["name", "contract_address", "date_added"]
 
 
 @admin.register(Wallet)
