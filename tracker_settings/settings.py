@@ -56,7 +56,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'wallets',
     'django_celery_beat',
-    'exchange',
     'coingecko',
     'blockchain'
 ]
