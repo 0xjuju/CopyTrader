@@ -18,6 +18,11 @@ class BotAdmin(admin.ModelAdmin):
     pass
 
 
+@admin.register(Gem)
+class GemAdmin(admin.ModelAdmin):
+    list_display = ["name", "address", "wallet", "date_added"]
+
+
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
     search_fields = ("address", )
