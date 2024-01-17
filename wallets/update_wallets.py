@@ -326,7 +326,7 @@ class Updater:
         # Pair contract and token addresses from Dex
         pools = dict()
 
-        exclude_list = ["avalanche", "binance-smart-chain", "solana", "base"]
+        exclude_list = ["avalanche", "binance-smart-chain", "solana", "base", "optimistic-ethereum",]
 
         contracts = Address.objects.filter(chain__in=chains)\
             .exclude(chain__in=exclude_list)\
