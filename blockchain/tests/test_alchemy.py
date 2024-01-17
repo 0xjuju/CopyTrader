@@ -47,6 +47,11 @@ class TestAlchemy(TestCase):
         print('arguments: ', json.dumps(json.loads(output[1]), indent=2))
         print(output)
 
+    def test_get_block(self):
+        from hexbytes import HexBytes
+        block = self.eth_blockchain.get_block(12297619)
+        self.assertEqual(block["hash"], HexBytes('0x4f4c153028694c2f4855bd46c4665b536924993167a5b537cdc3ed681d5dd75b'))
+
     def test_get_factory_pools(self):
         univ3 = self.factory_contracts["uniswapv3"]
 

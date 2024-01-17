@@ -270,6 +270,13 @@ class Blockchain:
 
         return token_pools
 
+    def get_block(self, block_num=None):
+
+        if block_num is None:
+            block_num = self.w3.eth.block_number
+
+        return self.w3.eth.get_block(block_num)
+
     def get_logs(self, *, max_chunk=None, **kwargs):
         """
         :param max_chunk: max block size to filter
