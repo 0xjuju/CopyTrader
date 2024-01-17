@@ -61,7 +61,9 @@ class Updater:
             if created:
                 wallet.save()
 
-            wallet.token.add(token)
+            if wallet.token.filter(address=token.address).exists() is False:
+                wallet.token.add(token)
+
             transaction_hash = transaction["transactionHash"].hex()
             if not all_transactions.filter(transaction_hash=transaction_hash).exists():
                 transaction = Transaction.objects.create(
