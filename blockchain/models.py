@@ -35,6 +35,6 @@ class FactoryContract(models.Model):
     name = models.CharField(max_length=255, default="")
     address = models.CharField(max_length=255, default="")
     abi = models.TextField(default="")
-    chain = models.CharField(max_length=255, default="")
+    chain = models.CharField(max_length=255, default="", choices=chains)
     version = models.IntegerField(default=0)
 
