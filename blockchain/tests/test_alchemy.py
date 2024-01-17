@@ -104,6 +104,13 @@ class TestAlchemy(TestCase):
             contract, argument_filters={"token0": "0x071ac29d569a47ebffb9e57517f855cb577dcc4c"})
         self.assertEqual(pools[0]["token0"], "0x071AC29d569a47EbfFB9e57517F855Cb577DCc4C")
 
+        sushiswapv2eth = self.factory_contracts["sushiswapv2eth"]
+        # Ethereum pool on Sushiwap v3
+        contract = self.eth_blockchain.get_contract(sushiswapv2eth["contract"], abi=sushiswapv2eth["abi"])
+        pools = self.eth_blockchain.get_factory_pools(
+            contract, argument_filters={"token0": "0x4104b135dbc9609fc1a9490e61369036497660c8"})
+        self.assertEqual(pools[0]["token0"], "0x4104b135DBC9609Fc1A9490E61369036497660c8")
+
     def test_query_filter(self):
         from_block = 18967710
         to_block = from_block + 100
