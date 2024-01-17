@@ -9,6 +9,12 @@ class ABI(models.Model):
         return self.abi_type
 
 
+class AddressWebhook(models.Model):
+    webhook_id = models.CharField(max_length=255, default="")
+    chain = models.CharField(max_length=255, default="")
+    max_address = models.IntegerField(default=0)
+
+
 class Chain(models.Model):
     name = models.CharField(max_length=255, default="")
 
@@ -32,7 +38,3 @@ class FactoryContract(models.Model):
     chain = models.CharField(max_length=255, default="")
     version = models.IntegerField(default=0)
 
-
-class Webhook(models.Model):
-    webhook_id = models.CharField(max_length=255, default="")
-    chain = models.CharField(max_length=255, default="")

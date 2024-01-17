@@ -399,11 +399,21 @@ class Webhook:
     def add_remove_webhook_address(self, webhook_id):
         pass
 
-
     def create_wallet_activity_webhook(self, chain: str, webhook_type: str, address_list: list[str]) -> None:
         payload = {"addresses": address_list}
 
         self._make_request("create-webhook", chain=chain, webhook_type=webhook_type, payload_opts=payload)
+
+    def get_address_list_from_webhook(self, webhook_id: str, limit=100, page_cursor=0) -> dict:
+        url = f"https://dashboard.alchemy.com/api/webhook-addresses?webhook_id={webhook_id}&limit={limit}&after={page_cursor}"
+
+        headers = {
+            "accept": "application/json",
+            "X-Alchemy-Token": self.WEBHOOK_KEY,
+        }
+
+        response = requests.get(url, headers=headers)
+        return response.json()
 
     def get_all_webhooks(self) -> dict:
         url = self.WEBHOOK_URL + "team-webhooks"
@@ -412,6 +422,7 @@ class Webhook:
             "X-Alchemy-Token": self.WEBHOOK_KEY
         }
         response = requests.get(url, headers=headers)
+
         return response.json()
 
 
