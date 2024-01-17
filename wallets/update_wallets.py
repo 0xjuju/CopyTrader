@@ -318,7 +318,8 @@ class Updater:
     def update(self, percent_threshold: float):
         chains = Chain.objects.values_list("name", flat=True)
 
-        generic_pool_abi = ABI.objects.get(abi_type="token_pool_generic").text
+        v2pool_abi = ABI.objects.get(abi_type="v2pools").text
+        v3pool_abi = ABI.objects.get(abi_type="v3pools").text
 
         # Pair contract and token addresses from Dex
         pools = dict()
@@ -408,12 +409,15 @@ class Updater:
                                         print("Done getting txs...")
 
                                         print(f"Number of transactions: {len(transactions)}")
+                                        if "v3" in dex:
+                                            abi = v3pool_abi
+                                        else:
+                                            abi = v2pool_abi
 
                                         # Separate Buyers from Sellers for each transaction and create Dictionary
                                         # representations Wallet address (EOA) as KEY
                                         buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
-                                                                                      blacklisted=blacklisted,
-                                                                                      abi=generic_pool_abi)
+                                                                                      blacklisted=blacklisted, abi=abi)
 
                                         # transactions with unwanted accounts filtered out
                                         filtered_transactions = self.filter_transactions(buyers, sellers)
