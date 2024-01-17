@@ -396,9 +396,6 @@ class Webhook:
 
         return response.json()
 
-    def add_remove_webhook_address(self, webhook_id):
-        pass
-
     def create_wallet_activity_webhook(self, chain: str, webhook_type: str, address_list: list[str]) -> None:
         payload = {"addresses": address_list}
 
@@ -424,6 +421,23 @@ class Webhook:
         response = requests.get(url, headers=headers)
 
         return response.json()
+
+    def replace_webhook_address_list(self, webhook_id: str, address_list: list[str]):
+        url = "https://dashboard.alchemy.com/api/update-webhook-addresses"
+        payload = {
+            "webhook_id": webhook_id,
+            "addresses": address_list,
+        }
+
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "X-Alchemy-Token": self.WEBHOOK_KEY,
+        }
+
+        response = requests.put(url, json=payload, headers=headers)
+        print(response)
+
 
 
 
