@@ -26,6 +26,7 @@ class Address(models.Model):
     chain = models.CharField(max_length=255, default="")
     token = models.ForeignKey(GeckoToken, on_delete=models.CASCADE, default=None)
     decimals = models.IntegerField(default=18)
+    processed = models.BooleanField(default=False)
 
 
 
