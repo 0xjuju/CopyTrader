@@ -105,10 +105,9 @@ class GeckoClient:
         :return:
         """
 
-        # Update all price fields to 0
-        GeckoToken.objects.all().update(
-            price_change_24hr=0, price_change_7d=0
-        )
+        # Reset fields
+        GeckoToken.objects.all().update(price_change_24hr=0, price_change_7d=0)
+        Address.objects.all().update(processed=False)
 
         for page in range(pages):
             collection = self.get_coins_markets(page=page+1)
