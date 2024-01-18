@@ -37,12 +37,16 @@ class TestCoingecko(TestCase):
         # res = self.api.get_market_chart_by_contract(contract_address="0x6b23c89196deb721e6fd9726e6c76e4810a464bc", chain="bsc")
 
     def test_parse_collection(self):
-        collection = self.api.get_coins_markets()
+        collection = self.api.get_coins_markets(page=4)
+        for token in collection:
+            if token["name"].lower() == "shido":
+                print(token["name"], token["price_change_percentage_24h"], token["price_change_percentage_7d_in_currency"])
 
-        self.api.parse_collection(collection=collection, percent_change_24h=3, percent_change_7d=20)
+        self.api.parse_collection(collection=collection, percent_change_24h=40, percent_change_7d=70)
         from .models import GeckoToken
         tokens = GeckoToken.objects.all()
         print(tokens)
+        # print(tokens.name, tokens.price_change_24hr, tokens.price_change_7d)
 
 
 

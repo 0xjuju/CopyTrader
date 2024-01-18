@@ -53,9 +53,6 @@ class GeckoClient:
         :param percent_change_7d: 7 day change
         :return: None, upload hits to database
         """
-        GeckoToken.objects.all().update(
-            price_change_24hr=0, price_change_7d=0
-        )
 
         chain_list = Chain.objects.values_list("name", flat=True)
         token_list = list()  # List of tokens meeting price-change requirements
@@ -107,11 +104,17 @@ class GeckoClient:
         :param percent_change_7d: 7 dat price change
         :return:
         """
+
+        # Update all price fields to 0
+        GeckoToken.objects.all().update(
+            price_change_24hr=0, price_change_7d=0
+        )
+
         for page in range(pages):
-            print(f"Done page: {page}")
             collection = self.get_coins_markets(page=page+1)
             self.parse_collection(collection=collection, percent_change_24h=percent_change_24h,
                                   percent_change_7d=percent_change_7d)
+            print(f"Done page: {page + 1}")
 
 
 

@@ -11,6 +11,11 @@ class AddressAdmin(admin.ModelAdmin):
         return obj.token.name
 
 
+@admin.register(GeckoFilter)
+class GeckoFilterAdmin(admin.ModelAdmin):
+    list_display = ["name", "pages_to_parse", "percent_change_24h", "percent_change_7d"]
+
+
 @admin.register(GeckoToken)
 class GeckoTokenAdmin(admin.ModelAdmin):
     list_display = ["name", "token_id", "symbol", "price_change_24hr", "price_change_7d", "rank", "date_added"]

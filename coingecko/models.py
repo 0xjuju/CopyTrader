@@ -1,6 +1,13 @@
 from django.db import models
 
 
+class GeckoFilter(models.Model):
+    name = models.CharField(max_length=255, default="")
+    percent_change_24h = models.IntegerField(default=0)
+    percent_change_7d = models.IntegerField(default=0)
+    pages_to_parse = models.IntegerField(default=0)
+
+
 class GeckoToken(models.Model):
     name = models.CharField(max_length=255, default="")
     symbol = models.CharField(max_length=255, default="")
