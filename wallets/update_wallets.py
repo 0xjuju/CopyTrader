@@ -330,6 +330,7 @@ class Updater:
 
         contracts = Address.objects.filter(chain__in=chains)\
             .exclude(chain__in=exclude_list)\
+            .filter(processed=False)\
             .filter(
             Q(token__price_change_24hr__gte=percent_threshold) | Q(token__price_change_7d__gte=percent_threshold)
         )
@@ -436,11 +437,15 @@ class Updater:
                                 else:
                                     print(f"-------------Pool not found for Token {contract.token.name} - {token_address}")
 
+                contract.processed = True
+                contract.save()
+
                 next_token = input("Continue ?")
                 if next_token == "yes":
                     pass
                 else:
                     break
+
 
 
 
