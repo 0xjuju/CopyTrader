@@ -238,6 +238,7 @@ class Updater:
         :return: List of transactions filtered by token-pair contract from various dex
         """
         print(f"Number of blocks: {abs(from_block - to_block):,}")
+        print(from_block, "----", to_block)
         address = blockchain.checksum_address(contract)
 
         # Block range for query
@@ -250,11 +251,7 @@ class Updater:
             max_chunk = 3500
 
         transactions = blockchain.get_logs(max_chunk=max_chunk, address=address,
-                                               fromBlock=from_block, toBlock=to_block)
-        # else:
-        #     transactions = blockchain.filter_contract(max_chunk=max_chunk, address=address,
-        #                                               fromBlock=from_block, toBlock=to_block)
-
+                                           fromBlock=from_block, toBlock=to_block)
         return transactions
 
     def map_buyers_and_sellers(self, blockchain: Blockchain, all_entries, blacklisted, abi: str):
@@ -287,6 +284,7 @@ class Updater:
                     topics = [i for i in transaction["topics"]]
                     decoded_log = blockchain.decode_log(data=data, topics=topics, abi=abi)
                     print(decoded_log)
+                    print(transaction["transactionHash"].hex())
 
                     if decoded_log[0] == "Swap":
                         log_data = json.loads(decoded_log[1])
@@ -314,7 +312,6 @@ class Updater:
                             # We want to classify as either BUYER or SELLER always using these criteria
                             else:
                                 raise Exception(f"Unidentified error\n {transaction['transactionHash'].hex(), log_data}")
-
         return buyers, sellers
 
     def update(self, percent_threshold: float):
@@ -326,7 +323,7 @@ class Updater:
         # Pair contract and token addresses from Dex
         pools = dict()
 
-        exclude_list = ["avalanche", "binance-smart-chain", "solana", "base", "optimistic-ethereum",]
+        exclude_list = ["avalanche", "binance-smart-chain", "solana", "base", "optimistic-ethereum"]
 
         contracts = Address.objects.filter(chain__in=chains)\
             .exclude(chain__in=exclude_list)\
@@ -337,114 +334,109 @@ class Updater:
         print("Number of Contracts ", len(contracts))
 
         for contract in contracts:
-            to_process = input(f"{contract.token.name} or next?")
 
-            if to_process == "yes":
+            print(contract.token.name,  contract.chain)
 
-                print(contract.token.name,  contract.chain)
+            # Blockchain (etherscan, etc...) service explorer
+            explorer = Blockscan(contract.chain)
 
-                # Blockchain (etherscan, etc...) service explorer
-                explorer = Blockscan(contract.chain)
+            # web3.py
+            blockchain = Blockchain(contract.chain)
 
-                # web3.py
-                blockchain = Blockchain(contract.chain)
+            token_address = blockchain.checksum_address(contract.contract)
 
-                token_address = blockchain.checksum_address(contract.contract)
+            # Get pool addresses for dexes on chain
+            if pools.get(contract.chain) is None:
+                pools.update(self.get_dex_pairs(blockchain, token_address))
 
-                # Get pool addresses for dexes on chain
-                if pools.get(contract.chain) is None:
-                    pools.update(self.get_dex_pairs(blockchain, token_address))
+            timestamps, prices = self.get_prices_data(contract.contract, chain=contract.chain)
 
-                timestamps, prices = self.get_prices_data(contract.contract, chain=contract.chain)
+            # Percentage difference of each price relative to the next day, 3 days, and 7 days from price
+            diffs = percent_difference_from_dataset(prices)
 
-                # Percentage difference of each price relative to the next day, 3 days, and 7 days from price
-                diffs = percent_difference_from_dataset(prices)
+            # determine if a price increase that meets threshold is reached and add to list
+            price_breakouts = self.determine_price_breakouts(diffs=diffs, timestamps=timestamps,
+                                                             percent_threshold=percent_threshold)
 
-                # determine if a price increase that meets threshold is reached and add to list
-                price_breakouts = self.determine_price_breakouts(diffs=diffs, timestamps=timestamps,
-                                                                 percent_threshold=percent_threshold)
+            if price_breakouts:
+                # Exclude known bot wallets from processing
+                blacklisted = Bot.objects.values_list("address", flat=True)
 
-                if price_breakouts:
-                    # Exclude known bot wallets from processing
-                    blacklisted = Bot.objects.values_list("address", flat=True)
+                for index, datapoint in enumerate(price_breakouts):
+                    duration = datapoint[0]
+                    timestamp = datapoint[1]
+                    percentage = datapoint[2]
 
-                    for index, datapoint in enumerate(price_breakouts):
-                        duration = datapoint[0]
-                        timestamp = datapoint[1]
-                        percentage = datapoint[2]
+                    # Check if format has changed for any timestamp. Expect last 5 digits to always be zero. Date only
+                    if str(timestamp)[-5:] != "00000":
+                        raise Exception("Will not format correctly")
+                    timestamp = int(timestamp / 1000)
 
-                        # Check if format has changed for any timestamp. Expect last 5 digits to always be zero. Date only
-                        if str(timestamp)[-5:] != "00000":
-                            raise Exception("Will not format correctly")
-                        timestamp = int(timestamp / 1000)
+                    # Convert datetime to range of blocks to look through
+                    from_block, to_block = self.create_block_range(duration=duration, timestamp=timestamp,
+                                                                   explorer=explorer)
+                    if from_block and to_block:
 
-                        # Convert datetime to range of blocks to look through
-                        from_block, to_block = self.create_block_range(duration=duration, timestamp=timestamp,
-                                                                       explorer=explorer)
-                        if from_block and to_block:
+                        try:
+                            # Check dex and see if there's a match for the token pool, and extract the pool address
+                            dex_list = pools[contract.chain]
+                        except KeyError as e:
+                            print(contract.token.name, print(contract.chain))
+                            raise KeyError(e)
 
-                            try:
-                                # Check dex and see if there's a match for the token pool, and extract the pool address
-                                dex_list = pools[contract.chain]
-                            except KeyError as e:
-                                print(contract.token.name, print(contract.chain))
-                                raise KeyError(e)
+                        for dex, data in dex_list.items():
+                            print(dex)
+                            pool_contracts = list()
+                            # factory_abi = data["abi"]
+                            for pool_info in data["pools"]:
+                                if pool_info["token0"] == token_address or pool_info["token1"] == token_address:
+                                    pool_contracts.append(
+                                        pool_info["pool"] if pool_info.get("pool") else pool_info["pair"]
+                                    )
 
-                            for dex, data in dex_list.items():
-                                print(dex)
-                                pool_contracts = list()
-                                # factory_abi = data["abi"]
-                                for pool_info in data["pools"]:
-                                    if pool_info["token0"] == token_address or pool_info["token1"] == token_address:
-                                        pool_contracts.append(
-                                            pool_info["pool"] if pool_info.get("pool") else pool_info["pair"]
-                                        )
+                            if pool_contracts:
+                                for pool_contract in pool_contracts:
 
-                                if pool_contracts:
-                                    for pool_contract in pool_contracts:
+                                    print("Getting txs")
+                                    transactions = self.get_transactions(
+                                        from_block=from_block, to_block=to_block,
+                                        contract=pool_contract, blockchain=blockchain
+                                    )
 
-                                        print("Getting txs")
-                                        transactions = self.get_transactions(
-                                            from_block=from_block, to_block=to_block,
-                                            contract=pool_contract, blockchain=blockchain
-                                        )
+                                    print("Done getting txs...")
 
-                                        print("Done getting txs...")
+                                    print(f"Number of transactions: {len(transactions)}")
+                                    if "v3" in dex:
+                                        abi = v3pool_abi
+                                    else:
+                                        abi = v2pool_abi
 
-                                        print(f"Number of transactions: {len(transactions)}")
-                                        if "v3" in dex:
-                                            abi = v3pool_abi
-                                        else:
-                                            abi = v2pool_abi
+                                    # Separate Buyers from Sellers for each transaction and create Dictionary
+                                    # representations Wallet address (EOA) as KEY
+                                    buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
+                                                                                  blacklisted=blacklisted, abi=abi)
 
-                                        # Separate Buyers from Sellers for each transaction and create Dictionary
-                                        # representations Wallet address (EOA) as KEY
-                                        buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
-                                                                                      blacklisted=blacklisted, abi=abi)
+                                    # transactions with unwanted accounts filtered out
+                                    filtered_transactions = self.filter_transactions(buyers, sellers)
 
-                                        # transactions with unwanted accounts filtered out
-                                        filtered_transactions = self.filter_transactions(buyers, sellers)
+                                    token, _ = Token.objects.get_or_create(
+                                        name=contract.token.name,
+                                        address=contract.contract
+                                    )
 
-                                        token, _ = Token.objects.get_or_create(
-                                            name=contract.token.name,
-                                            address=contract.contract
-                                        )
+                                    print("", token.name)
 
-                                        # Update Database with new wallets and transactions
-                                        self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
-                                                                   chain=contract.chain, timestamp=timestamp,
-                                                                   percentage=str(percentage), index=index)
-                                else:
-                                    print(f"-------------Pool not found for Token {contract.token.name} - {token_address}")
+                                    # Update Database with new wallets and transactions
+                                    self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
+                                                               chain=contract.chain, timestamp=timestamp,
+                                                               percentage=str(percentage), index=index)
+                            else:
+                                print(f"-------------Pool not found for Token {contract.token.name} - {token_address}")
 
-                contract.processed = True
-                contract.save()
+            contract.processed = True
+            contract.save()
+            break
 
-                next_token = input("Continue ?")
-                if next_token == "yes":
-                    pass
-                else:
-                    break
 
 
 
