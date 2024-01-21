@@ -62,7 +62,8 @@ INSTALLED_APPS = [
     'wallets',
     'django_celery_beat',
     'coingecko',
-    'blockchain'
+    'blockchain',
+    'trading_bot'
 ]
 
 MIDDLEWARE = [
