@@ -87,6 +87,7 @@ class Updater:
         :param explorer: blockchain explorer service e.g. etherscan...
         :return: block range
         """
+
         # create from_block and to_block range relative to price breakout timeframe
         if duration == 1:
             before_breakout_timestamp = datetime.fromtimestamp(timestamp) - timedelta(days=5)
