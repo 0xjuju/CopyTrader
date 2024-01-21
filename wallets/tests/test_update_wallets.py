@@ -1,5 +1,5 @@
 
-from blockchain.blockchain_explorer import Explorer
+from blockchain.alchemy import Blockchain
 from blockchain.blockscsan import Blockscan
 from django.test import TestCase
 from wallets.models import Token
@@ -9,9 +9,7 @@ from wallets.update_wallets import Updater, Wallet
 
 class TestUpdateWallets(TestCase):
     def setUp(self):
-        Build.swap_pools()
         Build.tokens()
-        Build.pair_contracts()
         Build.bots()
 
     def test_create_block_range(self):
@@ -59,7 +57,7 @@ class TestUpdateWallets(TestCase):
         to_block = 15170801
         token = Token.objects.get(name="nexo")
         contract = token.paircontract_set.first()
-        blockchain = Explorer(chain="ethereum")
+        blockchain = Blockchain(chain="ethereum")
         txs = Updater().get_transactions(
             from_block=from_block,
             to_block=to_block,
@@ -71,7 +69,7 @@ class TestUpdateWallets(TestCase):
 
     def test_updater(self):
         token = Token.objects.get(name="FRONT")
-        Updater().update(token, percent_threshold=1.40)
+        Updater().update(percent_threshold=1.40)
         wallets = Wallet.objects.all()
 
         print(f"Total Wallets: {wallets.count()}")
