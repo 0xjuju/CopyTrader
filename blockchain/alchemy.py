@@ -40,7 +40,7 @@ class Blockchain:
         topic2abi = {event_abi_to_log_topic(_): _ for _ in event_abi}
         return topic2abi
 
-    def _query_filter(self,filter_object, **kwargs):
+    def _query_filter(self, filter_object, **kwargs):
         """
         Recursive get_logs function to handle -32005 error when query returns too many results.
         Split blocks in half until all queries are completed successfully
@@ -94,7 +94,7 @@ class Blockchain:
         :param address: blockchain address
         :return: checksum address
         """
-        return self.w3.toChecksumAddress(address)
+        return self.w3.to_checksum_address(address)
 
     def convert_to_checksum_address_from_hex(self, address: hex) -> str:
         """
@@ -103,7 +103,7 @@ class Blockchain:
         :return:
         """
         address = address.hex()
-        return self.w3.toChecksumAddress('0x' + address[-40:])
+        return self.w3.to_checksum_address('0x' + address[-40:])
 
     def convert_to_hex(self, arg, target_schema):
         """
@@ -211,7 +211,7 @@ class Blockchain:
         """
         if isinstance(abi, str):
             abi = json.loads(abi)
-        contract = self.w3.eth.contract(address=self.w3.toChecksumAddress(address), abi=abi)
+        contract = self.w3.eth.contract(address=self.w3.to_checksum_address(address), abi=abi)
 
         return contract
 
@@ -239,16 +239,16 @@ class Blockchain:
                 raise TypeError(f"Expecting type Dict, not {type(argument_filters)}")
 
         try:
-            pools = contract.events.PoolCreated.createFilter
+            pools = contract.events.PoolCreated.create_filter
 
         except web3.exceptions.ABIEventFunctionNotFound:
             events = [str(i) for i in contract.events]
 
             if "<class 'web3._utils.datatypes.Pool'>" in events:
-                pools = contract.events.Pool.createFilter
+                pools = contract.events.Pool.create_filter
 
             elif "<class 'web3._utils.datatypes.PairCreated'>" in events:
-                pools = contract.events.PairCreated.createFilter
+                pools = contract.events.PairCreated.create_filter
 
             else:
                 print(list(contract.events))

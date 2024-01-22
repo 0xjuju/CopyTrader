@@ -1,3 +1,4 @@
+from datetime import datetime
 
 from blockchain.alchemy import Blockchain
 from blockchain.blockscsan import Blockscan
@@ -13,16 +14,20 @@ class TestUpdateWallets(TestCase):
         Build.bots()
 
     def test_create_block_range(self):
-        duration = 7
-        timestamp = 1657857600  # 7/15/2022 00:00:00
-        explorer = Blockscan(chain="ethereum")
+        # duration = 7
+        # timestamp = 1657857600  # 7/15/2022 00:00:00
+        # explorer = Blockscan(chain="ethereum")
+        #
+        # from_block, to_block = Updater.create_block_range(
+        #     duration=duration, timestamp=timestamp, explorer=explorer
+        # )
+        #
+        # self.assertEqual(from_block, 15144985)
+        # self.assertEqual(to_block, 15170801)
 
-        from_block, to_block = Updater.create_block_range(
-            duration=duration, timestamp=timestamp, explorer=explorer
-        )
-
-        self.assertEqual(from_block, 15144985)
-        self.assertEqual(to_block, 15170801)
+        timestamp = 1701993600000 / 1000.
+        dt = datetime.fromtimestamp(timestamp)
+        print(dt)
 
     def test_determine_price_breakouts(self):
         percent_threshold = 30

@@ -66,24 +66,30 @@ class Updater:
 
             transaction_hash = transaction["transactionHash"].hex()
             if not all_transactions.filter(transaction_hash=transaction_hash).exists():
-                transaction = Transaction.objects.create(
-                    transaction_hash=transaction_hash,
-                    chain=chain,
-                    token_in=token.name,
-                    wallet=wallet,
-                    amount=amount,
-                    percent=percentage,
-                    timestamp=datetime.fromtimestamp(timestamp)
-                )
+
+                try:
+                    transaction = Transaction.objects.create(
+                        transaction_hash=transaction_hash,
+                        chain=chain,
+                        token_in=token.name,
+                        wallet=wallet,
+                        amount=amount,
+                        percent=percentage,
+                        timestamp=datetime.fromtimestamp(timestamp)
+                    )
+                except Exception as e:
+                    print(timestamp)
+                    raise OSError(e, timestamp)
 
                 transaction.save()
         print(f"Done batch {index + 1}: {datetime.fromtimestamp(timestamp)}")
 
     @staticmethod
     def create_block_range(duration: int, timestamp: int, explorer: Blockscan) -> (int, int):
+
         """
         :param duration: number of days it took for price to break out relative to start date
-        :param timestamp: start date of breakout
+        :param timestamp: start-date of breakout
         :param explorer: blockchain explorer service e.g. etherscan...
         :return: block range
         """
@@ -112,12 +118,15 @@ class Updater:
             to_block = explorer.get_block_by_timestamp(int(three_days_into_breakout_timestamp.timestamp()),
                                                        look_for_previous_block_if_error=True)
 
+        days_ago_15 = datetime.now() - timedelta(days=116)
+        print(before_breakout_timestamp, three_days_into_breakout_timestamp)
+        if before_breakout_timestamp < days_ago_15 or three_days_into_breakout_timestamp < days_ago_15:
+            print("Errrrr", before_breakout_timestamp, three_days_into_breakout_timestamp)
+            raise ValueError(f"Time errrrrrrrrrrr {before_breakout_timestamp}, {three_days_into_breakout_timestamp}")
+
         # If block is not found, error message returned. Catch Value error when converting to integer
-        try:
-            return int(from_block), int(to_block)
-        except ValueError as e:
-            print(e)
-            return None, None
+        return int(from_block), int(to_block)
+
 
     @staticmethod
     def determine_price_breakouts(diffs: list[tuple], timestamps: list[int], percent_threshold: float)\
@@ -371,7 +380,9 @@ class Updater:
                     # Check if format has changed for any timestamp. Expect last 5 digits to always be zero. Date only
                     if str(timestamp)[-5:] != "00000":
                         raise Exception("Will not format correctly")
-                    timestamp = int(timestamp / 1000)
+
+                    # convert timestamp in milliseconds to seconds
+                    timestamp = timestamp / 1000
 
                     # Convert datetime to range of blocks to look through
                     from_block, to_block = self.create_block_range(duration=duration, timestamp=timestamp,
