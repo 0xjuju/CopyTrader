@@ -96,7 +96,7 @@ class GeckoClient:
                                     )
                                     new_address.save()
 
-    def search_for_top_movers(self, start_page: int, pages: int, percent_change_24h: float, percent_change_7d: float):
+    def search_for_top_movers(self, pages: int, percent_change_24h: float, percent_change_7d: float, start_page: int = 0):
 
         """
         :param pages: Number of pages to paginate through
