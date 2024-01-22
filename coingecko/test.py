@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime
 
 from coingecko.coingecko_api import GeckoClient
 from django.test import TestCase
@@ -34,9 +34,10 @@ class TestCoingecko(TestCase):
 
         t = res["prices"]
         print(t)
-
-
         # res = self.api.get_market_chart_by_contract(contract_address="0x6b23c89196deb721e6fd9726e6c76e4810a464bc", chain="bsc")
+
+    def test_get_market_charts_by_id(self):
+        charts = self.api.get_market_charts_by_id(token_id="shido")
 
     def test_parse_collection(self):
         collection = self.api.get_coins_markets(page=4)
