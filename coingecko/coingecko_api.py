@@ -43,8 +43,8 @@ class GeckoClient:
             "dogechain": "dogechain",
         }
         return self.client.get_coin_market_chart_from_contract_address_by_id(id=chain_map.get(chain, chain),
-                                                                                 contract_address=contract_address,
-                                                                                 vs_currency=currency, days=days)
+                                                                             contract_address=contract_address,
+                                                                             vs_currency=currency, days=days)
 
     def get_market_charts_by_id(self, token_id: str, vs_currency="usd", days=30):
         return self.client.get_coin_market_chart_by_id(id=token_id, vs_currency=vs_currency, days=days)
