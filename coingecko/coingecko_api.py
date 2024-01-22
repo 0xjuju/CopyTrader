@@ -96,7 +96,7 @@ class GeckoClient:
                                     )
                                     new_address.save()
 
-    def search_for_top_movers(self, pages: int, percent_change_24h: float, percent_change_7d: float):
+    def search_for_top_movers(self, start_page: int, pages: int, percent_change_24h: float, percent_change_7d: float):
 
         """
         :param pages: Number of pages to paginate through
@@ -109,7 +109,7 @@ class GeckoClient:
         GeckoToken.objects.all().update(price_change_24hr=0, price_change_7d=0)
         Address.objects.all().update(processed=False)
 
-        for page in range(pages):
+        for page in range(start_page, pages):
             collection = self.get_coins_markets(page=page+1)
             self.parse_collection(collection=collection, percent_change_24h=percent_change_24h,
                                   percent_change_7d=percent_change_7d)
