@@ -61,6 +61,7 @@ class Blockchain:
                 raise TypeError(e)
 
         except ValueError as e:
+            print("Expected output....")
             if "-32602" in str(e):
                 print(e)
                 start_block = kwargs["fromBlock"]
