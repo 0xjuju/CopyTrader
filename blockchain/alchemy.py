@@ -76,7 +76,7 @@ class Blockchain:
                 yield from self._query_filter(filter_object, fromBlock=start1, toBlock=stop1, address=kwargs.get("address"))
                 yield from self._query_filter(filter_object, fromBlock=start2, toBlock=stop2, address=kwargs.get("address"))
             else:
-                raise ValueError(e)
+                raise ValueError("Diff---", e)
 
     @staticmethod
     def chain_to_rpc(chain: str) -> str:
