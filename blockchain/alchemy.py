@@ -49,35 +49,40 @@ class Blockchain:
         :return: get_logs query
         """
 
-        try:  # Catch error when query limit is exceeded
+        try:
             logs = filter_object(**kwargs).get_all_entries()
             yield logs
 
         except TypeError as e:
             if "unexpected keyword argument" in str(e):
-                logs = filter_object(kwargs)
-                yield logs
+                try:
+                    logs = filter_object(kwargs)
+                    yield logs
+                except ValueError as e:
+                    if "-32602" in str(e):
+                        self._recursive_query(filter_object, kwargs)
             else:
                 raise TypeError(e)
 
-        except ValueError as e:
-            print("Expected output....")
+        except ValueError as e:  # Catch error when query limit is exceeded
             if "-32602" in str(e):
-                print(e)
-                start_block = kwargs["fromBlock"]
-                end_block = kwargs["toBlock"]
-                if abs(start_block - end_block) == 0:
-                    raise ValueError("Block Range reduced to 0. Infinite recursion...")
-
-                # Split blocks in half
-                start1, stop1 = start_block, start_block + abs(start_block - end_block) // 2
-                start2, stop2 = stop1 + 1, end_block
-                # print(f"Number of Blocks: {abs(start_block - end_block):,}")
-                # Recursively break query into two calls, until each log returns less tha 10,000 results
-                yield from self._query_filter(filter_object, fromBlock=start1, toBlock=stop1, address=kwargs.get("address"))
-                yield from self._query_filter(filter_object, fromBlock=start2, toBlock=stop2, address=kwargs.get("address"))
+                self._recursive_query(filter_object, kwargs)
             else:
                 raise ValueError("Diff---", e)
+
+    def _recursive_query(self, filter_object, params):
+        start_block = params["fromBlock"]
+        end_block = params["toBlock"]
+        if abs(start_block - end_block) == 0:
+            raise ValueError("Block Range reduced to 0. Infinite recursion...")
+
+        # Split blocks in half
+        start1, stop1 = start_block, start_block + abs(start_block - end_block) // 2
+        start2, stop2 = stop1 + 1, end_block
+        # print(f"Number of Blocks: {abs(start_block - end_block):,}")
+        # Recursively break query into two calls, until each log returns less tha 10,000 results
+        yield from self._query_filter(filter_object, fromBlock=start1, toBlock=stop1, address=params.get("address"))
+        yield from self._query_filter(filter_object, fromBlock=start2, toBlock=stop2, address=params.get("address"))
 
     @staticmethod
     def chain_to_rpc(chain: str) -> str:

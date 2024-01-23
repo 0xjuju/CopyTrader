@@ -15,4 +15,3 @@ class Bot:
             raise ValueError(f"{self.interval} not an a valid choice. Options are: {intervals}")
 
 
-
