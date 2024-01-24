@@ -1,15 +1,21 @@
+from typing import Any, Union
 
 from blockchain.models import Chain
 from coingecko.models import Address
 from pycoingecko import CoinGeckoAPI
-from .models import GeckoToken
+from coingecko.models import GeckoToken
 
 
 class GeckoClient:
     def __init__(self):
         self.client = CoinGeckoAPI()
 
-    def get_coin_data(self, token_id):
+    def get_coin_data(self, token_id: str) -> dict["str", Union[str, float, int]]:
+        """
+        token info from coingecko
+        :param token_id: Token id name
+        :return: Token data
+        """
         return self.client.get_coins_markets(ids=token_id, vs_currency="usd")
 
     def get_asset_platforms(self):
@@ -23,10 +29,16 @@ class GeckoClient:
 
         return self.client.get_coin_by_id(token_id)
 
-    def get_coins_list(self):
+    def get_coins_list(self) -> list[dict[str, dict]]:
         return self.client.get_coins_list()
 
-    def get_coins_markets(self, per_page=100, page=1):
+    def get_coins_markets(self, per_page=100, page=1) -> list[dict[str, Any]]:
+        """
+
+        :param per_page: hits per-page
+        :param page: page number
+        :return: list of tokens with market data
+        """
         if per_page > 250:
             raise ValueError("250 max results per page")
 
