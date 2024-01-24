@@ -22,6 +22,13 @@ class TestTradingBot(TestCase):
 
         self.assertEqual(extracted, [])
 
+        extracted = self.bot1.extract_volatile_charts(
+            self.datasets[4], depth=10, variation_percent=15, vol_threshold=5
+        )
+
+        self.assertEqual(extracted, [0.00075, 0.00099, 0.0019, 0.0005, 0.0001, 0.0002, 0.00015, 0.00045, 0.00062,
+                                     0.00040])
+
 
 
 

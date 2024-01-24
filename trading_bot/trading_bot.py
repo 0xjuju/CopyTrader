@@ -31,8 +31,6 @@ class Bot:
         :return: volatile subsets
         """
 
-        volatile_charts = list()
-
         if depth > len(dataset):
             raise IndexError(f"depth {depth} cannot be greater than length of dataset: {len(dataset)}")
 
@@ -44,9 +42,10 @@ class Bot:
                 frequency_of_vol += 1
 
         if frequency_of_vol >= vol_threshold:
-            volatile_charts.append(subset)
+            return subset
+        else:
+            return []
 
-        return volatile_charts
 
 
 
