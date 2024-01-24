@@ -22,6 +22,14 @@ class Bot:
 
     @staticmethod
     def extract_volatile_charts(datasets: list[list], depth: int, variation_percent: float, vol_threshold: int):
+        """
+
+        :param datasets: matrix containing prices charts
+        :param depth: how far to look back in price charts
+        :param variation_percent: percentage difference of each price to its neighbors
+        :param vol_threshold: number of times there's a change in price >= variation_percent for subset to be returned
+        :return: volatile subsets
+        """
 
         volatile_charts = list()
         for dataset in datasets:
@@ -29,7 +37,7 @@ class Bot:
             if depth > len(dataset):
                 raise IndexError(f"depth {depth} cannot be greater than length of dataset: {len(dataset)}")
 
-            subset = dataset[0:depth]
+            subset = dataset[0: depth]
             volatility_pattern = get_average_percent_change(subset)
             frequency_of_vol = 0
             for value in volatility_pattern:
