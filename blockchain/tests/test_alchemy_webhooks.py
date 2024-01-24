@@ -1,5 +1,5 @@
 
-from blockchain.alchemy import Webhook
+from blockchain.alchemy_webhooks import Webhook
 from django.test import TestCase
 
 
