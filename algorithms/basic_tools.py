@@ -1,6 +1,11 @@
 
 
 def flatten_list(data: list):
+    """
+
+    :param data: nested list with arbitrary dataa
+    :return: flattened list
+    """
     flat_data = list()
 
     if data and isinstance(data[0], list):
