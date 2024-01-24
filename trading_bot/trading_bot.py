@@ -6,14 +6,19 @@ from trading_bot.quant import *
 class Bot:
     def __init__(self, chain, interval: str):
         self.interval = interval
+        self.chain = chain
         pass
 
-    def check_intervals(self):
+    def arguments_are_valid(self):
         intervals = [
             "1min", "5min", "15min", "30min", "1hr", "2hr", "4hr", "6hr", "8hr", "12hr", "24hr",
         ]
         if self.interval not in intervals:
             raise ValueError(f"{self.interval} not an a valid choice. Options are: {intervals}")
+
+        chains = Chain.objects.all().values_list("name", flat=True)
+        if self.chain not in chains:
+            raise ValueError(f"Chain not supported {self.chain}. Options are {chains}")
 
     @staticmethod
     def extract_volatile_charts(datasets: list[list], depth: int, variation_percent: float, vol_threshold: int):
