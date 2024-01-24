@@ -1,9 +1,10 @@
 
+from blockchain.models import Chain
 from trading_bot.quant import *
 
 
 class Bot:
-    def __init__(self, interval: str):
+    def __init__(self, chain, interval: str):
         self.interval = interval
         pass
 
@@ -16,11 +17,13 @@ class Bot:
 
     @staticmethod
     def extract_volatile_charts(datasets: list[list], depth: int, variation_percent: float, vol_threshold: int):
-        if depth > len(datasets):
-            raise IndexError(f"depth {depth} cannot be greater than length of dataset: {len(datasets)}")
 
         volatile_charts = list()
         for dataset in datasets:
+
+            if depth > len(dataset):
+                raise IndexError(f"depth {depth} cannot be greater than length of dataset: {len(dataset)}")
+
             subset = dataset[0:depth]
             volatility_pattern = get_average_percent_change(subset)
             frequency_of_vol = 0
@@ -30,6 +33,8 @@ class Bot:
 
             if frequency_of_vol >= vol_threshold:
                 volatile_charts.append(subset)
+
+        return volatile_charts
 
 
 
