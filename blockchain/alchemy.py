@@ -5,12 +5,14 @@ import requests
 import time
 import traceback
 import types
+from typing import Any, Union
 
 from algorithms.basic_tools import flatten_list
 import decouple
 from eth_utils import event_abi_to_log_topic, to_hex
 import web3
 from web3 import Web3
+from web3._utils.filters import Filter
 from web3._utils.events import get_event_data
 from web3.contract import Contract
 from web3.exceptions import ABIEventFunctionNotFound
@@ -40,11 +42,13 @@ class Blockchain:
         topic2abi = {event_abi_to_log_topic(_): _ for _ in event_abi}
         return topic2abi
 
-    def _query_filter(self, filter_object, **kwargs):
+    def _query_filter(self, filter_object: Filter, **kwargs) -> None:
+
         """
         Recursive get_logs function to handle -32005 error when query returns too many results.
         Split blocks in half until all queries are completed successfully
 
+        :param filter_object: web3 filter object
         :param kwargs: query parameters for blockchain query [toBlock, fromBlock, address, ...]
         :return: get_logs query
         """
@@ -70,7 +74,13 @@ class Blockchain:
             else:
                 raise ValueError("Diff---", e)
 
-    def _recursive_query(self, filter_object, params):
+    def _recursive_query(self, filter_object: Filter, params: dict[str, Union[str, int]]) -> None:
+        """
+
+        :param filter_object: web3 Filter object
+        :param params: passed kwargs arguments
+        :return:
+        """
         start_block = params["fromBlock"]
         end_block = params["toBlock"]
         if abs(start_block - end_block) == 0:
@@ -111,11 +121,11 @@ class Blockchain:
         address = address.hex()
         return self.w3.to_checksum_address('0x' + address[-40:])
 
-    def convert_to_hex(self, arg, target_schema):
+    def convert_to_hex(self, arg, target_schema: dict[str, Any]) -> dict[str, Any]:
         """
         :param arg:
         :param target_schema:
-        :return:
+        :return: Output
         """
 
         output = dict()
@@ -134,32 +144,33 @@ class Blockchain:
                 output[k] = self.decode_tuple(arg[k], target_field)
             else:
                 output[k] = arg[k]
+
         return output
 
     @staticmethod
-    def decode_list(l: list[(bytes, bytearray)]) -> list[hex]:
+    def decode_list(list_: list[(bytes, bytearray)]) -> list[hex]:
         """
         Decode list of bytes / bytesarray in hex
-        :param l: list of tuples with two values (byte, bytearray)
+        :param list_: list of tuples with two values (byte, bytearray)
         :return: list of hex values
         """
-        output = l
-        for i in range(len(l)):
-            if isinstance(l[i], (bytes, bytearray)):
-                output[i] = to_hex(l[i])
+        output = list_
+        for i in range(len(list_)):
+            if isinstance(list_[i], (bytes, bytearray)):
+                output[i] = to_hex(list_[i])
             else:
-                output[i] = l[i]
+                output[i] = list_[i]
         return output
 
-    def decode_list_tuple(self, l, target_field):
+    def decode_list_tuple(self, list_, target_field):
         """
-        :param l:
+        :param list_:
         :param target_field:
         :return:
         """
-        output = l
-        for i in range(len(l)):
-            output[i] = self.decode_tuple(l[i], target_field)
+        output = list_
+        for i in range(len(list_)):
+            output[i] = self.decode_tuple(list_[i], target_field)
         return output
 
     def decode_log(self, data: list[hex], topics: list[hex], abi: str):
@@ -198,7 +209,7 @@ class Blockchain:
         else:
             return 'no matching abi', None, None
 
-    def decode_tuple(self, t, target_field):
+    def decode_tuple(self, t, target_field) -> dict[str, Any]:
         output = dict()
         for i in range(len(t)):
             if isinstance(t[i], (bytes, bytearray)):
@@ -214,6 +225,10 @@ class Blockchain:
         """
         This helps speed up execution of decoding across a large dataset by caching the contract object
         It assumes that we are decoding a small set, on the order of thousands, of target smart contracts
+
+        :param address: contract address
+        :param abi: abi
+        :return: Contract instance
         """
         if isinstance(abi, str):
             abi = json.loads(abi)
@@ -221,8 +236,8 @@ class Blockchain:
 
         return contract
 
-    def get_factory_pools(self, contract: web3.contract.Contract, from_block=0, to_block=None, argument_filters=None)\
-            -> list[dict]:
+    def get_factory_pools(self, contract: web3.contract.Contract, from_block=0, to_block: int = None,
+                          argument_filters: int = None) -> list[dict[str, str]]:
         """
 
         :param contract: Factory contract address
@@ -233,6 +248,7 @@ class Blockchain:
         """
         token_pools = list()
 
+        # latest block if None
         if not to_block:
             to_block = self.w3.eth.block_number
 
@@ -247,6 +263,7 @@ class Blockchain:
         try:
             pools = contract.events.PoolCreated.create_filter
 
+        # case where v2 eth contracts have different class paths to create_filter
         except web3.exceptions.ABIEventFunctionNotFound:
             events = [str(i) for i in contract.events]
 
@@ -276,15 +293,21 @@ class Blockchain:
 
         return token_pools
 
-    def get_block(self, block_num=None):
+    def get_block(self, block_num=None) -> dict[str, Union[str, int, float, list, dict]]:
+        """
+
+        :param block_num: block number, default to latest if None
+        :return: correlating block number
+        """
 
         if block_num is None:
             block_num = self.w3.eth.block_number
 
         return self.w3.eth.get_block(block_num)
 
-    def get_logs(self, *, max_chunk=None, **kwargs):
+    def get_logs(self, *, max_chunk=None, **kwargs) -> list[dict[str, Any]]:
         """
+        get list of transactions
         :param max_chunk: max block size to filter
         :param kwargs: Filter params for log data. fromBlock, toBlock, address...
         :return: Event log filter
@@ -304,7 +327,7 @@ class Blockchain:
 
         return logs
 
-    def get_paginated_event_filters(self, *, max_chunk, **kwargs):
+    def get_paginated_event_filters(self, *, max_chunk, **kwargs) -> list[dict[str, Any]]:
         """
         :param max_chunk: Max block range
         :param kwargs: Query params for filter
@@ -318,24 +341,16 @@ class Blockchain:
         pages = self.paginate(from_block, to_block, increment=max_chunk)
 
         for index, page in enumerate(pages):
-            time.sleep(0.5)
-            # arbitrum-one network needs to use get_logs. HTTPS does not support eth_newFilter
 
-            # if self.chain == "arbitrum-one" or self.chain == "polygon-pos":
+            # Rate limit bypass
+            time.sleep(0.5)
+
             event_filter = self.get_logs(
                 fromBlock=page[0],
                 toBlock=page[1],
                 address=kwargs["address"],
             )
             entries = event_filter
-
-            # else:
-            #     event_filter = self.web3.eth.filter({
-            #         "fromBlock": page[0],
-            #         "toBlock": page[1],
-            #         "address": kwargs["address"],
-            #     })
-            #     entries = event_filter.get_all_entries()
 
             # Create single list of all event filters
             for entry in entries:
@@ -344,19 +359,18 @@ class Blockchain:
         return event_filter_list
 
     @staticmethod
-    def paginate(start, stop, increment: int):
+    def paginate(start, stop, increment: int) -> list[tuple[int, int]]:
         """
-        :param start:
-        :param stop:
-        :param increment:
-        :return:
+        :param start: beginning number
+        :param stop: ending number
+        :param increment: stepsize
+        :return: Paginated range
         """
         ranges = list()
         while start < stop:
             ranges.append(
                 (start, start + increment)
             )
-
             start += increment
         return ranges
 
@@ -384,7 +398,16 @@ class Webhook:
             "NFT_METADATA_UPDATE"
         ]
 
-    def _make_request(self,endpoint: str, chain: str, webhook_type: str, payload_opts: dict) -> dict:
+    def _make_request(self, endpoint: str, chain: str, webhook_type: str, payload_opts: dict) -> dict[str, Any]:
+        """
+
+        :param endpoint: API endpoint
+        :param chain: blockchain network
+        :param webhook_type: type of webhook for subscription
+        :param payload_opts: query parameters
+        :return: json response from Alchemy webhooks server
+        """
+
         network = self.networks[chain]
 
         url = self.WEBHOOK_URL + endpoint
@@ -410,11 +433,25 @@ class Webhook:
         return response.json()
 
     def create_wallet_activity_webhook(self, chain: str, webhook_type: str, address_list: list[str]) -> None:
+        """
+        Subscribe list of wallets for webhook
+        :param chain: blockchain network
+        :param webhook_type: webhook type for subscriptions
+        :param address_list: list of addresses to subscribe to
+        :return: None
+        """
         payload = {"addresses": address_list}
 
         self._make_request("create-webhook", chain=chain, webhook_type=webhook_type, payload_opts=payload)
 
-    def get_address_list_from_webhook(self, webhook_id: str, limit=100, page_cursor=0) -> dict:
+    def get_address_list_from_webhook(self, webhook_id: str, limit=100, page_cursor=0) -> dict[str, Any]:
+        """
+
+        :param webhook_id: webhook id
+        :param limit: max values per page
+        :param page_cursor: start page
+        :return:
+        """
         url = f"https://dashboard.alchemy.com/api/webhook-addresses?webhook_id={webhook_id}&limit={limit}&after={page_cursor}"
 
         headers = {
@@ -425,7 +462,11 @@ class Webhook:
         response = requests.get(url, headers=headers)
         return response.json()
 
-    def get_all_webhooks(self) -> dict:
+    def get_all_webhooks(self) -> list[dict[str, Any]]:
+        """
+        All subscribed webhooks
+        :return: List of subscribed webhooks
+        """
         url = self.WEBHOOK_URL + "team-webhooks"
         headers = {
             "accept": "application/json",
@@ -436,6 +477,12 @@ class Webhook:
         return response.json()
 
     def replace_webhook_address_list(self, webhook_id: str, address_list: list[str]):
+        """
+        replace entire list of addresses with new ones
+        :param webhook_id: ID of webhook subscription
+        :param address_list: New list of addresses to replace old
+        :return:
+        """
         url = "https://dashboard.alchemy.com/api/update-webhook-addresses"
         payload = {
             "webhook_id": webhook_id,
