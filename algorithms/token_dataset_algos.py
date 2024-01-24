@@ -1,10 +1,11 @@
+from typing import Union
 
 
 # From dataset of prices from token chart, find the large percent changes within 1 week of day
-def percent_difference_from_dataset(data: list) -> list[tuple]:
+def percent_difference_from_dataset(data: list[Union[float, int]]) -> list[tuple[float, ...]]:
     """
 
-    :param data:
+    :param data: list of prices
     :return:
     """
     results = list()
