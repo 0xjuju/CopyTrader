@@ -11,8 +11,9 @@ class Blockscan:
         self.BASE_URL, self.API_KEY = self.chain_map(chain)
 
     @staticmethod
-    def chain_map(chain):
+    def chain_map(chain: str) -> tuple[str, str]:
         """
+        Map chain to appropriate API
         :param chain: blockchain standard
         :return: (API URL of chain, API KEY)
         """
@@ -27,6 +28,12 @@ class Blockscan:
 
     @staticmethod
     def convert_balance_to_eth(*, balance, decimals: int) -> Decimal:
+        """
+
+        :param balance: eth balance in Wei
+        :param decimals: number of decimals for token
+        :return:
+        """
         balance = Decimal(balance)
         return Decimal(balance / (10 ** decimals))
 
@@ -38,7 +45,15 @@ class Blockscan:
         }
         return request_get_data(url=self.BASE_URL, params=params)
 
-    def get_block_by_timestamp(self, timestamp, look_for_previous_block_if_error: bool = False, max_tries_hours: int = 5):
+    def get_block_by_timestamp(self, timestamp, look_for_previous_block_if_error: bool = False,
+                               max_tries_hours: int = 5) -> int:
+        """
+
+        :param timestamp: date as timestamp
+        :param look_for_previous_block_if_error: if no block is found, use previous
+        :param max_tries_hours: Number of hours to search back when block is not found
+        :return: Closet block correlating to timestamp
+        """
 
         params = {
             "module": "block",
@@ -58,7 +73,6 @@ class Blockscan:
                     # convert to datetime, subtract 1 hour, convert to timestamp
                     t = datetime.fromtimestamp(params["timestamp"]) - timedelta(hours=1)
                     params["timestamp"] = int(t.timestamp())
-                    print(t.timestamp())
 
                     res = request_get_data(url=self.BASE_URL, params=params)
                     tries += 1
@@ -69,17 +83,7 @@ class Blockscan:
 
         return int(res["result"])
 
-    '''
-    Get ETH balance of a single address
-
-    arguments:
-        address str: A single contract address
-
-    Returns:
-        Decimal(123849579385)
-    '''
-
-    def get_contract_source_code(self, address):
+    def get_contract_source_code(self, address: str):
         params = {
             "module": "contract",
             "action": "getabi",
@@ -88,7 +92,7 @@ class Blockscan:
         }
         return request_get_data(url=self.BASE_URL, params=params)
 
-    def get_eth_balance(self, address: str) -> dict:
+    def get_eth_balance(self, address: str) -> dict[str, int]:
         params = {
             "module": "account",
             "action": "balance",
@@ -98,19 +102,10 @@ class Blockscan:
         }
         return request_get_data(url=self.BASE_URL, params=params)
 
-    '''
-    Get ETH balances for multiple wallets, up to 20 
-
-    arguments:
-        address_list list: list of contract addresses. Maximum size of 20
-
-    Returns: 
-        [{'account': '0xC05189824bF36f2ad9d0f64a222c1C156Df28DA1', 'balance': '12299909866525872'},
-         {'account': '0xFea856912F20bc4f7C877C52d60a2cdC797C6Ef8', 'balance': '27103718989226791'}]}
-    '''
-    def get_multi_eth_balances(self, address_list: list) -> dict:
+    def get_multi_eth_balances(self, address_list: list) -> list[dict[str, int]]:
         if len(address_list) > 20:
-            raise ValueError(f"List cannot be greater than 20. {len(address_list)} is invalid")
+            raise ValueError(f"List canno"
+                             f"t be greater than 20. {len(address_list)} is invalid")
         address_list = ",".join(address_list)
         params = {
             "module": "account",
