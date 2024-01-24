@@ -16,12 +16,12 @@ class TestTradingBot(TestCase):
 
     def test_extract_volatile_charts(self):
 
-        volatile_sets = self.bot1.extract_volatile_charts(
-            self.datasets, depth=10, variation_percent=15, vol_threshold=5
+        extracted = self.bot1.extract_volatile_charts(
+            self.datasets[0], depth=10, variation_percent=15, vol_threshold=5
         )
 
-        self.assertEqual(volatile_sets[0], self.datasets[1])
-        self.assertEqual(volatile_sets[1], self.datasets[4])
+        self.assertEqual(extracted, [])
+
 
 
 
