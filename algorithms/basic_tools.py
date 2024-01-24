@@ -1,6 +1,7 @@
+from typing import Any
 
 
-def flatten_list(data: list):
+def flatten_list(data: list[Any]) -> list[Any]:
     """
 
     :param data: nested list with arbitrary dataa
