@@ -2,6 +2,7 @@ from collections import defaultdict, Counter
 from datetime import datetime, timedelta
 import json
 import time
+from typing import Union, Any
 
 from algorithms.token_dataset_algos import percent_difference_from_dataset
 from blockchain.alchemy import Blockchain
@@ -16,7 +17,7 @@ from wallets.models import Bot, Transaction, Wallet, Token
 class Updater:
 
     @staticmethod
-    def contract_and_address_validated(checked_topics, blacklisted, blockchain: Blockchain):
+    def contract_and_address_validated(checked_topics: list[str, ...], blacklisted: list[str], blockchain: Blockchain):
         """
         Validate address against known automated addresses
 
@@ -190,7 +191,8 @@ class Updater:
         filtered_transactions = [i for i in filtered_transactions if tx_count[i[0]] == 1]
         return filtered_transactions
 
-    def get_dex_pairs(self, blockchain: Blockchain, token_address: str) -> dict[str, dict[list[str, dict]]]:
+    @staticmethod
+    def get_dex_pairs(blockchain: Blockchain, token_address: str) -> dict[str, dict[list[str, dict]]]:
         """
         Parse through pools created on dexes of chain and get token / pool addresses
         :param blockchain: Blockchain explorer
