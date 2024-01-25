@@ -12,6 +12,7 @@ class TestUpdateWallets(TestCase):
     def setUp(self):
         Build.tokens()
         Build.bots()
+        Build.abi()
 
     def test_create_block_range(self):
         # duration = 7
@@ -61,7 +62,7 @@ class TestUpdateWallets(TestCase):
         from_block = 15144985
         to_block = 15170801
         token = Token.objects.get(name="nexo")
-        contract = token.paircontract_set.first()
+        contract = token.address
         blockchain = Blockchain(chain="ethereum")
         txs = Updater().get_transactions(
             from_block=from_block,
