@@ -17,7 +17,7 @@ from wallets.models import Bot, Transaction, Wallet, Token
 class Updater:
 
     @staticmethod
-    def contract_and_address_validated(checked_topics: list[str, ...], blacklisted: list[str], blockchain: Blockchain):
+    def contract_and_address_validated(checked_topics: list[str], blacklisted: list[str], blockchain: Blockchain):
         """
         Validate address against known automated addresses
 
