@@ -372,7 +372,7 @@ class Blockchain:
         return ranges
 
     def is_connected(self) -> bool:
-        return self.w3.isConnected()
+        return self.w3.is_connected()
 
 
 
