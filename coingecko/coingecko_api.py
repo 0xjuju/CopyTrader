@@ -121,7 +121,7 @@ class GeckoClient:
         """
 
         # Reset fields
-        GeckoToken.objects.all().update(price_change_24hr=0, price_change_7d=0)
+        GeckoToken.objects.all().update(price_change_24hr=0)
         Address.objects.all().update(processed=False)
 
         for page in range(start_page, pages):
