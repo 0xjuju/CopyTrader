@@ -1,15 +1,15 @@
 # Crypto Investment / Trading Software
 
-1. Each day, This program searches through coingecko for tokens that appreciated in price by a substantial amount overnight, or in the
-last 7 days. The transactions occurring days before the price-surge are analyzed, and any Swap transactions and their
-wallet addresses are extracted. Bots are filtered out and wallets are saved to database. Webhooks are setup to receive
-incoming tokens from wallets with the highest number of token bought pre-surge. Those token are given a score based on:
+1. Each day, This program searches through coingecko for tokens that recently appreciated in price by a substantial amount.
+Transactions occurring days before the price-surge are analyzed, and any Swap events and assoicated wallets are extracted.
+Bots are filtered out, and wallets are saved to a database. Webhooks are initiated to listen for incoming tokens for
+wallets with the highest number of tokens bought pre-surge. Tokens are ranked based on:
 
-   - Number of top wallets holding
-   - Number of all wallets holding
-   - Number of social media references it has
-   - Sentiment analysis for project narrative
-   - Mentions on hit sites like Binance blogs etc.
+   - Number of top wallets holding the token.
+   - Number of all wallets holding the token.
+   - Number of social media references it has.
+   - Sentiment analysis for project narrative.
+   - Mentions on blogs like Binance etc.
 
 2. A trading bot that scans pools like Uniswap for highly volatile token pools. Using volatility, volume and other
 correlating factors to conduct trades.
