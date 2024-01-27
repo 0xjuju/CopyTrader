@@ -164,4 +164,4 @@ machine learning algorith.
 
 ## License
 
-This project is licensed under the [License Name] License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the [License Name] License - see the [GNU Affero General Public License](LICENSE) file for details.
