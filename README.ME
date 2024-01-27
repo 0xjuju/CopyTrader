@@ -125,6 +125,9 @@ command periodically. For example Heroku Scheduler if you use Heroku as a deploy
 
 - Once top-wallets are identified, further logic using gas-fee averages to further filter out bot will created
 
+- NGROK for Django needs to be implemented so that we can use env variables RUN_MAIN and USE_NGROK to automatically
+create Ngrok server for testing.
+
 - Trading bot will be ran by a simple celery background tasks upon server start. It will continuously look for pools to
 trade, making trades until volatility and volume break a certain threshold. Most paramters will be chose by a SVM machine
 learning algorith, still under development.
