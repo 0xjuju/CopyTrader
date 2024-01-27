@@ -1,5 +1,5 @@
 
-from blockchain.alchemy import Webhook
+from blockchain.alchemy_webhooks import Webhook
 from blockchain.models import AddressWebhook
 from django.core.management.base import BaseCommand
 from wallets.rank_wallets import get_wallets
