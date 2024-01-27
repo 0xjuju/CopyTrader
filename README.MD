@@ -1,42 +1,41 @@
 # Crypto Investment / Trading Software
 
-Each day, This program searches through coingecko for tokens that appreciated in price by a substantial amount overnight, or in the
+1. Each day, This program searches through coingecko for tokens that appreciated in price by a substantial amount overnight, or in the
 last 7 days. The transactions occurring days before the price-surge are analyzed, and any Swap transactions and their
 wallet addresses are extracted. Bots are filtered out and wallets are saved to database. Webhooks are setup to receive
 incoming tokens from wallets with the highest number of token bought pre-surge. Those token are given a score based on:
 
-- Number of top wallets holding
-- Number of all wallets holding
-- Number of social media references it has
-- Sentiment analysis for project narrative
-- Mentions on hit sites like Binance blogs etc.
+   - Number of top wallets holding
+   - Number of all wallets holding
+   - Number of social media references it has
+   - Sentiment analysis for project narrative
+   - Mentions on hit sites like Binance blogs etc.
 
 2. A trading bot that scans pools like Uniswap for highly volatile token pools. Using volatility, volume and other
 correlating factors to conduct trades.
 
 ## Table of Contents
 
-- [Installation](#installation)
 - [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
 
-## Installation
-
-You can clone this repository.
 
 ## Usage
 
-This program is not intended to be a public-facing product, so the steps to use this program are intensive
+This program is not designed to be an open-source product, so the step to initialize this program will be extensive.
 
-You will need to setup the following environment variables:
+Let's start by setting up our environment variables:
 
 
-# This program uses alchemy as the RPC provider. get your api keys from https://www.alchemy.com/
-- ALCHEMY_API_KEY: str
-- ALCHEMY_WEBHOOK_KEY: str
+### This program uses alchemy as the RPC provider. get your api keys from https://www.alchemy.com/
 
-# You will need to add your local host for testing. Django default is 127.0.0.1
+```commandline
+ALCHEMY_API_KEY: str
+ALCHEMY_WEBHOOK_KEY: str
+```
+
+### You will need to add your local host for testing. Django default is 127.0.0.1
 - LOCAL_HOST: str
 
 # website for production, can be empty for local development
