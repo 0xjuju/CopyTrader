@@ -28,7 +28,7 @@ This program is not designed to be an open-source product, so the step to initia
 Let's start by setting up our environment variables:
 
 
-### This program uses alchemy as the RPC provider. get your api keys from https://www.alchemy.com/
+**This program uses alchemy as the RPC provider. get your api keys from [here](https://www.alchemy.com/)**
 
 ```commandline
 ALCHEMY_API_KEY: str
