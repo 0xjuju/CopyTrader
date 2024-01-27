@@ -121,9 +121,8 @@ class GeckoClient:
         """
 
         # Reset fields
-        GeckoToken.objects.all().update(price_change_24hr=0)
-        Address.objects.all().update(processed=False)
-
+        GeckoToken.objects.all().update(price_change_24hr=0, price_change_7d=0)
+        Address.objects.all().exclude().update(processed=False)
         for page in range(start_page, pages):
             collection = self.get_coins_markets(page=page+1)
             self.parse_collection(collection=collection, percent_change_24h=percent_change_24h,
