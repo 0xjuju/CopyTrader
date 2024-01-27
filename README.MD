@@ -1,6 +1,6 @@
 # Crypto Investment / Trading Software
 
-##Description
+## Description
 Each day, This program searches through coingecko for tokens that recently appreciated in price by a substantial amount.
 Transactions occurring days before the price-surge are analyzed, and any Swap events and assoicated wallets are extracted.
 Bots are filtered out, and wallets are saved to a database. Webhooks are initiated to listen for incoming tokens for
