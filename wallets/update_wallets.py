@@ -381,7 +381,7 @@ class Updater:
 
                     # Check if format has changed for any timestamp. Expect last 5 digits to always be zero. Date only
                     if str(timestamp)[-5:] != "00000":
-                        raise Exception("Will not format correctly")
+                        raise Exception(f"Will not format correctly. Debug {timestamp}")
 
                     # convert timestamp in milliseconds to seconds
                     timestamp = timestamp / 1000
