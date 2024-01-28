@@ -119,11 +119,11 @@ class Updater:
             to_block = explorer.get_block_by_timestamp(int(three_days_into_breakout_timestamp.timestamp()),
                                                        look_for_previous_block_if_error=True)
 
-        days_ago_15 = datetime.now() - timedelta(days=116)
+        days_ago_116 = datetime.now() - timedelta(days=116)
         print(before_breakout_timestamp, three_days_into_breakout_timestamp)
-        if before_breakout_timestamp < days_ago_15 or three_days_into_breakout_timestamp < days_ago_15:
-            print("Errrrr", before_breakout_timestamp, three_days_into_breakout_timestamp)
-            raise ValueError(f"Time errrrrrrrrrrr {before_breakout_timestamp}, {three_days_into_breakout_timestamp}")
+        if before_breakout_timestamp < days_ago_116 or three_days_into_breakout_timestamp < days_ago_116:
+            raise ValueError(f" timstamps should never be less than 116 days before now {before_breakout_timestamp},"
+                             f" {three_days_into_breakout_timestamp}")
 
         # If block is not found, error message returned. Catch Value error when converting to integer
         return int(from_block), int(to_block)
