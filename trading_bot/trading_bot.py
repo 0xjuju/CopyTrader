@@ -30,10 +30,12 @@ class Bot:
         :return: volatile subsets
         """
 
-        if depth > len(dataset):
-            raise IndexError(f"depth {depth} cannot be greater than length of dataset: {len(dataset)}")
+        try:
+            subset = dataset[-depth:]
+        except IndexError:
+            depth = len(dataset)
+            subset = dataset[-depth:]
 
-        subset = dataset[-depth:]
         volatility_pattern = get_average_percent_change(subset)
         frequency_of_vol = 0
         for value in volatility_pattern:
