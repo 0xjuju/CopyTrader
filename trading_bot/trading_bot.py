@@ -7,7 +7,6 @@ class Bot:
     def __init__(self, chain, interval: str):
         self.interval = interval
         self.chain = chain
-        pass
 
     def arguments_are_valid(self):
         intervals = [
