@@ -13,7 +13,7 @@ class TestMonteCarlo(TestCase):
         volatile_sets = list()
         non_volatile_sets = list()
 
-        page = 20
+        page = 25
         for _ in range(3):
             tokens = gecko_client.get_coins_markets(page=page)
             for token in tokens:
@@ -27,9 +27,10 @@ class TestMonteCarlo(TestCase):
                     volatile_sets.append(volatile_set)
                 else:
                     print(f"Not* volatile {token['name']}")
-                    non_volatile_sets.append(
-                        prices[-30:]
-                    )
+
+                    # non_volatile_sets.append(
+                    #         prices[-30:]
+                    # )
 
     def test_get_volatile_charts(self):
         pass
