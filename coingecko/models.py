@@ -11,7 +11,7 @@ class GeckoFilter(models.Model):
 class GeckoToken(models.Model):
     name = models.CharField(max_length=255, default="")
     symbol = models.CharField(max_length=255, default="")
-    token_id = models.CharField(unique=True, max_length=255, default="")
+    token_id = models.CharField(max_length=255, default="")
     date_added = models.DateTimeField(auto_now_add=True)
     price_change_24hr = models.FloatField(default=0)
     price_change_7d = models.FloatField(default=0)
