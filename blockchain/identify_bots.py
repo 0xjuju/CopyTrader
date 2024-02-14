@@ -9,6 +9,9 @@ class Wallet:
         self.blockscan = Blockscan(chain)
         self.address = self.blockchain.checksum_address(address)
 
+    def _average_time_between_blocks_for_swap_events(self):
+        pass
+
     def is_likely_bot(self,) -> bool:
 
         normal_tx_list = self.blockscan.get_normal_transaction_list(address=self.address)
