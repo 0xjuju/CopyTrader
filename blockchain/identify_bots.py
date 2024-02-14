@@ -1,19 +1,22 @@
-
+import blockchain.decorators
 from blockchain.alchemy import Blockchain
 from blockchain.blockscsan import Blockscan
 
 
-def is_likely_bot(wallet: str, chain: str) -> bool:
-    blockchain = Blockchain(chain)
-    blockscan = Blockscan(chain)
+class Wallet:
+    def __init__(self, address: str, chain: str):
+        self.blockchain = Blockchain(chain)
+        self.blockscan = Blockscan(chain)
+        self.address = self.blockchain.checksum_address(address)
 
-    address = blockchain.checksum_address(wallet)
-    normal_tx_list = blockscan.get_normal_transaction_list(address=address)
-    txs = normal_tx_list["result"]
+    def is_likely_bot(self,) -> bool:
 
-    for tx in txs:
-        if "swap" in tx["functionName"]:
-            print(tx)
+        normal_tx_list = self.blockscan.get_normal_transaction_list(address=self.address)
+        txs = normal_tx_list["result"]
+
+        for tx in txs:
+            if "swap" in tx["functionName"]:
+                print(tx)
 
 
 
