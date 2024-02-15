@@ -55,7 +55,11 @@ class Wallet:
         return tx_list
 
     def is_likely_bot(self) -> bool:
-        pass
+        transactions = self.get_transactions_for_wallet()
+        average_tx_time = self._average_time_between_transactions(transactions)
+
+
+
 
 
 

@@ -26,6 +26,22 @@ class TestIdentifyBots(TestCase):
         self.assertEqual(average.minutes(), 15)
         self.assertEqual(average.hours(), 0.25)
 
+        user_txs = self.user_wallet.get_transactions_for_wallet()
+        user_time = self.user_wallet._average_time_between_transactions(user_txs)
+
+        bot1 = Wallet("0x65A8F07Bd9A8598E1b5B6C0a88F4779DBC077675", "ethereum")
+        bot_txs = bot1.get_transactions_for_wallet()
+        bot_time = bot1._average_time_between_transactions(bot_txs)
+
+        # print(f"Human: {user_time.minutes()}") --> High average time between transactions (thousands of minutes)
+        # print(f"Bot: {bot_time.minutes()}") --> Low time between transactions (a few minutes)
+
+        for each in self.wallets:
+            wallet = Wallet(each, "ethereum")
+            transactions = wallet.get_transactions_for_wallet()
+            average_time = wallet._average_time_between_transactions(transactions)
+            print(f"{each}: Average time between txs is {average_time.minutes()} minutes")
+
     def test_get_transactions_for_wallet(self):
         swap_events = self.user_wallet.get_transactions_for_wallet()
 
