@@ -11,7 +11,8 @@ class Wallet:
         self.blockscan = Blockscan(chain)
         self.address = self.blockchain.checksum_address(address)
 
-    def _average_time_between_blocks_for_swap_events(self, swap_events: list[dict[str, Any]]):
+    @staticmethod
+    def _average_time_between_blocks_for_swap_events(swap_events: list[dict[str, Any]]):
         dates = [datetime.fromtimestamp(int(i["timeStamp"])) for i in swap_events]
         time_diffs = list()
 
@@ -25,10 +26,6 @@ class Wallet:
         average = sum(time_diffs) / len(dates)
 
         return average
-
-
-
-
 
     def get_swap_events_for_wallet(self, max_events: int = 100) -> list[dict[str, Any]]:
         normal_tx_list = self.blockscan.get_normal_transaction_list(address=self.address)
