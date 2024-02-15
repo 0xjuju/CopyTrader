@@ -29,8 +29,8 @@ class Wallet:
         self.address = self.blockchain.checksum_address(address)
 
     @staticmethod
-    def _average_time_between_blocks_for_swap_events(swap_events: list[dict[str, Any]]) -> Seconds:
-        dates = [datetime.fromtimestamp(int(i["timeStamp"])) for i in swap_events]
+    def _average_time_between_blocks_for_swap_events(events: list[dict[str, Any]]) -> Seconds:
+        dates = [datetime.fromtimestamp(int(i["timeStamp"])) for i in events]
         time_diffs = list()
 
         for index, d in enumerate(dates):
@@ -43,7 +43,7 @@ class Wallet:
 
         return Seconds(average)
 
-    def get_swap_events_for_wallet(self, max_events: int = 100) -> list[dict[str, Any]]:
+    def get_transactions_for_wallet(self, max_events: int = 100) -> list[dict[str, Any]]:
         normal_tx_list = self.blockscan.get_normal_transaction_list(address=self.address)
 
         try:
@@ -52,7 +52,7 @@ class Wallet:
 
             tx_list = normal_tx_list["result"]
 
-        return [i for i in tx_list if "swap" in i["functionName"] or "execute" in i["functionName"]]
+        return tx_list
 
     def is_likely_bot(self) -> bool:
         pass

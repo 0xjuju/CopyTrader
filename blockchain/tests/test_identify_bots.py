@@ -26,8 +26,8 @@ class TestIdentifyBots(TestCase):
         self.assertEqual(average.minutes(), 15)
         self.assertEqual(average.hours(), 0.25)
 
-    def test_get_swap_events_for_wallet(self):
-        swap_events = self.user_wallet.get_swap_events_for_wallet()
+    def test_get_transactions_for_wallet(self):
+        swap_events = self.user_wallet.get_transactions_for_wallet()
 
         # Use random indexes to test that 'swap' is in each function name
         random_numbers = [random.randint(0, 10) for _ in range(5)]
