@@ -6,7 +6,7 @@ from blockchain.blockscsan import Blockscan
 
 
 class Seconds:
-    def __init__(self, seconds: int):
+    def __init__(self, seconds: float):
         self.seconds = seconds
 
     def minutes(self):
@@ -20,6 +20,7 @@ class Seconds:
 
     def weeks(self):
         return self.days() / 7
+
 
 class Wallet:
     def __init__(self, address: str, chain: str):
@@ -35,13 +36,12 @@ class Wallet:
         for index, d in enumerate(dates):
             try:
                 diff = abs(d - dates[index + 1])
-                print(diff)
                 time_diffs.append(diff.total_seconds())  # Total difference in seconds of d and the next value
             except IndexError:  # End of list is reached
                 pass
         average = sum(time_diffs) / len(dates)
 
-        return average
+        return Seconds(average)
 
     def get_swap_events_for_wallet(self, max_events: int = 100) -> list[dict[str, Any]]:
         normal_tx_list = self.blockscan.get_normal_transaction_list(address=self.address)

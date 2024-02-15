@@ -22,7 +22,9 @@ class TestIdentifyBots(TestCase):
             {"timeStamp": datetime(month=2, day=1, year=2024, hour=8, minute=15).timestamp()},
         ]
         average = self.user_wallet._average_time_between_blocks_for_swap_events(swap_events)
-        self.assertEqual(average, 900)
+        self.assertEqual(average.seconds, 900)
+        self.assertEqual(average.minutes(), 15)
+        self.assertEqual(average.hours(), 0.25)
 
     def test_get_swap_events_for_wallet(self):
         swap_events = self.user_wallet.get_swap_events_for_wallet()
