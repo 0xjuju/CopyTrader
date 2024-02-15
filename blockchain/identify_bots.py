@@ -28,9 +28,9 @@ class Wallet:
         self.blockscan = Blockscan(chain)
         self.address = self.blockchain.checksum_address(address)
 
-    @staticmethod
-    def _average_time_between_transactions(events: list[dict[str, Any]]) -> Seconds:
+    def _average_time_between_transactions(self, events: list[dict[str, Any]]) -> Seconds:
         dates = [datetime.fromtimestamp(int(i["timeStamp"])) for i in events]
+        print(self.address, dates)
         time_diffs = list()
 
         for index, d in enumerate(dates):
