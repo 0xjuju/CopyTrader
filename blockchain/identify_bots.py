@@ -5,6 +5,22 @@ from blockchain.alchemy import Blockchain
 from blockchain.blockscsan import Blockscan
 
 
+class Seconds:
+    def __init__(self, seconds: int):
+        self.seconds = seconds
+
+    def minutes(self):
+        return self.seconds / 60
+
+    def hours(self):
+        return self.minutes() / 60
+
+    def days(self):
+        return self.hours() / 24
+
+    def weeks(self):
+        return self.days() / 7
+
 class Wallet:
     def __init__(self, address: str, chain: str):
         self.blockchain = Blockchain(chain)
