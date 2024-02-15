@@ -29,7 +29,7 @@ class Wallet:
         self.address = self.blockchain.checksum_address(address)
 
     @staticmethod
-    def _average_time_between_blocks_for_swap_events(events: list[dict[str, Any]]) -> Seconds:
+    def _average_time_between_transactions(events: list[dict[str, Any]]) -> Seconds:
         dates = [datetime.fromtimestamp(int(i["timeStamp"])) for i in events]
         time_diffs = list()
 

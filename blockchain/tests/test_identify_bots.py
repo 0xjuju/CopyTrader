@@ -14,14 +14,14 @@ class TestIdentifyBots(TestCase):
 
         self.user_wallet = Wallet("0xC05189824bF36f2ad9d0f64a222c1C156Df28DA1", "ethereum")
 
-    def test_average_time_between_blocks_for_swap_events(self):
+    def test_average_time_between_transactions(self):
 
         swap_events = [
             {"timeStamp": datetime(month=2, day=1, year=2024, hour=8, minute=30).timestamp()},
             {"timeStamp": datetime(month=2, day=1, year=2024, hour=8, minute=45).timestamp()},
             {"timeStamp": datetime(month=2, day=1, year=2024, hour=8, minute=15).timestamp()},
         ]
-        average = self.user_wallet._average_time_between_blocks_for_swap_events(swap_events)
+        average = self.user_wallet._average_time_between_transactions(swap_events)
         self.assertEqual(average.seconds, 900)
         self.assertEqual(average.minutes(), 15)
         self.assertEqual(average.hours(), 0.25)
