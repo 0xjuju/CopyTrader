@@ -14,6 +14,22 @@ from django.db.models import Q
 from wallets.models import Bot, Transaction, Wallet, Token
 
 
+class CoingeckoPriceBreakout:
+    day: int
+    timestamp: int
+    largest_price_move: float
+
+    def __init__(self, day: int, timestamp: int, largest_price_move: float):
+        """
+        :param day: number of days to look before the start of a price breakout
+        :param timestamp: start date of price breakout
+        :param largest_price_move: Largest percent price move of token after price breakout
+        """
+        self.day = day
+        self.timestamp = timestamp
+        self.largest_price_move = largest_price_move
+
+
 class Updater:
 
     @staticmethod
@@ -127,10 +143,9 @@ class Updater:
         # If block is not found, error message returned. Catch Value error when converting to integer
         return int(from_block), int(to_block)
 
-
     @staticmethod
     def determine_price_breakouts(diffs: list[tuple], timestamps: list[int], percent_threshold: float)\
-            -> list[tuple[int, int, float]]:
+            -> list[CoingeckoPriceBreakout]:
         """
         :param diffs: percentage difference of price tracked from its start date to day 1, 3, and 7
         :param timestamps: list of timestamps for each diff
@@ -156,7 +171,7 @@ class Updater:
                 # largest move percentage within the three timeframes. Used to avoid duplicate data
                 largest_price_move = (max(d) - 1) * 100
                 price_breakouts.append(
-                    (start_date, timestamps[index], largest_price_move)
+                    CoingeckoPriceBreakout(day=start_date, timestamp=timestamps[index], largest_price_move=largest_price_move)
                 )
 
         return price_breakouts
@@ -373,10 +388,10 @@ class Updater:
                 # Exclude known bot wallets from processing
                 blacklisted = Bot.objects.values_list("address", flat=True)
 
-                for index, datapoint in enumerate(price_breakouts):
-                    duration = datapoint[0]
-                    timestamp = datapoint[1]
-                    percentage = datapoint[2]
+                for index, coingecko_breakout in enumerate(price_breakouts):
+                    duration = coingecko_breakout.day
+                    timestamp = coingecko_breakout.timestamp
+                    percentage = coingecko_breakout.largest_price_move
 
                     # Check if format has changed for any timestamp. Expect last 5 digits to always be zero. Date only
                     if str(timestamp)[-5:] != "00000":
