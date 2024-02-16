@@ -1,5 +1,6 @@
 from typing import Any, Union
 
+
 class BlockRange:
     from_block: Union[int, None]
     to_block: Union[int, None]
@@ -26,20 +27,22 @@ class CoingeckoPriceBreakout:
 
 
 class Swap:
+    sender: str
     transaction: dict[str, Any]
     side: str
     count: int
     amount: int
 
-    def __init__(self, transaction: dict[str, Any], side: str, amount: int, count: int = 1):
+    def __init__(self, sender: str, transaction: dict[str, Any], side: str, amount: int, count: int = 1):
         """
-
+        :param sender: Address of transaction creator
         :param transaction: Transaction data of swap
         :param side: buy or sell event
         :param amount: amount bought or sold
         :param count: number of swaps
         """
         self.transaction = transaction
+        self.sender = sender
         self.side = side
         self.amount = amount
         self.count = count
