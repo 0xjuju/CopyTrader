@@ -45,10 +45,10 @@ class TestUpdateWallets(TestCase):
         breakouts = Updater.determine_price_breakouts(diffs=diffs, timestamps=timestamps,
                                                       percent_threshold=percent_threshold)
 
-        self.assertEqual(breakouts[0][0], 3)
-        self.assertEqual(breakouts[0][2], 50)
-        self.assertEqual(breakouts[1][0], 1)
-        self.assertEqual(breakouts[1][2], 150)
+        self.assertEqual(breakouts[0].day, 3)
+        self.assertEqual(breakouts[0].largest_price_move, 50)
+        self.assertEqual(breakouts[1].day, 1)
+        self.assertEqual(breakouts[1].largest_price_move, 150)
 
     def test_get_prices(self):
         contract_address = "0x155f0DD04424939368972f4e1838687d6a831151"

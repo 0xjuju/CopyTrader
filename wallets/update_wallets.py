@@ -53,10 +53,12 @@ class Swap:
         if side not in sides:
             raise ValueError(f"{side} not a valid options. Choices are {sides}")
 
+
 class Updater:
 
     @staticmethod
-    def contract_and_address_validated(checked_topics: list[str], blacklisted: list[str], blockchain: Blockchain):
+    def contract_and_address_validated(checked_topics: list[str], blacklisted: list[str], blockchain: Blockchain)\
+            -> False:
         """
         Validate address against known automated addresses
 
@@ -71,6 +73,8 @@ class Updater:
         if blockchain.w3.eth.get_code(checked_topics[2]) == b'' and to_address not in blacklisted:
 
             return True
+        else:
+            return False
 
     @staticmethod
     def create_database_entry(filtered_transactions: list[tuple[str, dict, float]], token: Token, chain: str,
