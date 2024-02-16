@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, Union
 
 from blockchain.alchemy import Blockchain
 from blockchain.blockscsan import Blockscan
@@ -28,9 +28,9 @@ class Wallet:
         self.blockscan = Blockscan(chain)
         self.address = self.blockchain.checksum_address(address)
 
-    def _average_time_between_transactions(self, events: list[dict[str, Any]]) -> Seconds:
+    @staticmethod
+    def _average_time_between_transactions(events: list[dict[str, Any]]) -> Union[Seconds, None]:
         dates = [datetime.fromtimestamp(int(i["timeStamp"])) for i in events]
-        print(self.address, dates)
         time_diffs = list()
 
         for index, d in enumerate(dates):
@@ -39,9 +39,11 @@ class Wallet:
                 time_diffs.append(diff.total_seconds())  # Total difference in seconds of d and the next value
             except IndexError:  # End of list is reached
                 pass
-        average = sum(time_diffs) / len(dates)
-
-        return Seconds(average)
+        try:
+            average = sum(time_diffs) / len(dates)
+            return Seconds(average)
+        except ZeroDivisionError:
+            return None
 
     def get_transactions_for_wallet(self, max_events: int = 100) -> list[dict[str, Any]]:
         normal_tx_list = self.blockscan.get_normal_transaction_list(address=self.address)

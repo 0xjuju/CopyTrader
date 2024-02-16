@@ -38,9 +38,10 @@ class TestIdentifyBots(TestCase):
 
         for each in self.wallets:
             wallet = Wallet(each, "ethereum")
-            transactions = wallet.get_transactions_for_wallet()
-            average_time = wallet._average_time_between_transactions(transactions)
-            print(f"{each}: Average time between txs is {average_time.minutes()} minutes")
+            transactions = wallet.get_transactions_for_wallet(10000)
+            if transactions:
+                average_time = wallet._average_time_between_transactions(transactions)
+                print(f"{each}: Average time between txs is {average_time.minutes()} minutes")
 
     def test_get_transactions_for_wallet(self):
         swap_events = self.user_wallet.get_transactions_for_wallet()
