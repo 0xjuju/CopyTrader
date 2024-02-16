@@ -37,7 +37,7 @@ class Updater:
             return False
 
     @staticmethod
-    def create_database_entry(filtered_transactions: list[tuple[str, dict, float]], token: Token, chain: str,
+    def create_database_entry(filtered_transactions: list[Swap], token: Token, chain: str,
                               percentage: str, timestamp: int, index: int) -> None:
         """
         :param filtered_transactions: transaction data with possible bots / unwanted accounts filtered out
@@ -52,12 +52,12 @@ class Updater:
         all_transactions = Transaction.objects.all()
 
         for transaction_data in filtered_transactions:
-            address = transaction_data[0]
+            address = transaction_data.sender
 
             # raw tx data
-            transaction = transaction_data[1]
+            transaction = transaction_data.transaction
 
-            amount = transaction_data[2] / (10 ** 18)
+            amount = transaction_data.amount / (10 ** 18)
 
             wallet, created = Wallet.objects.get_or_create(address=address)
 
@@ -164,7 +164,7 @@ class Updater:
         return price_breakouts
 
     @staticmethod
-    def filter_transactions(buyers: dict[str, list[Swap]], sellers: dict[str, list[Swap]]):
+    def filter_transactions(buyers: dict[str, list[Swap]], sellers: dict[str, list[Swap]]) -> list[Swap]:
         """
         :param buyers: ...
         :param sellers: ...
@@ -179,17 +179,19 @@ class Updater:
             # possible to miss bots within transactions on front or end of block
             if sellers.get(buyer) is None:
                 for swap in swaps:
-                    filtered_transactions.append((buyer, swap.transaction, swap.amount))
+                    swap.sender = buyer
+                    filtered_transactions.append(swap)
             else:
                 for swap in swaps:
+                    swap.sender = buyer
                     # Assumption that most real buyers will not have more than 5 buy events in a single block
                     if swap.count == 1:
-                        filtered_transactions.append((buyer, swap.transaction, swap.amount))
+                        filtered_transactions.append(swap)
 
         # Number of tx for each account
-        tx_count = Counter(i[0] for i in filtered_transactions)
-        # further filter tx for accounts 1 tx
-        filtered_transactions = [i for i in filtered_transactions if tx_count[i[0]] == 1]
+        tx_count = Counter(i.sender for i in filtered_transactions)
+        # Filter tx for accounts 1 tx to filter against bots, since humans wouldn't typical have 2+ tx in a block
+        filtered_transactions = [i for i in filtered_transactions if tx_count[i.sender] == 1]
         return filtered_transactions
 
     @staticmethod
@@ -443,8 +445,6 @@ class Updater:
                                         name=contract.token.name,
                                         address=contract.contract
                                     )
-
-                                    print("", token.name)
 
                                     # Update Database with new wallets and transactions
                                     self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
