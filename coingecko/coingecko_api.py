@@ -86,7 +86,6 @@ class GeckoClient:
                 # market_cap_change_24hr = f"{token['market_cap_change_24h']:,.2f}"
 
                 if price_change_24hr or price_change_7d:
-                    if price_change_24hr and price_change_24hr > 40:
 
                     gecko_token, _ = GeckoToken.objects.get_or_create(name=name, symbol=symbol, token_id=token_id)
                     gecko_token.price_change_24hr = price_change_24hr
