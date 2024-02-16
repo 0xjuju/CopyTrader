@@ -18,7 +18,7 @@ class Updater:
 
     @staticmethod
     def contract_and_address_validated(checked_topics: list[str], blacklisted: list[str], blockchain: Blockchain)\
-            -> False:
+            -> bool:
         """
         Validate address against known automated addresses
 
