@@ -33,7 +33,7 @@ class Swap:
     count: int
     amount: int
 
-    def __init__(self, sender: str, transaction: dict[str, Any], side: str, amount: int, count: int = 1):
+    def __init__(self, transaction: dict[str, Any], side: str, amount: int, sender: str = "", count: int = 1):
         """
         :param sender: Address of transaction creator
         :param transaction: Transaction data of swap
