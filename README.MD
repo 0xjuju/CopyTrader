@@ -151,7 +151,7 @@ command periodically e.g. Heroku Scheduler if you use Heroku as a deployment met
 automatically create Ngrok server for testing.
 
 - Trading bot will be run by a simple celery background task upon server start. It will continuously look for pools to
-trade, making trades until volatility and volume break a certain threshold. Most paramters will be chosen by an SVM 
+trade, making trades until volatility and volume break a certain threshold. Most parameters will be chosen by an SVM 
 machine learning algorith.
 
 
