@@ -30,6 +30,29 @@ class CoingeckoPriceBreakout:
         self.largest_price_move = largest_price_move
 
 
+class Swap:
+    transaction: dict[str, Any]
+    side: str
+    count: int
+    amount: int
+
+    def __init__(self, transaction: dict[str, Any], side: str, amount: int, count: int = 1):
+        """
+
+        :param transaction: Transaction data of swap
+        :param side: buy or sell event
+        :param amount: amount bought or sold
+        :param count: number of swaps
+        """
+        self.transaction = transaction
+        self.side = side
+        self.amount = amount
+        self.count = count
+
+        sides = ["buy", "sell"]
+        if side not in sides:
+            raise ValueError(f"{side} not a valid options. Choices are {sides}")
+
 class Updater:
 
     @staticmethod
@@ -177,7 +200,7 @@ class Updater:
         return price_breakouts
 
     @staticmethod
-    def filter_transactions(buyers: dict[str, list], sellers: dict[str, list]):
+    def filter_transactions(buyers: dict[str, list[Swap]], sellers: dict[str, list[Swap]]):
         """
         :param buyers: ...
         :param sellers: ...
@@ -185,23 +208,23 @@ class Updater:
         """
         # Loop through buyers and sellers to create list of transaction excluding ones likely done by bots
         filtered_transactions = list()
-        for buyer, values in buyers.items():
+        for buyer, swaps in buyers.items():
 
             # Whitelist address since FrontRunner bots should always have sales transactions
             # Assumes token with high enough volume that buy and sale happens within this range of blocks
             # possible to miss bots within transactions on front or end of block
             if sellers.get(buyer) is None:
-                for value in values:
-                    filtered_transactions.append((buyer, value[1], value[2]))
+                for swap in swaps:
+                    filtered_transactions.append((buyer, swap.transaction, swap.amount))
             else:
-                for value in values:
+                for swap in swaps:
                     # Assumption that most real buyers will not have more than 5 buy events in a single block
-                    if value[0] == 1:
-                        filtered_transactions.append((buyer, value[1], value[2]))
+                    if swap.count == 1:
+                        filtered_transactions.append((buyer, swap.transaction, swap.amount))
 
         # Number of tx for each account
         tx_count = Counter(i[0] for i in filtered_transactions)
-        # further filter tx for accounts with less than 4
+        # further filter tx for accounts 1 tx
         filtered_transactions = [i for i in filtered_transactions if tx_count[i[0]] == 1]
         return filtered_transactions
 
@@ -280,13 +303,16 @@ class Updater:
                                            fromBlock=from_block, toBlock=to_block)
         return transactions
 
-    def map_buyers_and_sellers(self, blockchain: Blockchain, all_entries, blacklisted, abi: str):
+    def map_buyers_and_sellers(self, blockchain: Blockchain, all_entries, blacklisted, abi: str) -> (
+            defaultdict[list[Swap]],
+            defaultdict[list[Swap]],
+            ):
         """
         :param blockchain: chain
         :param all_entries: list of transaction from given timeframe
         :param blacklisted: Known automated addresses
         :param abi: Factory contract abi
-        :return: Parsed list of buyers vs sellers
+        :return: List of Swap events for buyers and sellers
         """
         buyers = defaultdict(list)
         sellers = defaultdict(list)
@@ -322,18 +348,18 @@ class Updater:
                             # amount0 as negative number represents main asset as sold
 
                             if amount0 > 0:
-                                sellers[from_address].append((1, transaction, amount1))
+                                sellers[from_address].append(Swap(transaction, "sell", amount1))
 
                             elif amount0 < 0:
-                                buyers[from_address].append((1, transaction, amount0))
+                                buyers[from_address].append(Swap(transaction, "buy", amount0))
 
                         except KeyError:
                             # Try for V3 first. If Key Error, try V2 syntax
                             if from_address == log_data["to"] and log_data["amount0Out"] > 0:
-                                buyers[from_address].append((1, transaction, log_data["amount0Out"]))
+                                buyers[from_address].append(Swap(transaction, "buy", log_data["amount0Out"]))
 
                             elif from_address == log_data["to"] and log_data["amount1Out"] > 0:
-                                sellers[from_address].append((1, transaction, log_data["amount0In"]))
+                                sellers[from_address].append(Swap(transaction, "sell", log_data["amount0In"]))
 
                             # We want to classify as either BUYER or SELLER always using these criteria
                             else:
