@@ -355,7 +355,7 @@ class Updater:
             .exclude(chain__in=exclude_list)\
             .filter(processed=False)\
             .filter(
-            Q(token__price_change_24hr__gte=percent_threshold)
+            token__price_change_24hr__gte=percent_threshold
         )
         print("Number of Contracts ", len(contracts))
 
