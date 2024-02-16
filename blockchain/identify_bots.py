@@ -56,9 +56,22 @@ class Wallet:
 
         return tx_list
 
-    def is_likely_bot(self) -> bool:
-        transactions = self.get_transactions_for_wallet()
-        average_tx_time = self._average_time_between_transactions(transactions)
+    def is_likely_bot(self) -> Union[bool, None]:
+
+        if self.address[2:7] == "11111" or self.address[2:7] == "00000":
+            return True
+        else:
+            transactions = self.get_transactions_for_wallet(10000)
+
+            if transactions:
+                average_tx_time = self._average_time_between_transactions(transactions)
+
+                if average_tx_time.minutes() < 600:
+                    return True
+                else:
+                    return False
+            else:
+                return None
 
 
 
