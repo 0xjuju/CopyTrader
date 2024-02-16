@@ -2,65 +2,16 @@ from collections import defaultdict, Counter
 from datetime import datetime, timedelta
 import json
 import time
-from typing import Union, Any
 
 from algorithms.token_dataset_algos import percent_difference_from_dataset
 from blockchain.alchemy import Blockchain
 from blockchain.blockscsan import Blockscan
+from blockchain.class_models import BlockRange, CoingeckoPriceBreakout, Swap
 from blockchain.models import Chain, ABI, FactoryContract
 from coingecko.coingecko_api import GeckoClient
 from coingecko.models import Address
 from django.db.models import Q
 from wallets.models import Bot, Transaction, Wallet, Token
-
-
-class BlockRange:
-    from_block: Union[int, None]
-    to_block: Union[int, None]
-
-    def __init__(self, from_block: Union[int, None], to_block: Union[int, None]):
-        self.from_block = from_block
-        self.to_block = to_block
-
-
-class CoingeckoPriceBreakout:
-    day: int
-    timestamp: int
-    largest_price_move: float
-
-    def __init__(self, day: int, timestamp: int, largest_price_move: float):
-        """
-        :param day: number of days to look before the start of a price breakout
-        :param timestamp: start date of price breakout
-        :param largest_price_move: Largest percent price move of token after price breakout
-        """
-        self.day = day
-        self.timestamp = timestamp
-        self.largest_price_move = largest_price_move
-
-
-class Swap:
-    transaction: dict[str, Any]
-    side: str
-    count: int
-    amount: int
-
-    def __init__(self, transaction: dict[str, Any], side: str, amount: int, count: int = 1):
-        """
-
-        :param transaction: Transaction data of swap
-        :param side: buy or sell event
-        :param amount: amount bought or sold
-        :param count: number of swaps
-        """
-        self.transaction = transaction
-        self.side = side
-        self.amount = amount
-        self.count = count
-
-        sides = ["buy", "sell"]
-        if side not in sides:
-            raise ValueError(f"{side} not a valid options. Choices are {sides}")
 
 
 class Updater:
