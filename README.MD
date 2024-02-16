@@ -1,7 +1,7 @@
 # Crypto Investment / Trading Software
 
 ## Description
-Each day, This program searches through coingecko for tokens that recently appreciated in price by a substantial amount.
+This program searches through coingecko for tokens that recently appreciated in price by a substantial amount.
 Transactions occurring days before the price-surge are analyzed, and any Swap events and assoicated wallets are extracted.
 Bots are filtered out, and wallets are saved to a database. Webhooks are initiated to listen for incoming tokens for
 wallets with the highest number of tokens bought pre-surge. Tokens are ranked based on:
@@ -12,9 +12,6 @@ wallets with the highest number of tokens bought pre-surge. Tokens are ranked ba
    - Sentiment analysis for project narrative.
    - Mentions on blogs like Binance etc.
 
-The other part of this program features a trading bot that scans pools like Uniswap for highly volatile token pools.
-Using volatility, volume and other correlating factors to conduct trades.
-
 ## Table of Contents
 
 - [Usage](#usage)
@@ -23,8 +20,6 @@ Using volatility, volume and other correlating factors to conduct trades.
 
 
 ## Usage
-
-This program is not designed to be an open-source product, so the step to initialize this program will be extensive.
 Let's start by setting up our environment variables:
 
 
@@ -151,9 +146,6 @@ parsed and the token is saved to the database.
 - Each of the django commands we wrote in the terminal for each step of the program, will be written as celery tasks that
 happen quietly in the background. For now, you can use a third-party scheduler on a server to run each
 command periodically e.g. Heroku Scheduler if you use Heroku as a deployment method.
-
-- Once top-wallets are identified, further logic using algorithmic analysis of gas-fee usage and averages to further 
-filter out bots will be created.
 
 - NGROK for Django needs to be implemented so that we can use env variables `RUN_MAIN=False` and `USE_NGROK=True` to 
 automatically create Ngrok server for testing.
