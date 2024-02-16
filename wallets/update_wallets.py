@@ -14,6 +14,15 @@ from django.db.models import Q
 from wallets.models import Bot, Transaction, Wallet, Token
 
 
+class BlockRange:
+    from_block: Union[int, None]
+    to_block: Union[int, None]
+
+    def __init__(self, from_block: Union[int, None], to_block: Union[int, None]):
+        self.from_block = from_block
+        self.to_block = to_block
+
+
 class CoingeckoPriceBreakout:
     day: int
     timestamp: int
@@ -128,7 +137,7 @@ class Updater:
         print(f"Done batch {index + 1}: {datetime.fromtimestamp(timestamp)}")
 
     @staticmethod
-    def create_block_range(duration: int, timestamp: int, explorer: Blockscan) -> (int, int):
+    def create_block_range(duration: int, timestamp: int, explorer: Blockscan) -> BlockRange:
 
         """
         :param duration: number of days it took for price to break out relative to start date
@@ -168,7 +177,7 @@ class Updater:
                              f" {three_days_into_breakout_timestamp}")
 
         # If block is not found, error message returned. Catch Value error when converting to integer
-        return int(from_block), int(to_block)
+        return BlockRange(from_block=int(from_block), to_block=int(to_block))
 
     @staticmethod
     def determine_price_breakouts(diffs: list[tuple], timestamps: list[int], percent_threshold: float)\
@@ -431,8 +440,10 @@ class Updater:
                     timestamp = timestamp / 1000
 
                     # Convert datetime to range of blocks to look through
-                    from_block, to_block = self.create_block_range(duration=duration, timestamp=timestamp,
-                                                                   explorer=explorer)
+                    block_range = self.create_block_range(duration=duration, timestamp=timestamp, explorer=explorer)
+                    from_block = block_range.from_block
+                    to_block = block_range.to_block
+
                     if from_block and to_block:
 
                         try:
