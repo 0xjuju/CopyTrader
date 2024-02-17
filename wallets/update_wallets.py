@@ -210,7 +210,6 @@ class Updater:
         factory_contracts = FactoryContract.objects.filter(chain=blockchain.chain)
 
         for factory in factory_contracts:
-            print(factory.name)
             contract = blockchain.get_contract(factory.address, factory.abi)
 
             pools[factory.chain][factory.name] = {

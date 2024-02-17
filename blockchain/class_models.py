@@ -26,6 +26,26 @@ class CoingeckoPriceBreakout:
         self.largest_price_move = largest_price_move
 
 
+class Pair:
+    token1: str
+    token2: str
+
+
+class Pool:
+    factory_address: str
+    factory_name: str
+    chain: str
+    pairs: dict
+    factory_abi: str
+
+    def __init__(self, factory_name: str, chain: str, factory_address: str, factory_abi: str, pairs: dict = list):
+        self.factory_name = factory_name
+        self.chain = chain
+        self.factory_address = factory_address
+        self.factory_abi = factory_abi
+        self.pairs = pairs
+
+
 class Swap:
     sender: str
     transaction: dict[str, Any]
