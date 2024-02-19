@@ -20,10 +20,10 @@ class TestCoinPicker(TestCase):
         self.assertEqual(result[14][0], 98.01980198019802)
         self.assertAlmostEqual(result[3][1], 20)
         # Last day should have all 0s
-        self.assertEqual(result[-1], (0, 0, 0))
+        self.assertEqual(result[-1], [0., 0., 0.])
         # No 6th day should be 0
-        self.assertEqual(result[-2][1], 0)
+        self.assertEqual(result[-2][1], 0.)
         # No 7th day should be 0
-        self.assertEqual(result[-7][2], 0)
+        self.assertEqual(result[-7][2], 0.)
 
 
