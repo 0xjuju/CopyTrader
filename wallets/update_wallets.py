@@ -144,21 +144,21 @@ class Updater:
         for index, d in enumerate(diffs):
 
             # determine number of days before first price increase
-            start_date = None
+            start_day = None
             if d[0] > percent_threshold:
-                start_date = 1
+                start_day = 1
             elif d[1] > percent_threshold:
-                start_date = 3
+                start_day = 3
             elif d[2] > percent_threshold:
-                start_date = 7
+                start_day = 7
 
             # only append data if a start date of price increase is found
-            if start_date:
+            if start_day:
 
                 # largest move percentage within the three timeframes. Used to avoid duplicate data
                 largest_price_move = max(d)
                 price_breakouts.append(
-                    CoingeckoPriceBreakout(day=start_date, timestamp=timestamps[index], largest_price_move=largest_price_move)
+                    CoingeckoPriceBreakout(day=start_day, timestamp=timestamps[index], largest_price_move=largest_price_move)
                 )
 
         return price_breakouts
