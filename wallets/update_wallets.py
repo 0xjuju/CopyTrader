@@ -131,7 +131,7 @@ class Updater:
         return BlockRange(from_block=int(from_block), to_block=int(to_block))
 
     @staticmethod
-    def determine_price_breakouts(diffs: list[tuple], timestamps: list[int], percent_threshold: float)\
+    def determine_price_breakouts(diffs: list[list[float]], timestamps: list[int], percent_threshold: float)\
             -> list[CoingeckoPriceBreakout]:
         """
         :param diffs: percentage difference of price tracked from its start date to day 1, 3, and 7
@@ -145,18 +145,18 @@ class Updater:
 
             # determine number of days before first price increase
             start_date = None
-            if (d[0] - 1) * 100 > percent_threshold:
+            if d[0] > percent_threshold:
                 start_date = 1
-            elif (d[1] - 1) * 100 > percent_threshold:
+            elif d[1] > percent_threshold:
                 start_date = 3
-            elif (d[2] - 1) * 100 > percent_threshold:
+            elif d[2] > percent_threshold:
                 start_date = 7
 
             # only append data if a start date of price increase is found
             if start_date:
 
                 # largest move percentage within the three timeframes. Used to avoid duplicate data
-                largest_price_move = (max(d) - 1) * 100
+                largest_price_move = max(d)
                 price_breakouts.append(
                     CoingeckoPriceBreakout(day=start_date, timestamp=timestamps[index], largest_price_move=largest_price_move)
                 )

@@ -34,9 +34,9 @@ class TestUpdateWallets(TestCase):
         percent_threshold = 30
 
         diffs = [
-            (0.94, 1.45, 1.50),
-            (0.20, 0.53, 0.94),
-            (2.5, 1.10, 0.25),
+            [-6., 45, 50],
+            [-20, -47, -6],
+            [150, 10, -75],
         ]
 
         # Real timestamp irrelevant for this testcase

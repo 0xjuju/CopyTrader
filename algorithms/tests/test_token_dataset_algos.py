@@ -13,7 +13,7 @@ class TestCoinPicker(TestCase):
                      550, 1050, 1060, 1225, 1310, 2800, 2950, 7560, 7560, 13000]
 
         result = percent_difference_from_dataset(test_data)
-
+        print(result)
         # Must always be the same size as original dataset
         self.assertEqual(len(test_data), len(result))
         self.assertEqual(result[0][0], 150.)
