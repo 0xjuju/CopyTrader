@@ -7,7 +7,7 @@ def percent_difference_from_dataset(data: list[float]) -> list[list[float]]:
     """
 
     :param data: Daily Price history of token
-    :return: Matrix
+    :return: Matrix of percent differences between one value and the next, 3rd, and 7th day
     """
     results = list()
 
