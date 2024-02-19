@@ -1,4 +1,5 @@
-from typing import Union
+
+import numpy as np
 
 
 # From dataset of prices from token chart, find the largest percent changes within 1 week of day
@@ -18,12 +19,11 @@ def percent_difference_from_dataset(data: list[float]) -> list[list[float]]:
         try:
 
             # Matrix containing price of token 1 day, 2 days, and 7 days into the future from each token price
-            dataset = [
-                data[index + 1], data[index + 2], data[index + 7]
-            ]
+            dataset = np.array([data[index + 1], data[index + 2], data[index + 7]])
 
             # Get the percentage difference of each in dataset relative to the 'each' value
-            dataset = [(i / each - 1) * 100 for i in dataset]
+            dataset = (dataset / each - 1) * 100
+            print(type(dataset))
 
         except IndexError:  # We expect to get an index error for end of list
             pass
