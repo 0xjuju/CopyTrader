@@ -23,7 +23,6 @@ def percent_difference_from_dataset(data: list[float]) -> list[list[float]]:
 
             # Get the percentage difference of each in dataset relative to the 'each' value
             dataset = (dataset / each - 1) * 100
-            print(type(dataset))
 
         except IndexError:  # We expect to get an index error for end of list
             pass
