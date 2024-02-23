@@ -4,7 +4,7 @@ from django.db.models import Count
 from wallets.models import Bot, WalletFilter, Wallet
 
 
-def filter_wallets():
+def filter_wallets() -> None:
     wallets = get_wallets()
     chains = ["ethereum", "arbitrum-one", "polygon-pos"]
     for each in wallets:
@@ -20,7 +20,7 @@ def filter_wallets():
                     pass
 
 
-def get_wallets():
+def get_wallets() -> list[Wallet]:
     filters = WalletFilter.objects.first()
 
     wallets = Wallet.objects\
