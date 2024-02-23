@@ -4,6 +4,7 @@ from typing import Any
 
 import decouple
 
+
 class Webhook:
     def __init__(self):
         self.WEBHOOK_URL = "https://dashboard.alchemy.com/api/"
@@ -57,6 +58,9 @@ class Webhook:
         response = requests.post(url, json=payload, headers=headers)
 
         return response.json()
+
+    def create_swap_events_for_wallet_webhook(self, address_list: list[str]) -> None:
+        pass
 
     def create_wallet_activity_webhook(self, chain: str, webhook_type: str, address_list: list[str]) -> None:
         """
@@ -123,3 +127,5 @@ class Webhook:
 
         response = requests.put(url, json=payload, headers=headers)
         print(response)
+
+
