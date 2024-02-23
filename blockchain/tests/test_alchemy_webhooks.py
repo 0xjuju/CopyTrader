@@ -1,5 +1,6 @@
 
 from blockchain.alchemy_webhooks import Webhook
+import decouple
 from django.test import TestCase
 
 
@@ -13,8 +14,15 @@ class TestAlchemyWebhooks(TestCase):
         self.assertEqual(address_list["data"][0], '0xFea856912F20bc4f7C877C52d60a2cdC797C6Ef8')
 
     def test_replace_webhook_address_list(self):
-        address_list = ["0xFea856912F20bc4f7C877C52d60a2cdC797C6Ef8"]
-        self.api.replace_webhook_address_list("wh_mhgl1vaf8go3tzig", address_list)
+        address_list = ["0xC05189824bF36f2ad9d0f64a222c1C156Df28DA1"]
+        self.api.replace_webhook_address_list("wh_mhgl1vaf8go3tzig", address_list=address_list)
+
+    def test_create_swap_events_for_wallet_webhook(self):
+        chain = "ethereum"
+        url = f"https://{decouple.config('NGROK_TEMP_HOST')}"
+
+        self.api.create_swap_events_for_wallet_webhook(chain, url, "0xFea856912F20bc4f7C877C52d60a2cdC797C6Ef8")
+
 
 
 

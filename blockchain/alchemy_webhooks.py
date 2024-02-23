@@ -1,4 +1,5 @@
 
+import json
 import requests
 from typing import Any
 
@@ -59,8 +60,52 @@ class Webhook:
 
         return response.json()
 
-    def create_swap_events_for_wallet_webhook(self, address_list: list[str]) -> None:
-        pass
+    def create_swap_events_for_wallet_webhook(self, chain: str, webhook_url: str, address_list: str) -> None:
+        query = """{{
+          block {{
+            hash,
+            number,
+            timestamp,
+            logs(filter: {{addresses: {addresses}, topics: []}}) {{
+              data,
+              topics,
+              index,
+              account {{
+                address
+              }},
+              transaction {{
+                hash,
+                nonce,
+                index,
+                from {{
+                  address
+                }},
+                to {{
+                  address
+                }},
+                value,
+                gasPrice,
+                maxFeePerGas,
+                maxPriorityFeePerGas,
+                gas,
+                status,
+                gasUsed,
+                cumulativeGasUsed,
+                effectiveGasPrice,
+                createdContract {{
+                  address
+                }}
+              }}
+            }}
+          }}
+        }}""".format(addresses=json.dumps(address_list))
+
+        payload = {
+            "webhook_url": webhook_url,
+            "graphql_query": query
+        }
+
+        self._make_request("create-webhook", chain=chain, webhook_type="GRAPHQL", payload_opts=payload)
 
     def create_wallet_activity_webhook(self, chain: str, webhook_type: str, address_list: list[str]) -> None:
         """
