@@ -5,7 +5,7 @@ from wallets.models import Bot, WalletFilter, Wallet
 
 
 def filter_wallets() -> None:
-    wallets = get_wallets()
+    wallets = Wallet.objects.filter(human=False)
     chains = ["ethereum", "arbitrum-one", "polygon-pos"]
     for each in wallets:
         for chain in chains:
