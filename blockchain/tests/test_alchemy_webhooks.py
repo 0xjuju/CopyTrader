@@ -21,8 +21,9 @@ class TestAlchemyWebhooks(TestCase):
     def test_create_swap_events_for_wallet_webhook(self):
         chain = "ethereum"
 
-        self.api.create_swap_events_for_wallet_webhook(chain, self.ngrok_url,
-                                                       ["0xFea856912F20bc4f7C877C52d60a2cdC797C6Ef8"])
+        r = self.api.create_swap_events_for_wallet_webhook(chain, self.ngrok_url,
+                                                           "0xFea856912F20bc4f7C877C52d60a2cdC797C6Ef8")
+        print(r)
 
     def test_delete_webhook(self):
 

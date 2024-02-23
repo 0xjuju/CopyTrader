@@ -63,43 +63,28 @@ class Webhook:
     def create_swap_events_for_wallet_webhook(self, chain: str, webhook_url: str, address_list: list[str]) -> dict:
         query = """{{
           block {{
-            hash,
-            number,
-            timestamp,
-            logs(filter: {{addresses: {addresses}, topics: []}}) {{
-              data,
-              topics,
-              index,
-              account {{
-                address
-              }},
+            logs(filter: {{addresses: ["0x6D76F7d16CA40dD13E52dF3E1615318f763c0241"], topics: {topics}}}) {{
               transaction {{
-                hash,
-                nonce,
-                index,
+                hash
+                index
                 from {{
                   address
-                }},
+                }}
                 to {{
                   address
-                }},
-                value,
-                gasPrice,
-                maxFeePerGas,
-                maxPriorityFeePerGas,
-                gas,
-                status,
-                gasUsed,
-                cumulativeGasUsed,
-                effectiveGasPrice,
-                createdContract {{
-                  address
                 }}
+                logs {{
+                  topics
+                }}
+                type
+                status
               }}
             }}
           }}
-        }}""".format(addresses=json.dumps(address_list))
-
+        }}""".format(topics=json.dumps(
+            [[], ["0xC05189824bF36f2ad9d0f64a222c1C156Df28DA1"]]
+        ))
+        print(query)
         payload = {
             "webhook_url": webhook_url,
             "graphql_query": query
