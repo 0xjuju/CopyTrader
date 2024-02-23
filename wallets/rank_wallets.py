@@ -17,13 +17,15 @@ def filter_wallets() -> None:
                     each.delete()
                     break
                 else:
-                    pass
+                    each.human = True
+                    each.save()
 
 
 def get_wallets() -> list[Wallet]:
     filters = WalletFilter.objects.first()
 
     wallets = Wallet.objects\
+        .filter(human=True)\
         .annotate(token_count=Count('token'))\
         .filter(token_count__gte=filters.min_token_wins)\
         .order_by('-token_count')
