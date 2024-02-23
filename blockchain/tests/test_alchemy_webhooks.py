@@ -7,6 +7,7 @@ from django.test import TestCase
 class TestAlchemyWebhooks(TestCase):
     def setUp(self) -> None:
         self.api = Webhook()
+        self.ngrok_url = f"https://{decouple.config('NGROK_TEMP_HOST')}"
 
     def test_get_address_list_from_webhook(self):
 
@@ -19,10 +20,16 @@ class TestAlchemyWebhooks(TestCase):
 
     def test_create_swap_events_for_wallet_webhook(self):
         chain = "ethereum"
-        url = f"https://{decouple.config('NGROK_TEMP_HOST')}"
 
-        self.api.create_swap_events_for_wallet_webhook(chain, url, "0xFea856912F20bc4f7C877C52d60a2cdC797C6Ef8")
+        self.api.create_swap_events_for_wallet_webhook(chain, self.ngrok_url,
+                                                       ["0xFea856912F20bc4f7C877C52d60a2cdC797C6Ef8"])
 
+    def test_delete_webhook(self):
+
+        webhook_id = self.api.create_swap_events_for_wallet_webhook("ethereum", self.ngrok_url,
+                                                                    ["0xFea856912F20bc4f7C877C52d60a2cdC797C6Ef8"])
+        webhook_id = webhook_id["data"]["id"]
+        self.api.delete_webhook(webhook_id)
 
 
 

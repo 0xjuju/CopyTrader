@@ -15,14 +15,14 @@ def wallet_hook(request):
     wallet_address_list = [i.lower() for i in wallet_address_list]
 
     body = json.loads(request.body)
-
-    events = body["event"]["activity"]
-    for event in events:
-        if event["toAddress"].lower() in wallet_address_list:
-            gem, _ = Gem.objects.get_or_create(name=event["asset"], contract_address=event["toAddress"])
-            wallet = Wallet.objects.get(address=event["toAddress"])
-            gem.wallet.add(wallet)
-            gem.save()
+    print(body)
+    # events = body["event"]["activity"]
+    # for event in events:
+    #     if event["toAddress"].lower() in wallet_address_list:
+    #         gem, _ = Gem.objects.get_or_create(name=event["asset"], contract_address=event["toAddress"])
+    #         wallet = Wallet.objects.get(address=event["toAddress"])
+    #         gem.wallet.add(wallet)
+    #         gem.save()
 
     return HttpResponse(200)
 

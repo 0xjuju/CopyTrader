@@ -60,7 +60,7 @@ class Webhook:
 
         return response.json()
 
-    def create_swap_events_for_wallet_webhook(self, chain: str, webhook_url: str, address_list: str) -> None:
+    def create_swap_events_for_wallet_webhook(self, chain: str, webhook_url: str, address_list: list[str]) -> dict:
         query = """{{
           block {{
             hash,
@@ -105,7 +105,7 @@ class Webhook:
             "graphql_query": query
         }
 
-        self._make_request("create-webhook", chain=chain, webhook_type="GRAPHQL", payload_opts=payload)
+        return self._make_request("create-webhook", chain=chain, webhook_type="GRAPHQL", payload_opts=payload)
 
     def create_wallet_activity_webhook(self, chain: str, webhook_type: str, address_list: list[str]) -> None:
         """
@@ -118,6 +118,15 @@ class Webhook:
         payload = {"addresses": address_list}
 
         self._make_request("create-webhook", chain=chain, webhook_type=webhook_type, payload_opts=payload)
+
+    def delete_webhook(self, webhook_id: str) -> dict:
+        headers = {
+            "accept": "application/json",
+            "X-Alchemy-Token": f"{self.WEBHOOK_KEY}"
+        }
+        url = f"https://dashboard.alchemy.com/api/delete-webhook?webhook_id={webhook_id}"
+
+        return requests.delete(url, headers=headers).json()
 
     def get_address_list_from_webhook(self, webhook_id: str, limit=100, page_cursor=0) -> dict[str, Any]:
         """
