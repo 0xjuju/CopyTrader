@@ -1,6 +1,5 @@
 from collections import defaultdict, Counter
 from datetime import datetime, timedelta
-import json
 import time
 
 from algorithms.token_dataset_algos import percent_difference_from_dataset
@@ -10,7 +9,7 @@ from blockchain.class_models import BlockRange, CoingeckoPriceBreakout, Swap
 from blockchain.models import Chain, ABI, FactoryContract
 from coingecko.coingecko_api import GeckoClient
 from coingecko.models import Address
-from django.db.models import Q
+# from django.db.models import Q
 from wallets.models import Bot, Transaction, Wallet, Token
 
 
@@ -299,12 +298,11 @@ class Updater:
 
                     data = transaction["data"]
                     topics = [i for i in transaction["topics"]]
-                    decoded_log = blockchain.decode_log(data=data, topics=topics, abi=abi)
-                    print(decoded_log)
-                    print(transaction["transactionHash"].hex())
 
-                    if decoded_log[0] == "Swap":
-                        log_data = json.loads(decoded_log[1])
+                    log_data = blockchain.get_event(data, topics, "Swap")
+                    print(log_data)
+
+                    if log_data:
 
                         try:
                             # Uniswap V3 log data has different vs v2
