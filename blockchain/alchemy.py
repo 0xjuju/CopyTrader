@@ -358,7 +358,14 @@ class Blockchain:
 
         return event_filter_list
 
-    def get_event(self, data: list[hex], topics: list[hex], event: str) -> Union[dict, None]:
+    def get_event(self, data: list[hex], topics: list[hex], event: str) -> Union[dict[str, Any], None]:
+        """
+
+        :param data: Hex data of transaction
+        :param topics: Topics from logs of transaction
+        :param event: event type
+        :return: logs or None if transaction is not of the event type being checked
+        """
 
         if event not in self.EVENTS:
             raise ValueError(f"event not recognized. Options are {self.EVENTS}")
