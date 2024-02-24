@@ -13,24 +13,25 @@ from wallets.models import Gem, Wallet
 @csrf_exempt
 def wallet_hook(request):
 
-    wallets = get_wallets()
-    wallet_address_list = wallets.values_list("address", flat=True)
-    wallet_address_list = [i.lower() for i in wallet_address_list]
-
     body = json.loads(request.body)
     chain = Webhook().networks[body["event"]["network"]]
     blockchain = Blockchain(chain)
-    v2pool_abi = ABI.objects.get(abi_type="v2pools").text
-    v3pool_abi = ABI.objects.get(abi_type="v3pools").text
 
     events = body["event"]["activity"]
     for event in events:
         print(event)
-        # if event["toAddress"].lower() in wallet_address_list:
-        #     gem, _ = Gem.objects.get_or_create(name=event["asset"], contract_address=event["toAddress"])
-        #     wallet = Wallet.objects.get(address=event["toAddress"])
-        #     gem.wallet.add(wallet)
-        #     gem.save()
+        logs = event["log"]
+        data = logs["data"]
+        topics = logs["topics"]
+        tx_hash = logs["transactionHash"]
+        decoded_logs = blockchain.get_event(data, topics, "Any")
+
+        gem, _ = Gem.objects.get_or_create(
+            name=event["asset"], contract_address=event["toAddress"], event=decoded_logs.event, transaction_hash=tx_hash
+        )
+        wallet = Wallet.objects.get(address=event["toAddress"])
+        gem.wallet.add(wallet)
+        gem.save()
 
     return HttpResponse(200)
 
