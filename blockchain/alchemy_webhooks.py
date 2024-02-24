@@ -14,7 +14,10 @@ class Webhook:
         self.networks = {
             "ethereum": "ETH_MAINNET",
             "arbitrum-one": "ARB_MAINNET",
-            "polygon-pos": "MATIC_MAINNET"
+            "polygon-pos": "MATIC_MAINNET",
+            "ETH_MAINNET": "ethereum",
+            "ARB_MAINNET": "arbitrum-one",
+            "MATIC_MAINNET": "polygon-pos",
         }
 
         self.WEBHOOK_OPTIONS = [
