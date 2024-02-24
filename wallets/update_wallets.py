@@ -299,7 +299,7 @@ class Updater:
                     data = transaction["data"]
                     topics = [i for i in transaction["topics"]]
 
-                    log_data = blockchain.get_event(data, topics, "Swap")
+                    log_data = blockchain.get_event(data, topics, "Swap").logs
                     print(log_data)
 
                     if log_data:
