@@ -7,6 +7,7 @@ import types
 from typing import Any, Union
 
 from algorithms.basic_tools import flatten_list
+from blockchain.class_models import Log
 from blockchain.models import ABI
 import decouple
 from eth_utils import event_abi_to_log_topic, to_hex
@@ -358,7 +359,7 @@ class Blockchain:
 
         return event_filter_list
 
-    def get_event(self, data: list[hex], topics: list[hex], event: str) -> Union[dict[str, Any], None]:
+    def get_event(self, data: list[hex], topics: list[hex], event: str) -> Union[Log, None]:
         """
 
         :param data: Hex data of transaction
@@ -377,11 +378,13 @@ class Blockchain:
             v2pool_abi = ABI.objects.get(abi_type="v2pools").text
             decoded_log = self.decode_log(data, topics, v2pool_abi)
 
+        log = Log(event, json.loads(decoded_log[1]))
+
         if event == "Any":
-            return json.loads(decoded_log[1])
+            return log
         else:
             if decoded_log[0] == event:
-                return json.loads(decoded_log[1])
+                return log
             else:
                 return None
 
