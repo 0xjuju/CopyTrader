@@ -1,5 +1,6 @@
 import json
 
+from blockchain.alchemy import Blockchain
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
@@ -15,14 +16,15 @@ def wallet_hook(request):
     wallet_address_list = [i.lower() for i in wallet_address_list]
 
     body = json.loads(request.body)
-    print(body)
-    # events = body["event"]["activity"]
-    # for event in events:
-    #     if event["toAddress"].lower() in wallet_address_list:
-    #         gem, _ = Gem.objects.get_or_create(name=event["asset"], contract_address=event["toAddress"])
-    #         wallet = Wallet.objects.get(address=event["toAddress"])
-    #         gem.wallet.add(wallet)
-    #         gem.save()
+    chain = body["event"]["network"]
+    events = body["event"]["activity"]
+    for event in events:
+        pass
+        # if event["toAddress"].lower() in wallet_address_list:
+        #     gem, _ = Gem.objects.get_or_create(name=event["asset"], contract_address=event["toAddress"])
+        #     wallet = Wallet.objects.get(address=event["toAddress"])
+        #     gem.wallet.add(wallet)
+        #     gem.save()
 
     return HttpResponse(200)
 
