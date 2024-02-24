@@ -7,6 +7,7 @@ import types
 from typing import Any, Union
 
 from algorithms.basic_tools import flatten_list
+from blockchain.models import ABI
 import decouple
 from eth_utils import event_abi_to_log_topic, to_hex
 import web3
@@ -354,6 +355,17 @@ class Blockchain:
                 event_filter_list.append(entry)
 
         return event_filter_list
+
+    def get_swap_event(self, data: list[hex], topics: list[hex]) -> Union[dict, None]:
+        # v2pool_abi = ABI.objects.get(abi_type="v2pools").text
+        v3pool_abi = ABI.objects.get(abi_type="v3pools").text
+
+        decoded_log = self.decode_log(data, topics, v3pool_abi)
+
+        if decoded_log[0] == "Swap":
+            return json.loads(decoded_log[1])
+        else:
+            return None
 
     @staticmethod
     def paginate(start, stop, increment: int) -> list[tuple[int, int]]:
