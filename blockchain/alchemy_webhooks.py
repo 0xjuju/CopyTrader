@@ -63,7 +63,7 @@ class Webhook:
     def create_swap_events_for_wallet_webhook(self, chain: str, webhook_url: str, address_list: list[str]) -> dict:
         query = """{{
           block {{
-            logs(filter: {{addresses: ["0x6D76F7d16CA40dD13E52dF3E1615318f763c0241"], topics: {topics}}}) {{
+            logs(filter: {{addresses: ["0x6D76F7d16CA40dD13E52dF3E1615318f763c0241"], topics: [[], [], ["0xC05189824bF36f2ad9d0f64a222c1C156Df28DA1"] ]}}) {{
               transaction {{
                 hash
                 index
@@ -82,7 +82,7 @@ class Webhook:
             }}
           }}
         }}""".format(topics=json.dumps(
-            [[], ["0xC05189824bF36f2ad9d0f64a222c1C156Df28DA1"]]
+            [[], [], ["0xC05189824bF36f2ad9d0f64a222c1C156Df28DA1"]]
         ))
         print(query)
         payload = {
