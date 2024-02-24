@@ -31,6 +31,15 @@ class Pair:
     token2: str
 
 
+class Log:
+    event: str
+    logs: dict[str, Any]
+
+    def __init__(self, event: str, logs: dict[str, Any]):
+        self.event = event
+        self.logs = logs
+
+
 class Pool:
     factory_address: str
     factory_name: str
