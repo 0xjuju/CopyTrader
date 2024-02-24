@@ -1,12 +1,13 @@
 
 from blockchain.alchemy import Blockchain
-from blockchain.tests.build_test_data import build_factory_contracts
+from blockchain.tests.build_test_data import build_factory_contracts, build_generic_abi
 from django.test import TestCase
 from hexbytes import HexBytes
 
 
 class TestAlchemy(TestCase):
     def setUp(self) -> None:
+        build_generic_abi()
         self.eth_blockchain = Blockchain("ethereum")
         self.arbitrum_blockchain = Blockchain("arbitrum-one")
         self.polygon_blockchain = Blockchain("polygon-pos")
