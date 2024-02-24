@@ -23,7 +23,7 @@ class Blockchain:
         self.chain = chain
         self.chain_map = self.chain_to_rpc(chain)
 
-        self.EVENTS = ["Swap", "Transfer", "Mint", "Burn"]
+        self.EVENTS = ["Any", "Swap", "Transfer", "Mint", "Burn"]
 
         self.url = f"https://{self.chain_map}-mainnet.g.alchemy.com/v2/{self.API_KEY}"
         self.w3 = Web3(Web3.HTTPProvider(self.url))
@@ -377,10 +377,13 @@ class Blockchain:
             v2pool_abi = ABI.objects.get(abi_type="v2pools").text
             decoded_log = self.decode_log(data, topics, v2pool_abi)
 
-        if decoded_log[0] == event:
+        if event == "Any":
             return json.loads(decoded_log[1])
         else:
-            return None
+            if decoded_log[0] == event:
+                return json.loads(decoded_log[1])
+            else:
+                return None
 
     @staticmethod
     def paginate(start, stop, increment: int) -> list[tuple[int, int]]:
