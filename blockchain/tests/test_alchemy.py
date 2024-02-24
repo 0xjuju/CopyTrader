@@ -111,11 +111,11 @@ class TestAlchemy(TestCase):
             contract, argument_filters={"token0": "0x4104b135dbc9609fc1a9490e61369036497660c8"})
         self.assertEqual(pools[0]["token0"], "0x4104b135DBC9609Fc1A9490E61369036497660c8")
 
-    def test_get_swap_event(self):
+    def test_get_event(self):
         data = HexBytes('0x000000000000000000000000000000000000000000000000000000008f0d1800')
         topics = ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', '0x00000000000000000000000071660c4005ba85c37ccec55d0c4493e66fe775d3', '0x0000000000000000000000007853b3736edba9d7ce681f2a90264307694f97f2']
-        event = self.eth_blockchain.get_swap_event(data, topics)
-        print(event)
+        event = self.eth_blockchain.get_event(data, topics, "Transfer")
+        self.assertEqual(event["from"], "0x71660c4005BA85c37ccec55d0C4493E66Fe775d3")
 
     def test_query_filter(self):
         from_block = 18967710

@@ -23,6 +23,8 @@ class Blockchain:
         self.chain = chain
         self.chain_map = self.chain_to_rpc(chain)
 
+        self.EVENTS = ["Swap", "Transfer", "Mint", "Burn"]
+
         self.url = f"https://{self.chain_map}-mainnet.g.alchemy.com/v2/{self.API_KEY}"
         self.w3 = Web3(Web3.HTTPProvider(self.url))
 
@@ -356,13 +358,19 @@ class Blockchain:
 
         return event_filter_list
 
-    def get_swap_event(self, data: list[hex], topics: list[hex]) -> Union[dict, None]:
-        # v2pool_abi = ABI.objects.get(abi_type="v2pools").text
+    def get_event(self, data: list[hex], topics: list[hex], event: str) -> Union[dict, None]:
+
+        if event not in self.EVENTS:
+            raise ValueError(f"event not recognized. Options are {self.EVENTS}")
+
         v3pool_abi = ABI.objects.get(abi_type="v3pools").text
 
         decoded_log = self.decode_log(data, topics, v3pool_abi)
+        if decoded_log[0] == "decode error":
+            v2pool_abi = ABI.objects.get(abi_type="v2pools").text
+            decoded_log = self.decode_log(data, topics, v2pool_abi)
 
-        if decoded_log[0] == "Swap":
+        if decoded_log[0] == event:
             return json.loads(decoded_log[1])
         else:
             return None
