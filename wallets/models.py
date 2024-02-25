@@ -13,6 +13,8 @@ class Gem(models.Model):
     wallet = models.ManyToManyField("Wallet")
     contract_address = models.CharField(max_length=255, default="")
     date_added = models.DateTimeField(auto_now=True)
+    event = models.CharField(max_length=255, default="")
+    transaction_hash = models.CharField(max_length=255, default="")
 
 
 class WalletFilter(models.Model):
