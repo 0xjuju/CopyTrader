@@ -6,6 +6,7 @@ from wallets.models import Bot, WalletFilter, Wallet
 
 def filter_wallets() -> None:
     wallets = Wallet.objects.filter(human=False)
+    print(f"non-filtered wallets {wallets.count()}")
     chains = ["ethereum", "arbitrum-one", "polygon-pos"]
     for each in wallets:
         for chain in chains:
@@ -17,6 +18,7 @@ def filter_wallets() -> None:
                     each.delete()
                     break
                 else:
+                    print(f"Non-bot wallet {each.address}")
                     each.human = True
                     each.save()
 
