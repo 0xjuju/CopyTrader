@@ -95,7 +95,7 @@ class Webhook:
 
         return self._make_request("create-webhook", chain=chain, webhook_type="GRAPHQL", payload_opts=payload)
 
-    def create_wallet_activity_webhook(self, chain: str, webhook_type: str, address_list: list[str]) -> None:
+    def create_wallet_activity_webhook(self, chain: str, webhook_type: str, address_list: list[str]) -> dict[str, Any]:
         """
         Subscribe list of wallets for webhook
         :param chain: blockchain network
@@ -105,7 +105,8 @@ class Webhook:
         """
         payload = {"addresses": address_list}
 
-        self._make_request("create-webhook", chain=chain, webhook_type=webhook_type, payload_opts=payload)
+        r = self._make_request("create-webhook", chain=chain, webhook_type=webhook_type, payload_opts=payload)
+        return r
 
     def delete_webhook(self, webhook_id: str) -> dict:
         headers = {
