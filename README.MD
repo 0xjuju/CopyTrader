@@ -2,7 +2,7 @@
 
 ## Description
 This program searches through coingecko for tokens that recently appreciated in price by a substantial amount.
-Transactions occurring days before the price-surge are analyzed, and any Swap events and assoicated wallets are extracted.
+Transactions occurring days before the price-surge are analyzed, and any Swap events and associated wallets are extracted.
 Bots are filtered out, and wallets are saved to a database. Webhooks are initiated to listen for incoming tokens for
 wallets with the highest number of tokens bought pre-surge. Tokens are ranked based on:
 
@@ -15,7 +15,6 @@ wallets with the highest number of tokens bought pre-surge. Tokens are ranked ba
 ## Table of Contents
 
 - [Usage](#usage)
-- [Contributing](#contributing)
 - [License](#license)
 
 
@@ -110,7 +109,6 @@ TWILIO_NUMBER: str = ""
    - ethereum
    - arbitrum-one
    - polygon-pos
-   - binance-smart-chain
  4. Factory contracts from DEXs are used to parse through each pool in the exchange. We need to set the factory contract
  and abi manually. For now, we'll use Uniswap V3 on ethereum. Navigate to http://127.0.0.1:8000/admin/blockchain/factorycontract/
  to create FactoryContract model. Input the contract address '0x1F98431c8aD98523631AE4a59f267346ea31F984', and then head to
@@ -132,13 +130,16 @@ Name it 'top_movers'
    - `python manage.py update_wallets` enter user-input for the threshold of token-price-increases to search e.g. 80 to
    filter database for all token that increased by 80% in the last 24 hours or 7 days. All wallets that purchased the
    token before it surged will be saved to the database.
-   - `python manage.py create_webhooks_for_wallet` This command will run a function that ranks each wallet, and then pulls
-   the top n wallets, where n is the value set for the WalletFilter model. Head to http://127.0.0.1:8000/admin/wallets/walletfilter/
+   - `python manage.py filter_wallets_for_bots` will filter through all wallets marked as non-human and either mark them
+   as bots and remove them, or mark them as human.
+   - `python manage.py create_webhooks_for_wallet` This command will run a function that ranks all wallets, and then pulls
+   the top n of them, where n is the value set for the WalletFilter model. Head to http://127.0.0.1:8000/admin/wallets/walletfilter/
    to create one.
- 9. Run your local NGROK server, and then navigate to the [Alchemy Webhooks](https://www.alchemy.com/webhooks) page, 
-10. click dashboard, and then send an 'ADDRESS_ACTIVITY' webhook test to your NGROK server. This method simulates a token
-being bought by a top-wallet, and is handles by your webhook view located in `blockchain.views`. The transaction is
-parsed and the token is saved to the database.
+ 9. Run your local NGROK server using `ngrok http http://localhost:8000`, then add the https value to `NGROK_TEMP_HOST`
+    in your environment variables.
+ 10. Navigate to the [Alchemy Webhooks](https://www.alchemy.com/webhooks) page, click dashboard, navigate to the 'ADDRESS_ACTIVITY' webhook, and then 
+ send a test to your NGROK server. This method simulates a token being bought by a top-wallet, and is handled by your 
+webhook view located in `blockchain.views`. The transaction is parsed and the token data is saved to the database.
 
 ## To be Continued
 - Scoring tokens based on different metrics such as social media, narratives, and online sentiment is under development.
