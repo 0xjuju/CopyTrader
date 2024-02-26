@@ -132,9 +132,9 @@ Name it 'top_movers'
    token before it surged will be saved to the database.
    - `python manage.py filter_wallets_for_bots` will filter through all wallets marked as non-human and either mark them
    as bots and remove them, or mark them as human.
-   - `python manage.py create_webhooks_for_wallet` This command will run a function that ranks all wallets, and then pulls
-   the top n of them, where n is the value set for the WalletFilter model. Head to http://127.0.0.1:8000/admin/wallets/walletfilter/
-   to create one.
+   - `python manage.py create_webhooks_for_wallet` For each chain, This command will run a function that ranks all wallets,
+   and then pulls the top n of them, where n is the value set for the WalletFilter model. Head to 
+   http://127.0.0.1:8000/admin/wallets/walletfilter/ to create one. A webhook is made for the list of wallets.
  9. Run your local NGROK server using `ngrok http http://localhost:8000`, then add the https value to `NGROK_TEMP_HOST`
     in your environment variables.
  10. Navigate to the [Alchemy Webhooks](https://www.alchemy.com/webhooks) page, click dashboard, navigate to the 'ADDRESS_ACTIVITY' webhook, and then 
