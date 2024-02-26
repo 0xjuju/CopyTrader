@@ -2,11 +2,8 @@ import json
 
 from blockchain.alchemy_webhooks import Webhook
 from blockchain.alchemy import Blockchain
-from blockchain.models import ABI
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render
-from wallets.rank_wallets import get_wallets
 from wallets.models import Gem, Wallet
 
 
