@@ -1,5 +1,5 @@
 
-from blockchain.identify_bots import Wallet
+from blockchain import identify_bots
 from django.db.models import Count
 from wallets.models import Bot, WalletFilter, Wallet
 
@@ -10,7 +10,7 @@ def filter_wallets() -> None:
     chains = ["ethereum", "arbitrum-one", "polygon-pos"]
     for each in wallets:
         for chain in chains:
-            wallet = Wallet(each.address, chain)
+            wallet = identify_bots.Wallet(each.address, chain)
             is_bot = wallet.is_likely_bot()
             if is_bot is not None:
                 if is_bot:  # Move wallet to known bot accounts model
