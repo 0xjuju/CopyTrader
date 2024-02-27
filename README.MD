@@ -132,14 +132,17 @@ Name it 'top_movers'
    token before it surged will be saved to the database.
    - `python manage.py filter_wallets_for_bots` will filter through all wallets marked as non-human and either mark them
    as bots and remove them, or mark them as human.
-   - `python manage.py create_webhooks_for_wallet` For each chain, This command will run a function that ranks all wallets,
-   and then pulls the top n of them, where n is the value set for the WalletFilter model. Head to 
-   http://127.0.0.1:8000/admin/wallets/walletfilter/ to create one. A webhook is made for the list of wallets.
- 9. Run your local NGROK server using `ngrok http http://localhost:8000`, then add the https value to `NGROK_TEMP_HOST`
-    in your environment variables.
- 10. Navigate to the [Alchemy Webhooks](https://www.alchemy.com/webhooks) page, click dashboard, navigate to the 'ADDRESS_ACTIVITY' webhook, and then 
- send a test to your NGROK server. This method simulates a token being bought by a top-wallet, and is handled by your 
+   - `python manage.py create_webhooks_for_wallet` Create webhooks for list of wallets for each chain in blockchain.chains
+   model. Head to http://127.0.0.1:8000/admin/wallets/walletfilter/ to create filters for ranked wallets.
+9. Run your local NGROK server using `ngrok http http://localhost:8000`, then add the https value to `NGROK_TEMP_HOST`
+   in your environment variables.
+10. Navigate to the [Alchemy Webhooks](https://www.alchemy.com/webhooks) page, click dashboard, navigate to the 'ADDRESS_ACTIVITY' webhook, and then 
+send a test to your NGROK server. This method simulates a token being bought by a top-wallet, and is handled by your 
 webhook view located in `blockchain.views`. The transaction is parsed and the token data is saved to the database.
+
+11. Each iteration of `update_wallets` and `filter_wallets_for_bots` in conjunction with waller filter options will yield
+a different group of wallets. You will need to run `python manage.py replace_webhook_wallets` to replace the list of 
+webhook addresses on each chain.
 
 ## To be Continued
 - Scoring tokens based on different metrics such as social media, narratives, and online sentiment is under development.
