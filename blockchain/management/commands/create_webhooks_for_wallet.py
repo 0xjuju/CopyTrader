@@ -1,27 +1,26 @@
-
 from blockchain.alchemy_webhooks import Webhook
-from blockchain.models import AddressWebhook
+from blockchain.models import Chain, AddressWebhook
 from django.core.management.base import BaseCommand
 from wallets.rank_wallets import get_wallets
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        w = Webhook()
-        wallets = get_wallets()
-        addresses = wallets.values_list("address", flat=True)
-        webhook = AddressWebhook.objects.all()
+        chains = Chain.objects.all()
+        wallets = get_wallets().values_list("address", flat=True)
 
-        # Each instance represents a different chain
-        for each in webhook:
-            chain = each.chain
-            webhook_id = each.webhook_id
-            w.replace_webhook_address_list(address_list=addresses, webhook_id=webhook_id)
+        for chain in chains:
+            new_webhook = Webhook().create_wallet_activity_webhook(
+                chain=chain,
+                webhook_type="ADDRESS_ACTIVITY",
+                address_list=wallets
+            )
 
-
-
-
-
-
-
+            web_id = new_webhook["id"]
+            webhook_model = AddressWebhook.objects.create(
+                webhook_id=web_id,
+                chain=chain,
+                max_address=20
+            )
+            webhook_model.save()
 
