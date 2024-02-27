@@ -452,7 +452,6 @@ class Updater:
 
             contract.processed = True
             contract.save()
-            break
 
 
 
