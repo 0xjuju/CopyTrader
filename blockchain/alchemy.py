@@ -378,7 +378,7 @@ class Blockchain:
             v2pool_abi = ABI.objects.get(abi_type="v2pools").text
             decoded_log = self.decode_log(data, topics, v2pool_abi)
 
-        log = Log(event, json.loads(decoded_log[1]))
+        log = Log(decoded_log[0], json.loads(decoded_log[1]))
 
         if event == "Any":
             return log

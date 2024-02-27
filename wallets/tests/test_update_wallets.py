@@ -70,7 +70,8 @@ class TestUpdateWallets(TestCase):
         )
 
         for each in transactions:
-            print(each["transactionHash"].hex())
+            event = self.blockchain.get_event(each["data"], each["topics"], "Any")
+            print(event.event, event.logs)
 
         self.assertEqual(transactions[0]["address"], "0xd084944d3c05CD115C09d072B9F44bA3E0E45921")
 
