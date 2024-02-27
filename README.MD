@@ -125,12 +125,12 @@ percent-of-increase attribute for a token. Head to http://127.0.0.1:8000/admin/c
 Name it 'top_movers'
 7. Run `python manage.py test` to ensure proper setup.
 8. Now let's run each command individually. In the terminal, run the following:
-   - `python manage.py look_for_top_movers` which searches through each page of coingecko tokens, looking for tokens that
+   - `python manage.py look_for_top_movers` Search through each page of coingecko tokens, looking for tokens that
    increased by x percent. The first run through may take some time to complete.
-   - `python manage.py update_wallets` enter user-input for the threshold of token-price-increases to search e.g. 80 to
+   - `python manage.py update_wallets` Enter user-input for the threshold of token-price-increases to search e.g. 80 to
    filter database for all token that increased by 80% in the last 24 hours or 7 days. All wallets that purchased the
    token before it surged will be saved to the database.
-   - `python manage.py filter_wallets_for_bots` will filter through all wallets marked as non-human and either mark them
+   - `python manage.py filter_wallets_for_bots` Filter through all wallets marked as non-human and either mark them
    as bots and remove them, or mark them as human.
    - `python manage.py create_webhooks_for_wallet` Create webhooks for list of wallets for each chain in blockchain.chains
    model. Head to http://127.0.0.1:8000/admin/wallets/walletfilter/ to create filters for ranked wallets.
