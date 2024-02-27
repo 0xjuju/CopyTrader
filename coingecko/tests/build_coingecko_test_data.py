@@ -5,6 +5,7 @@ class BuildGeckoModel:
 
     def build_models(self):
         self.build_tokens()
+        self.build_coingecko_addresses_for_tokens()
 
     @staticmethod
     def build_tokens():
