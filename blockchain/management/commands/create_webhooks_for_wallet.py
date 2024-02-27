@@ -1,3 +1,5 @@
+import decouple
+
 from blockchain.alchemy_webhooks import Webhook
 from blockchain.models import Chain, AddressWebhook
 from django.core.management.base import BaseCommand
@@ -12,6 +14,7 @@ class Command(BaseCommand):
         for chain in chains:
             new_webhook = Webhook().create_wallet_activity_webhook(
                 chain=chain,
+                webhook_url=decouple.config("WEBHOOK_WALLET_ACTIVITY_ENDPOINT"),
                 webhook_type="ADDRESS_ACTIVITY",
                 address_list=wallets
             )
