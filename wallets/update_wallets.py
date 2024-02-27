@@ -299,10 +299,11 @@ class Updater:
                     data = transaction["data"]
                     topics = [i for i in transaction["topics"]]
 
-                    log_data = blockchain.get_event(data, topics, "Swap").logs
-                    print(log_data)
+                    log_data = blockchain.get_event(data, topics, "Swap")
 
                     if log_data:
+                        log_data = log_data.logs
+                        print(log_data)
 
                         try:
                             # Uniswap V3 log data has different vs v2
