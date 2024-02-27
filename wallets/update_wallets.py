@@ -267,7 +267,7 @@ class Updater:
                                            fromBlock=from_block, toBlock=to_block)
         return transactions
 
-    def map_buyers_and_sellers(self, blockchain: Blockchain, all_entries, blacklisted, abi: str) -> (
+    def map_buyers_and_sellers(self, blockchain: Blockchain, all_entries, blacklisted) -> (
             defaultdict[list[Swap]],
             defaultdict[list[Swap]],
             ):
@@ -275,7 +275,6 @@ class Updater:
         :param blockchain: chain
         :param all_entries: list of transaction from given timeframe
         :param blacklisted: Known automated addresses
-        :param abi: Factory contract abi
         :return: List of Swap events for buyers and sellers
         """
         buyers = defaultdict(list)
@@ -333,16 +332,10 @@ class Updater:
     def update(self, percent_threshold: float):
         chains = Chain.objects.values_list("name", flat=True)
 
-        v2pool_abi = ABI.objects.get(abi_type="v2pools").text
-        v3pool_abi = ABI.objects.get(abi_type="v3pools").text
-
         # Pair contract and token addresses from Dex
         pools = dict()
 
-        exclude_list = ["avalanche", "binance-smart-chain", "solana", "base", "optimistic-ethereum"]
-
         contracts = Address.objects.filter(chain__in=chains)\
-            .exclude(chain__in=exclude_list)\
             .filter(processed=False)\
             .filter(
             token__price_change_24hr__gte=percent_threshold
@@ -426,15 +419,11 @@ class Updater:
                                     print("Done getting txs...")
 
                                     print(f"Number of transactions: {len(transactions)}")
-                                    if "v3" in dex:
-                                        abi = v3pool_abi
-                                    else:
-                                        abi = v2pool_abi
 
                                     # Separate Buyers from Sellers for each transaction and create Dictionary
                                     # representations Wallet address (EOA) as KEY
                                     buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
-                                                                                  blacklisted=blacklisted, abi=abi)
+                                                                                  blacklisted=blacklisted)
 
                                     # transactions with unwanted accounts filtered out
                                     filtered_transactions = self.filter_transactions(buyers, sellers)
