@@ -6,7 +6,7 @@ from wallets.rank_wallets import get_wallets
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        chains = Chain.objects.objects.values_list("name", flat=True)
+        chains = Chain.objects.values_list("name", flat=True)
         wallets = get_wallets().values_list("address", flat=True)
 
         for chain in chains:
