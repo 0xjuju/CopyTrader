@@ -7,7 +7,7 @@ from wallets.rank_wallets import get_wallets
 class Command(BaseCommand):
     def handle(self, *args, **options):
         chains = Chain.objects.values_list("name", flat=True)
-        wallets = get_wallets().values_list("address", flat=True)
+        wallets = [i.address for i in get_wallets()]
 
         for chain in chains:
             new_webhook = Webhook().create_wallet_activity_webhook(
