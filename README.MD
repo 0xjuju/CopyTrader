@@ -101,6 +101,11 @@ TWILIO_AUTH_TOKEN: str = ""
 TWILIO_NUMBER: str = ""
 ```
 
+The webhook endpoint where wallet activity will be sent and handled
+```commandline
+WEBHOOK_WALLET_ACTIVITY_ENDPOINT: str
+```
+
 ### Run project be following the steps below:
 
 1. In the terminal, run `python manage.py createsuperuser` to set up username and password for admin privileges.

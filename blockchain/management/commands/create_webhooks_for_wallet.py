@@ -20,7 +20,7 @@ class Command(BaseCommand):
             )
             print(new_webhook)
 
-            web_id = new_webhook["id"]
+            web_id = new_webhook["data"]["id"]
             webhook_model = AddressWebhook.objects.create(
                 webhook_id=web_id,
                 chain=chain,
