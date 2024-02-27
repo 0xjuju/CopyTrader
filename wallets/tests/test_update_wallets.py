@@ -2,6 +2,7 @@ from datetime import datetime
 
 from blockchain.alchemy import Blockchain
 from blockchain.blockscsan import Blockscan
+from coingecko.tests.build_coingecko_test_data import BuildGeckoModel
 from django.test import TestCase
 from wallets.models import Token
 from wallets.tests.build_wallet_models import Build
@@ -13,6 +14,8 @@ class TestUpdateWallets(TestCase):
         Build.tokens()
         Build.bots()
         Build.abi()
+        BuildGeckoModel.build_tokens()
+        self.blockchain = Blockchain("ethereum")
 
     def test_create_block_range(self):
         # duration = 7
@@ -59,19 +62,29 @@ class TestUpdateWallets(TestCase):
         self.assertEqual(type(timestamps[0]), int)
 
     def test_get_transactions(self):
-        from_block = 15144985
-        to_block = 15170801
-        token = Token.objects.get(name="nexo")
-        contract = token.address
-        blockchain = Blockchain(chain="ethereum")
-        txs = Updater().get_transactions(
-            from_block=from_block,
-            to_block=to_block,
-            contract=contract,
-            blockchain=blockchain,
+        transactions = Updater.get_transactions(
+            from_block=19299160,
+            to_block=19299760,
+            contract="0xd084944d3c05cd115c09d072b9f44ba3e0e45921",
+            blockchain=self.blockchain
         )
-        hashes = [i["transactionHash"].hex() for i in txs]
-        self.assertIn("0xec8103a1af202c616c57a396f87d5fd94ede03c643bdab42b6b47378c117f4b3", hashes)
+
+        for each in transactions:
+            print(each["transactionHash"].hex())
+
+        self.assertEqual(transactions[0]["address"], "0xd084944d3c05CD115C09d072B9F44bA3E0E45921")
+
+    def test_map_buyers_sellers(self):
+        transactions = Updater.get_transactions(
+            from_block=19299160,
+            to_block=19299760,
+            contract="0xd084944d3c05cd115c09d072b9f44ba3e0e45921",
+            blockchain=self.blockchain
+        )
+
+        buyers, sellers = Updater().map_buyers_and_sellers(self.blockchain, transactions, [])
+
+        print(buyers)
 
     def test_updater(self):
         token = Token.objects.get(name="FRONT")

@@ -301,8 +301,10 @@ class Updater:
                     log_data = blockchain.get_event(data, topics, "Swap")
 
                     if log_data:
+                        print(log_data.event, transaction['transactionHash'].hex(), log_data.logs)
+                        print("______________________________________________________________")
+
                         log_data = log_data.logs
-                        print(log_data)
 
                         try:
                             # Uniswap V3 log data has different vs v2
@@ -442,6 +444,7 @@ class Updater:
 
             contract.processed = True
             contract.save()
+            break
 
 
 

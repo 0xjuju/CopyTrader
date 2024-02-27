@@ -16,7 +16,7 @@ class Build:
         a1.save()
         a2.save()
 
-    staticmethod
+    @staticmethod
     def bots():
         bot_list = ("0x4Cb18386e5d1F34dC6EEA834bf3534A970a3f8e7", "0x0000008CF69d25162321FEd9f6789f2A5caDE6bC", )
 
