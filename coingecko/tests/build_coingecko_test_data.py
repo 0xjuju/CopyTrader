@@ -15,7 +15,7 @@ class BuildGeckoModel:
                 symbol="fold",
                 token_id="manifold-finance",
                 price_change_24hr=50.37627,
-                price_chanage_7d=68.84701599664648,
+                price_change_7d=68.84701599664648,
                 rank=721
                        ),
 
