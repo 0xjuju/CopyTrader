@@ -37,13 +37,12 @@ class Updater:
 
     @staticmethod
     def create_database_entry(filtered_transactions: list[Swap], token: Token, chain: str,
-                              percentage: str, timestamp: int, index: int) -> None:
+                              percentage: str, index: int) -> None:
         """
         :param filtered_transactions: transaction data with possible bots / unwanted accounts filtered out
         :param token: Token model
         :param chain: chain
         :param percentage: percentage increase from price breakout
-        :param timestamp: Timestamp before breakout
         :param index: Index for batch
         """
 
@@ -68,7 +67,7 @@ class Updater:
 
             transaction_hash = transaction["transactionHash"].hex()
             if not all_transactions.filter(transaction_hash=transaction_hash).exists():
-
+                timestamp = transaction_data.timestamp
                 try:
                     transaction = Transaction.objects.create(
                         transaction_hash=transaction_hash,
@@ -84,7 +83,7 @@ class Updater:
                     raise OSError(e, timestamp)
 
                 transaction.save()
-        print(f"Done batch {index + 1}: {datetime.fromtimestamp(timestamp)}")
+        print(f"Done batch {index + 1}")
 
     @staticmethod
     def create_block_range(duration: int, timestamp: int, explorer: Blockscan) -> BlockRange:
@@ -436,8 +435,8 @@ class Updater:
 
                                     # Update Database with new wallets and transactions
                                     self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
-                                                               chain=contract.chain, timestamp=timestamp,
-                                                               percentage=str(percentage), index=index)
+                                                               chain=contract.chain, percentage=str(percentage),
+                                                               index=index)
                             else:
                                 print(f"-------------Pool not found for Token {contract.token.name} - {token_address}")
 
