@@ -303,7 +303,7 @@ class Updater:
 
                         log_data = log_data.logs
                         block = transaction["blockNumber"]
-                        timestamp = blockchain.get_block()["timestamp"]
+                        timestamp = blockchain.get_block(block)["timestamp"]
                         try:
                             # Uniswap V3 log data has different vs v2
                             amount0 = log_data["amount0"]
@@ -442,7 +442,7 @@ class Updater:
 
             contract.processed = True
             contract.save()
-            break
+
 
 
 

@@ -98,7 +98,7 @@ class TestUpdateWallets(TestCase):
 
     def test_updater(self):
         token = Token.objects.get(name="FRONT")
-        Updater().update(percent_threshold=1.40)
+        Updater().update(percent_threshold=1.4)
         wallets = Wallet.objects.all()
 
         print(f"Total Wallets: {wallets.count()}")
