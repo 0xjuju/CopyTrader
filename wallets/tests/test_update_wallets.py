@@ -65,27 +65,26 @@ class TestUpdateWallets(TestCase):
         transactions = Updater.get_transactions(
             from_block=19299160,
             to_block=19299760,
-            contract="0xd084944d3c05cd115c09d072b9f44ba3e0e45921",
+            contract="0xa914a9b9e03b6af84f9c6bd2e0e8d27d405695db",
             blockchain=self.blockchain
         )
-
-        for each in transactions:
-            event = self.blockchain.get_event(each["data"], each["topics"], "Any")
-            print(event.event, event.logs)
-
-        self.assertEqual(transactions[0]["address"], "0xd084944d3c05CD115C09d072B9F44bA3E0E45921")
+        self.assertEqual(transactions[0]["transactionHash"].hex(),
+                         "0x5207e97e0c13459e11d8a55ee037a52bb85123724c42caaf4f501e6eb8f3d93f")
 
     def test_map_buyers_sellers(self):
         transactions = Updater.get_transactions(
-            from_block=19299160,
+            from_block=19296160,
             to_block=19299760,
-            contract="0xd084944d3c05cd115c09d072b9f44ba3e0e45921",
+            contract="0xa914a9b9e03b6af84f9c6bd2e0e8d27d405695db",
             blockchain=self.blockchain
         )
 
+        print(len(transactions))
+
         buyers, sellers = Updater().map_buyers_and_sellers(self.blockchain, transactions, [])
 
-        print(buyers)
+        for address, each in buyers.items():
+            print(address, each[0].transaction["transactionHash"].hex(), each[0].side, each[0].amount)
 
     def test_updater(self):
         token = Token.objects.get(name="FRONT")

@@ -301,8 +301,6 @@ class Updater:
                     log_data = blockchain.get_event(data, topics, "Swap")
 
                     if log_data:
-                        print(log_data.event, transaction['transactionHash'].hex(), log_data.logs)
-                        print("______________________________________________________________")
 
                         log_data = log_data.logs
 
@@ -321,10 +319,10 @@ class Updater:
                         except KeyError:
                             # Try for V3 first. If Key Error, try V2 syntax
                             if from_address == log_data["to"] and log_data["amount0Out"] > 0:
-                                buyers[from_address].append(Swap(transaction, "buy", log_data["amount0Out"]))
+                                sellers[from_address].append(Swap(transaction, "sell", log_data["amount0Out"]))
 
                             elif from_address == log_data["to"] and log_data["amount1Out"] > 0:
-                                sellers[from_address].append(Swap(transaction, "sell", log_data["amount0In"]))
+                                buyers[from_address].append(Swap(transaction, "buy", log_data["amount1Out"]))
 
                             # We want to classify as either BUYER or SELLER always using these criteria
                             else:
