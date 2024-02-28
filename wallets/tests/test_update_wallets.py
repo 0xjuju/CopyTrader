@@ -68,12 +68,13 @@ class TestUpdateWallets(TestCase):
             contract="0xa914a9b9e03b6af84f9c6bd2e0e8d27d405695db",
             blockchain=self.blockchain
         )
+
         self.assertEqual(transactions[0]["transactionHash"].hex(),
                          "0x5207e97e0c13459e11d8a55ee037a52bb85123724c42caaf4f501e6eb8f3d93f")
 
     def test_map_buyers_sellers(self):
         transactions = Updater.get_transactions(
-            from_block=19236160,
+            from_block=19256160,
             to_block=19299760,
             contract="0xa914a9b9e03b6af84f9c6bd2e0e8d27d405695db",
             blockchain=self.blockchain
@@ -84,6 +85,9 @@ class TestUpdateWallets(TestCase):
         buyers, sellers = Updater().map_buyers_and_sellers(self.blockchain, transactions, [])
 
         for address, each in buyers.items():
+            block = each[0].transaction["blockNumber"]
+            timestamp = self.blockchain.get_block(block)["timestamp"]
+            print(datetime.fromtimestamp(timestamp))
             print(address, each[0].transaction["transactionHash"].hex(), each[0].side, each[0].amount)
 
     def test_updater(self):
