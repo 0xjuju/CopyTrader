@@ -388,6 +388,9 @@ class Blockchain:
             else:
                 return None
 
+    def get_transaction_data(self, transaction_hash: HexBytes):
+        return self.w3.eth.get_transaction(transaction_hash)
+
     @staticmethod
     def paginate(start, stop, increment: int) -> list[tuple[int, int]]:
         """

@@ -115,7 +115,12 @@ class TestAlchemy(TestCase):
         data = HexBytes('0x000000000000000000000000000000000000000000000000000000008f0d1800')
         topics = ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', '0x00000000000000000000000071660c4005ba85c37ccec55d0c4493e66fe775d3', '0x0000000000000000000000007853b3736edba9d7ce681f2a90264307694f97f2']
         event = self.eth_blockchain.get_event(data, topics, "Transfer")
-        self.assertEqual(event["from"], "0x71660c4005BA85c37ccec55d0C4493E66Fe775d3")
+        self.assertEqual(event.logs["from"], "0x71660c4005BA85c37ccec55d0C4493E66Fe775d3")
+
+    def test_get_transaction(self):
+        tx_hash = "0x0cb1b9ec06a4637e67bd9f5126d2780eb9b46ac46573ccd15b78c155132610c7"
+        tx = self.eth_blockchain.get_transaction_data(tx_hash)
+        self.assertEqual(tx["blockNumber"], 19258393)
 
     def test_query_filter(self):
         from_block = 18967710
