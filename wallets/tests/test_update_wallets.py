@@ -73,7 +73,7 @@ class TestUpdateWallets(TestCase):
 
     def test_map_buyers_sellers(self):
         transactions = Updater.get_transactions(
-            from_block=19296160,
+            from_block=19236160,
             to_block=19299760,
             contract="0xa914a9b9e03b6af84f9c6bd2e0e8d27d405695db",
             blockchain=self.blockchain

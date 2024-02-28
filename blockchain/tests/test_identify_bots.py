@@ -57,6 +57,8 @@ class TestIdentifyBots(TestCase):
             wallet = Wallet(each, "ethereum")
             print(f"{each} Is bot? {wallet.is_likely_bot()}")
 
+        wallet = Wallet("0xA7F3F906ee9FABb2895338eb937A553eBE071DD0", "ethereum")
+        print(wallet.is_likely_bot())
 
 
 
