@@ -28,8 +28,8 @@ class Updater:
         """
 
         to_address = checked_topics[1]
-
-        if blockchain.w3.eth.get_code(checked_topics[2]) == b'' and to_address not in blacklisted:
+        # blockchain.w3.eth.get_code(checked_topics[2]) == b'' and
+        if to_address not in blacklisted:
 
             return True
         else:
