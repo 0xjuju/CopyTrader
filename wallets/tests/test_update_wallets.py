@@ -74,18 +74,27 @@ class TestUpdateWallets(TestCase):
 
     def test_map_buyers_sellers(self):
         transactions = Updater.get_transactions(
-            from_block=19256160,
+            from_block=19285160,
             to_block=19299760,
             contract="0xa914a9b9e03b6af84f9c6bd2e0e8d27d405695db",
             blockchain=self.blockchain
         )
 
-        print(len(transactions))
-
         buyers, sellers = Updater().map_buyers_and_sellers(self.blockchain, transactions, [])
+        buy_hashes = ["0x75230f318cecc89bf9c9f6643b9e43f3a8be72d96571f23011e2627718c29b98",
+                      "0x297db8820ba1489b122a5443c9d9732c6ec25dc83952fa7c4484ef740de9eae6",
+                      "0xb25d0259cc9052b3b567ed4ae7f1ff0c3d9a98198330207c0c7c334a139b4008",
+                      "0x47fe44e16e86beefbddca8377bf28cddc9782a5608c5dfec6c46a8617d8df489"]
+
+        sell_hashes = ["0x5207e97e0c13459e11d8a55ee037a52bb85123724c42caaf4f501e6eb8f3d93f"]
 
         for address, each in buyers.items():
-            print(address, each[0].transaction["transactionHash"].hex(), each[0].side, each[0].amount)
+            self.assertEqual(each[0].side, "buy")
+            self.assertIn(each[0].transaction["transactionHash"].hex(), buy_hashes)
+
+        for address, each in sellers.items():
+            self.assertEqual(each[0].side, "sell")
+            self.assertIn(each[0].transaction["transactionHash"].hex(), sell_hashes)
 
     def test_updater(self):
         token = Token.objects.get(name="FRONT")
