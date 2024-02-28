@@ -303,7 +303,8 @@ class Updater:
                     if log_data:
 
                         log_data = log_data.logs
-
+                        block = transaction["blockNumber"]
+                        timestamp = blockchain.get_block()["timestamp"]
                         try:
                             # Uniswap V3 log data has different vs v2
                             amount0 = log_data["amount0"]
@@ -311,18 +312,18 @@ class Updater:
                             # amount0 as negative number represents main asset as sold
 
                             if amount0 > 0:
-                                sellers[from_address].append(Swap(transaction, "sell", amount1))
+                                sellers[from_address].append(Swap(transaction, timestamp, "sell", amount1))
 
                             elif amount0 < 0:
-                                buyers[from_address].append(Swap(transaction, "buy", amount0))
+                                buyers[from_address].append(Swap(transaction, timestamp, "buy", amount0))
 
                         except KeyError:
                             # Try for V3 first. If Key Error, try V2 syntax
                             if from_address == log_data["to"] and log_data["amount0Out"] > 0:
-                                sellers[from_address].append(Swap(transaction, "sell", log_data["amount0Out"]))
+                                sellers[from_address].append(Swap(transaction, timestamp, "sell", log_data["amount0Out"]))
 
                             elif from_address == log_data["to"] and log_data["amount1Out"] > 0:
-                                buyers[from_address].append(Swap(transaction, "buy", log_data["amount1Out"]))
+                                buyers[from_address].append(Swap(transaction, timestamp, "buy", log_data["amount1Out"]))
 
                             # We want to classify as either BUYER or SELLER always using these criteria
                             else:

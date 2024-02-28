@@ -85,9 +85,6 @@ class TestUpdateWallets(TestCase):
         buyers, sellers = Updater().map_buyers_and_sellers(self.blockchain, transactions, [])
 
         for address, each in buyers.items():
-            block = each[0].transaction["blockNumber"]
-            timestamp = self.blockchain.get_block(block)["timestamp"]
-            print(datetime.fromtimestamp(timestamp))
             print(address, each[0].transaction["transactionHash"].hex(), each[0].side, each[0].amount)
 
     def test_updater(self):
