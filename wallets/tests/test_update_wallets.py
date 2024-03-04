@@ -97,15 +97,33 @@ class TestUpdateWallets(TestCase):
             self.assertIn(each[0].transaction["transactionHash"].hex(), sell_hashes)
 
     def test_updater(self):
-        token = Token.objects.get(name="FRONT")
-        Updater().update(percent_threshold=1.4)
-        wallets = Wallet.objects.all()
+        percentage = 40
+        chains = ["ethereum"]
+        print(f"Looking for Coingecko Tokens on Ethereum, that has increased by at least {percentage}%")
 
-        print(f"Total Wallets: {wallets.count()}")
+        pools = dict()
 
-        for wallet in wallets:
-            print(wallet.address, f"Transactions: {wallet.transaction_set.count()} >>>>"
-                                  f" {wallet.transaction_set.values_list('transaction_hash', flat=True)}")
+        # List of token contracts to loop through
+
+        contracts = [
+
+        ]
+
+        print(f"Here is the {len(contracts)} Coingecko token contacts we are looping through: {contracts}")
+
+        for contract in contracts:
+            print(f"Name of Token we are analyzing is {contract.name}")
+
+            print("Converting token contract to Checksum Address...")
+            token_contract = self.blockchain.checksum_address(contract.address)
+            print(f"Token change from {contract.address} to {token_contract}")
+
+
+            print()
+
+
+
+
 
 
 
