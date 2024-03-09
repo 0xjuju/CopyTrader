@@ -87,7 +87,6 @@ class Updater:
                     raise OSError(e, timestamp)
 
                 transaction.save()
-        print(f"Done batch {index + 1}")
 
     @staticmethod
     def create_block_range(duration: int, timestamp: int, explorer: Blockscan) -> BlockRange:
@@ -192,8 +191,8 @@ class Updater:
 
         # Number of tx for each account
         tx_count = Counter(i.sender for i in filtered_transactions)
-        # Filter tx for accounts 1 tx to filter against bots, since humans wouldn't typical have 2+ tx in a block
-        filtered_transactions = [i for i in filtered_transactions if tx_count[i.sender] == 1]
+        # Filter accounts to ones with less than 4 transactions for this range of block
+        filtered_transactions = [i for i in filtered_transactions if tx_count[i.sender] <= 3]
         return filtered_transactions
 
     @staticmethod
@@ -409,28 +408,32 @@ class Updater:
                                 contract=pool_contract, blockchain=blockchain
                             )
 
-                            # Separate Buyers from Sellers for each transaction and create Dictionary
-                            # representations Wallet address (EOA) as KEY
-                            buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
-                                                                          blacklisted=blacklisted)
+                            if transactions:
+                                # Separate Buyers from Sellers for each transaction and create Dictionary
+                                # representations Wallet address (EOA) as KEY
+                                buyers, sellers = self.map_buyers_and_sellers(
+                                    blockchain=blockchain, all_entries=transactions, blacklisted=blacklisted
+                                )
 
-                            # transactions with unwanted accounts filtered out
-                            filtered_transactions = self.filter_transactions(buyers, sellers)
+                                # transactions with unwanted accounts filtered out
+                                filtered_transactions = self.filter_transactions(buyers, sellers)
 
-                            token, _ = Token.objects.get_or_create(
-                                name=contract.token.name,
-                                address=contract.contract
-                            )
+                                token, _ = Token.objects.get_or_create(
+                                    name=contract.token.name,
+                                    address=contract.contract
+                                )
 
-                            # Update Database with new wallets and transactions
-                            self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
-                                                       chain=contract.chain, percentage=str(percentage),
-                                                       index=index)
+                                # Update Database with new wallets and transactions
+                                self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
+                                                           chain=contract.chain, percentage=str(percentage),
+                                                           index=index)
                     else:
                         print(f"-------------Pool not found for Token {contract.token.name} - {token_address}")
 
             contract.processed = True
             contract.save()
+            count = Transaction.objects.filter(token_in=contract.token.name).count()
+            print(f"Done. {count} total transactions saved for {contract.token.name} on {contract.chain}")
 
 
 

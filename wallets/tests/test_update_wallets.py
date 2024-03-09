@@ -6,7 +6,7 @@ from blockchain.blockscsan import Blockscan
 from blockchain.tests.build_test_data import build_factory_contracts
 from coingecko.tests.build_coingecko_test_data import BuildGeckoModel
 from django.test import TestCase
-from wallets.models import Token
+from wallets.models import Token, Transaction
 from wallets.tests.build_wallet_models import Build
 from wallets.update_wallets import Updater, Wallet
 
@@ -175,7 +175,43 @@ class TestUpdateWallets(TestCase):
                         contract=pool_contract, blockchain=self.blockchain
                     )
 
-                    print(f"Found {len(transactions)} transactions")
+                    if transactions:
+                        print(f"Found {len(transactions)} transactions in this block range")
+
+                        print(f"Separating transactions from buyers and sellers for {contract.name} token")
+                        print("Addresses that are blacklisted or have code associated with it are filtered out.")
+
+                        buyers, sellers = Updater().map_buyers_and_sellers(
+                            blockchain=self.blockchain, all_entries=transactions, blacklisted=[]
+                        )
+
+                        print(f" > Found {len(buyers)} different Buyers and {len(sellers)} different Sellers")
+
+                        print("Continue to filter transactions based on the following conditions")
+                        print("\t > Buyers aren't also sellers in the same block range")
+                        print("\t > Account doesn't have less than 4 transactions for the block range")
+
+                        filtered_transactions = Updater.filter_transactions(buyers, sellers)
+
+                        print(f"Number of buyers after filters: {len(filtered_transactions)}")
+
+                        token, _ = Token.objects.get_or_create(
+                            name=contract.name,
+                            address=contract.address
+                        )
+
+                        # Update Database with new wallets and transactions
+                        Updater.create_database_entry(filtered_transactions=filtered_transactions, token=token,
+                                                      chain=contract.chain, percentage=str(percentage), index=index)
+
+                        print(f"{len(filtered_transactions)} wallets that bought {contract.name} created!!!!!!!")
+
+                print(" > ---------------------------------------------------------------------------------------")
+                print(" > ---------------------------------------------------------------------------------------")
+                print(" > ---------------------------------------------------------------------------------------")
+
+            transactions = Transaction.objects.filter(token_in=contract.name)
+            print(f"Done. {transactions.count()} total transactions saved for {contract.name} on {contract.chain}")
 
 
 
