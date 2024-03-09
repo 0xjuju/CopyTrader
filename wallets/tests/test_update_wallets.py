@@ -166,6 +166,17 @@ class TestUpdateWallets(TestCase):
                 print(f"{abs(from_block - to_block)} total blocks")
                 print(" > -----")
 
+                print(" > Get batch of transactions for each day there was a significant appreciation in price")
+                for pool_contract in pool_contracts:
+
+                    print(f"Recursively splitting blocks in chunks of 10k for {pool_contract} This could take a while")
+                    transactions = Updater.get_transactions(
+                        from_block=from_block, to_block=to_block,
+                        contract=pool_contract, blockchain=self.blockchain
+                    )
+
+                    print(f"Found {len(transactions)} transactions")
+
 
 
 

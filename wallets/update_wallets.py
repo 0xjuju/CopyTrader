@@ -277,10 +277,7 @@ class Updater:
 
         # Block range for query
         max_chunk = None
-        if blockchain.chain == "binance-smart-chain":
-            max_chunk = 500
 
-        # Infura HTTPS for Polygon does not support eth.get_newFilter so get_logs is used instead
         if blockchain.chain == "polygon-pos":
             max_chunk = 3500
 
