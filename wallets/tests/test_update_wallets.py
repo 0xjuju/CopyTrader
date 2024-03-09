@@ -132,19 +132,9 @@ class TestUpdateWallets(TestCase):
             print(f" > Now getting all pools that contain {contract.name}")
             pools.update(Updater.get_dex_pairs(self.blockchain, token_contract))
 
-            dex_list = pools[contract.chain]
-
-            for dex, data in dex_list.items():
-                pool_contracts = list()
-                # factory_abi = data["abi"]
-                for pool_info in data["pools"]:
-                    print(f"Pool Address: {pool_info['pool']}")
-
-                    pool_contracts.append(
-                        pool_info["pool"] if pool_info.get("pool") else pool_info["pair"]
-                    )
-
-                print(len(pool_contracts))
+            print(" > Get contract address for each pool...")
+            pool_contracts = Updater.get_pool_contracts(pools, contract)
+            print(f"{len(pool_contracts)} contracts: {pool_contracts}")
 
             print(f" > Getting timestamps and prices from Coingecko for the given contract...\n")
             timestamps, prices = Updater.get_prices_data(contract.address, contract.chain)

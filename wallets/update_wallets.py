@@ -233,6 +233,20 @@ class Updater:
         return pools
 
     @staticmethod
+    def get_pool_contracts(pools: dict[str, dict], token: Address) -> list[str]:
+        dex_list = pools[token.chain]
+        pool_contracts = list()
+        for dex, data in dex_list.items():
+            # factory_abi = data["abi"]
+            for pool_info in data["pools"]:
+                pool = pool_info["pool"] if pool_info.get("pool") else pool_info["pair"]
+                pool_contracts.append(
+                    pool
+                )
+
+        return pool_contracts
+
+    @staticmethod
     def get_prices_data(contract_address: str, chain: str) -> tuple[list, list]:
         """
         :param contract_address: contract address of token
@@ -375,6 +389,9 @@ class Updater:
                 pools.update(self.get_dex_pairs(blockchain, token_address))
                 # Exclude known bot wallets from processing
 
+                # Get contract address for each pool
+                pool_contracts = self.get_pool_contracts(pools, contract)
+
                 blacklisted = Bot.objects.values_list("address", flat=True)
 
                 for index, coingecko_breakout in enumerate(price_breakouts):
@@ -387,49 +404,33 @@ class Updater:
                     from_block = block_range.from_block
                     to_block = block_range.to_block
 
-                    try:
-                        # Check dex and see if there's a match for the token pool, and extract the pool address
-                        dex_list = pools[contract.chain]
-                    except KeyError as e:
-                        print(contract.token.name, print(contract.chain))
-                        raise KeyError(e)
+                    if pool_contracts:
+                        for pool_contract in pool_contracts:
 
-                    for dex, data in dex_list.items():
-                        pool_contracts = list()
-                        # factory_abi = data["abi"]
-                        for pool_info in data["pools"]:
-
-                            pool_contracts.append(
-                                pool_info["pool"] if pool_info.get("pool") else pool_info["pair"]
+                            transactions = self.get_transactions(
+                                from_block=from_block, to_block=to_block,
+                                contract=pool_contract, blockchain=blockchain
                             )
 
-                        if pool_contracts:
-                            for pool_contract in pool_contracts:
+                            # Separate Buyers from Sellers for each transaction and create Dictionary
+                            # representations Wallet address (EOA) as KEY
+                            buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
+                                                                          blacklisted=blacklisted)
 
-                                transactions = self.get_transactions(
-                                    from_block=from_block, to_block=to_block,
-                                    contract=pool_contract, blockchain=blockchain
-                                )
+                            # transactions with unwanted accounts filtered out
+                            filtered_transactions = self.filter_transactions(buyers, sellers)
 
-                                # Separate Buyers from Sellers for each transaction and create Dictionary
-                                # representations Wallet address (EOA) as KEY
-                                buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
-                                                                              blacklisted=blacklisted)
+                            token, _ = Token.objects.get_or_create(
+                                name=contract.token.name,
+                                address=contract.contract
+                            )
 
-                                # transactions with unwanted accounts filtered out
-                                filtered_transactions = self.filter_transactions(buyers, sellers)
-
-                                token, _ = Token.objects.get_or_create(
-                                    name=contract.token.name,
-                                    address=contract.contract
-                                )
-
-                                # Update Database with new wallets and transactions
-                                self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
-                                                           chain=contract.chain, percentage=str(percentage),
-                                                           index=index)
-                        else:
-                            print(f"-------------Pool not found for Token {contract.token.name} - {token_address}")
+                            # Update Database with new wallets and transactions
+                            self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
+                                                       chain=contract.chain, percentage=str(percentage),
+                                                       index=index)
+                    else:
+                        print(f"-------------Pool not found for Token {contract.token.name} - {token_address}")
 
             contract.processed = True
             contract.save()
