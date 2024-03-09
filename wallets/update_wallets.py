@@ -155,7 +155,7 @@ class Updater:
 
             # only append data if a start date of price increase is found
             if start_day:
-                print(d)
+                print(d, datetime.fromtimestamp(timestamps[index]))
 
                 # largest move percentage within the three timeframes. Used to avoid duplicate data
                 largest_price_move = max(d)
@@ -243,7 +243,7 @@ class Updater:
         # Get last 100 days of prices for token
         price_data = GeckoClient().get_market_chart_by_contract(contract_address=contract_address, chain=chain)
         price_data = price_data["prices"]
-        timestamps = [i[0] for i in price_data]
+        timestamps = [i[0] / 1000 for i in price_data]
         prices = [i[1] for i in price_data]
 
         return timestamps, prices
@@ -368,6 +368,7 @@ class Updater:
                                                              percent_threshold=percent_threshold)
 
             if price_breakouts:
+
                 # Pair contract and token addresses from Dex
                 pools = dict()
 
@@ -381,65 +382,54 @@ class Updater:
                     timestamp = coingecko_breakout.timestamp
                     percentage = coingecko_breakout.largest_price_move
 
-                    # convert timestamp in milliseconds to seconds
-                    timestamp = timestamp / 1000
-
                     # Convert datetime to range of blocks to look through
                     block_range = self.create_block_range(duration=duration, timestamp=timestamp, explorer=explorer)
                     from_block = block_range.from_block
                     to_block = block_range.to_block
 
-                    if from_block and to_block:
+                    try:
+                        # Check dex and see if there's a match for the token pool, and extract the pool address
+                        dex_list = pools[contract.chain]
+                    except KeyError as e:
+                        print(contract.token.name, print(contract.chain))
+                        raise KeyError(e)
 
-                        try:
-                            # Check dex and see if there's a match for the token pool, and extract the pool address
-                            dex_list = pools[contract.chain]
-                        except KeyError as e:
-                            print(contract.token.name, print(contract.chain))
-                            raise KeyError(e)
+                    for dex, data in dex_list.items():
+                        pool_contracts = list()
+                        # factory_abi = data["abi"]
+                        for pool_info in data["pools"]:
 
-                        for dex, data in dex_list.items():
-                            print(dex)
-                            pool_contracts = list()
-                            # factory_abi = data["abi"]
-                            for pool_info in data["pools"]:
-                                if pool_info["token0"] == token_address or pool_info["token1"] == token_address:
-                                    pool_contracts.append(
-                                        pool_info["pool"] if pool_info.get("pool") else pool_info["pair"]
-                                    )
+                            pool_contracts.append(
+                                pool_info["pool"] if pool_info.get("pool") else pool_info["pair"]
+                            )
 
-                            if pool_contracts:
-                                for pool_contract in pool_contracts:
+                        if pool_contracts:
+                            for pool_contract in pool_contracts:
 
-                                    print("Getting txs")
-                                    transactions = self.get_transactions(
-                                        from_block=from_block, to_block=to_block,
-                                        contract=pool_contract, blockchain=blockchain
-                                    )
+                                transactions = self.get_transactions(
+                                    from_block=from_block, to_block=to_block,
+                                    contract=pool_contract, blockchain=blockchain
+                                )
 
-                                    print("Done getting txs...")
+                                # Separate Buyers from Sellers for each transaction and create Dictionary
+                                # representations Wallet address (EOA) as KEY
+                                buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
+                                                                              blacklisted=blacklisted)
 
-                                    print(f"Number of transactions: {len(transactions)}")
+                                # transactions with unwanted accounts filtered out
+                                filtered_transactions = self.filter_transactions(buyers, sellers)
 
-                                    # Separate Buyers from Sellers for each transaction and create Dictionary
-                                    # representations Wallet address (EOA) as KEY
-                                    buyers, sellers = self.map_buyers_and_sellers(blockchain=blockchain, all_entries=transactions,
-                                                                                  blacklisted=blacklisted)
+                                token, _ = Token.objects.get_or_create(
+                                    name=contract.token.name,
+                                    address=contract.contract
+                                )
 
-                                    # transactions with unwanted accounts filtered out
-                                    filtered_transactions = self.filter_transactions(buyers, sellers)
-
-                                    token, _ = Token.objects.get_or_create(
-                                        name=contract.token.name,
-                                        address=contract.contract
-                                    )
-
-                                    # Update Database with new wallets and transactions
-                                    self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
-                                                               chain=contract.chain, percentage=str(percentage),
-                                                               index=index)
-                            else:
-                                print(f"-------------Pool not found for Token {contract.token.name} - {token_address}")
+                                # Update Database with new wallets and transactions
+                                self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
+                                                           chain=contract.chain, percentage=str(percentage),
+                                                           index=index)
+                        else:
+                            print(f"-------------Pool not found for Token {contract.token.name} - {token_address}")
 
             contract.processed = True
             contract.save()

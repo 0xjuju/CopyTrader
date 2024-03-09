@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from algorithms.token_dataset_algos import percent_difference_from_dataset
 from blockchain.alchemy import Blockchain
@@ -129,23 +129,39 @@ class TestUpdateWallets(TestCase):
             token_contract = self.blockchain.checksum_address(contract.address)
             print(f"Token changed from {contract.address} to {token_contract}")
 
-            print(f" > Getting timestamps and prices from Coingecko for the given contract...")
-            timestamps, prices = Updater.get_prices_data(contract.address, contract.chain)
-            print(f" > {len(prices)} results. In the format: (Timestamp, Price)")
-            print(list(zip([f"{datetime.fromtimestamp(i / 1000)}" for i in timestamps], prices)))
+            print(f" > Now getting all pools that contain {contract.name}")
+            pools.update(Updater.get_dex_pairs(self.blockchain, token_contract))
 
-            print(" > Calculate percentage difference of each days' price relative to the next day, 3rd, and 7th")
+            dex_list = pools[contract.chain]
+
+            for dex, data in dex_list.items():
+                pool_contracts = list()
+                # factory_abi = data["abi"]
+                for pool_info in data["pools"]:
+                    print(f"Pool Address: {pool_info['pool']}")
+
+                    pool_contracts.append(
+                        pool_info["pool"] if pool_info.get("pool") else pool_info["pair"]
+                    )
+
+                print(len(pool_contracts))
+
+            print(f" > Getting timestamps and prices from Coingecko for the given contract...\n")
+            timestamps, prices = Updater.get_prices_data(contract.address, contract.chain)
+            print(f" > {len(prices)} results. In the format: (Timestamp, Price)\n")
+            print(list(zip([f"{datetime.fromtimestamp(i)}" for i in timestamps], prices)))
+
+            print(" > Calculate percentage difference of each days' price relative to the next day, 3rd, and 7th\n")
             diffs = percent_difference_from_dataset(prices)
             print([f"({i[0]:,.2f}% 1 day, {i[1]:,.2f}% 3 days, {i[2]:,.2f}%) 7 days" for i in diffs])
 
-            print(f" > Determine which days have prices that increased by at least {percentage}%")
+            print(f"\n > Determine which days have prices that increased by at least {percentage}%\n")
             price_breakouts = Updater.determine_price_breakouts(diffs, timestamps, percentage)
 
-            print("Looping through each day, creating a block range before price breakout started")
+            print("Looping through each day, creating a block range before price breakout started\n")
             for index, coingecko_breakout in enumerate(price_breakouts):
                 duration = coingecko_breakout.day
                 timestamp = coingecko_breakout.timestamp
-                timestamp = timestamp / 1000
                 percentage = coingecko_breakout.largest_price_move
 
                 block_data = Updater.create_block_range(duration, timestamp, self.blockscan)
@@ -156,12 +172,12 @@ class TestUpdateWallets(TestCase):
                 to_block_date = self.blockchain.get_block_date(to_block)
 
                 print(f"Block Range {from_block}-{to_block} ({from_block_date} to {to_block_date})")
-                print(f"For timestamp: {datetime.fromtimestamp(timestamp)}")
+                print(f"For timestamp: {datetime.fromtimestamp(timestamp)} + {duration} days")
                 print(f"{abs(from_block - to_block)} total blocks")
                 print(" > -----")
 
-            # print(f" > Now getting all pools that contain {contract.name}")
-            # Updater.get_dex_pairs(self.blockchain, token_contract)
+
+
 
 
 
