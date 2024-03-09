@@ -1,5 +1,6 @@
 from collections import defaultdict, Counter
 from datetime import datetime, timedelta
+import logging
 import time
 
 from algorithms.token_dataset_algos import percent_difference_from_dataset
@@ -11,6 +12,9 @@ from coingecko.coingecko_api import GeckoClient
 from coingecko.models import Address
 # from django.db.models import Q
 from wallets.models import Bot, Transaction, Wallet, Token
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 class Updater:
@@ -120,7 +124,6 @@ class Updater:
                                                        look_for_previous_block_if_error=True)
 
         days_ago_116 = datetime.now() - timedelta(days=116)
-        print(before_breakout_timestamp, three_days_into_breakout_timestamp)
         if before_breakout_timestamp < days_ago_116 or three_days_into_breakout_timestamp < days_ago_116:
             raise ValueError(f" timstamps should never be less than 116 days before now {before_breakout_timestamp},"
                              f" {three_days_into_breakout_timestamp}")
@@ -152,6 +155,7 @@ class Updater:
 
             # only append data if a start date of price increase is found
             if start_day:
+                print(d)
 
                 # largest move percentage within the three timeframes. Used to avoid duplicate data
                 largest_price_move = max(d)
@@ -207,6 +211,8 @@ class Updater:
         # Dex factory contracts
         factory_contracts = FactoryContract.objects.filter(chain=blockchain.chain)
 
+        print(f"Using these factory contracts on {blockchain.chain} {[f'{i.name}' for i in factory_contracts]}")
+        print(f"> Found the following pools from each contract")
         for factory in factory_contracts:
             contract = blockchain.get_contract(factory.address, factory.abi)
 
@@ -219,6 +225,8 @@ class Updater:
             if not get_pools:
                 get_pools = blockchain.get_factory_pools(contract, argument_filters={"token0": token_address})
 
+            str_pools = [f"{i}\n" for i in get_pools]
+            print(f"----- > {factory.name} Pools:\n {''.join(str_pools)}")
             for pool in get_pools:
                 pools[factory.chain][factory.name]["pools"].append(pool)
 
@@ -332,19 +340,15 @@ class Updater:
     def update(self, percent_threshold: float):
         chains = Chain.objects.values_list("name", flat=True)
 
-        # Pair contract and token addresses from Dex
-        pools = dict()
-
         contracts = Address.objects.filter(chain__in=chains)\
             .filter(processed=False)\
             .filter(
             token__price_change_24hr__gte=percent_threshold
         )
+
         print("Number of Contracts ", len(contracts))
 
         for contract in contracts:
-
-            print(contract.token.name,  contract.chain)
 
             # Blockchain (etherscan, etc...) service explorer
             explorer = Blockscan(contract.chain)
@@ -353,10 +357,6 @@ class Updater:
             blockchain = Blockchain(contract.chain)
 
             token_address = blockchain.checksum_address(contract.contract)
-
-            # Get pool addresses for dexes on chain
-            if pools.get(contract.chain) is None:
-                pools.update(self.get_dex_pairs(blockchain, token_address))
 
             timestamps, prices = self.get_prices_data(contract.contract, chain=contract.chain)
 
@@ -368,17 +368,18 @@ class Updater:
                                                              percent_threshold=percent_threshold)
 
             if price_breakouts:
+                # Pair contract and token addresses from Dex
+                pools = dict()
+
+                pools.update(self.get_dex_pairs(blockchain, token_address))
                 # Exclude known bot wallets from processing
+
                 blacklisted = Bot.objects.values_list("address", flat=True)
 
                 for index, coingecko_breakout in enumerate(price_breakouts):
                     duration = coingecko_breakout.day
                     timestamp = coingecko_breakout.timestamp
                     percentage = coingecko_breakout.largest_price_move
-
-                    # Check if format has changed for any timestamp. Expect last 5 digits to always be zero. Date only
-                    if str(timestamp)[-5:] != "00000":
-                        raise Exception(f"Will not format correctly. Debug {timestamp}")
 
                     # convert timestamp in milliseconds to seconds
                     timestamp = timestamp / 1000

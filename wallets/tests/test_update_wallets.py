@@ -1,7 +1,9 @@
 from datetime import datetime
 
+from algorithms.token_dataset_algos import percent_difference_from_dataset
 from blockchain.alchemy import Blockchain
 from blockchain.blockscsan import Blockscan
+from blockchain.tests.build_test_data import build_factory_contracts
 from coingecko.tests.build_coingecko_test_data import BuildGeckoModel
 from django.test import TestCase
 from wallets.models import Token
@@ -15,7 +17,10 @@ class TestUpdateWallets(TestCase):
         Build.bots()
         Build.abi()
         BuildGeckoModel.build_tokens()
+        build_factory_contracts()
+
         self.blockchain = Blockchain("ethereum")
+        self.blockscan = Blockscan("ethereum")
 
     def test_create_block_range(self):
         # duration = 7
@@ -97,31 +102,61 @@ class TestUpdateWallets(TestCase):
             self.assertIn(each[0].transaction["transactionHash"].hex(), sell_hashes)
 
     def test_updater(self):
-        percentage = 40
-        chains = ["ethereum"]
+        percentage = 50
         print(f"Looking for Coingecko Tokens on Ethereum, that has increased by at least {percentage}%")
 
         pools = dict()
 
         # List of token contracts to loop through
 
-        contracts = [
+        class Contract:
+            def __init__(self, name, address, chain):
+                self.name = name
+                self.address = address
+                self.chain = chain
 
+        contracts = [
+            # Contract(name="Dvision Network", address="0xF29f568F971C043Df7079A3121e9DE616b8998a3"),
+            Contract(name="Manifold Finance", address="0xd084944d3c05cd115c09d072b9f44ba3e0e45921", chain="ethereum"),
         ]
 
-        print(f"Here is the {len(contracts)} Coingecko token contacts we are looping through: {contracts}")
+        print(f"Here is the {len(contracts)} Coingecko token contact(s) we are looping through: {contracts}")
 
         for contract in contracts:
             print(f"Name of Token we are analyzing is {contract.name}")
 
             print("Converting token contract to Checksum Address...")
             token_contract = self.blockchain.checksum_address(contract.address)
-            print(f"Token change from {contract.address} to {token_contract}")
+            print(f"Token changed from {contract.address} to {token_contract}")
 
+            print(f" > Getting timestamps and prices from Coingecko for the given contract...")
+            timestamps, prices = Updater.get_prices_data(contract.address, contract.chain)
+            print(f" > {len(prices)} results. In the format: (Timestamp, Price)")
+            print(list(zip([f"{datetime.fromtimestamp(i / 1000)}" for i in timestamps], prices)))
 
-            print()
+            print(" > Calculate percentage difference of each days' price relative to the next day, 3rd, and 7th")
+            diffs = percent_difference_from_dataset(prices)
+            print([f"({i[0]:,.2f}% 1 day, {i[1]:,.2f}% 3 days, {i[2]:,.2f}%) 7 days" for i in diffs])
 
+            print(f" > Determine which days have prices that increased by at least {percentage}%")
+            price_breakouts = Updater.determine_price_breakouts(diffs, timestamps, percentage)
 
+            print("Looping through each day, creating a block range before price breakout started")
+            for index, coingecko_breakout in enumerate(price_breakouts):
+                duration = coingecko_breakout.day
+                timestamp = coingecko_breakout.timestamp
+                timestamp = timestamp / 1000
+                percentage = coingecko_breakout.largest_price_move
+
+                block_data = Updater.create_block_range(duration, timestamp, self.blockscan)
+                from_block = block_data.from_block
+                to_block = block_data.to_block
+
+                print(f"Block Range {from_block}-{to_block} for timestamp: {datetime.fromtimestamp(timestamp)}")
+                print(f"{abs(from_block - to_block)} total blocks")
+
+            # print(f" > Now getting all pools that contain {contract.name}")
+            # Updater.get_dex_pairs(self.blockchain, token_contract)
 
 
 
