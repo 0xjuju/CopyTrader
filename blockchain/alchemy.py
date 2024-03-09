@@ -1,3 +1,4 @@
+from datetime import datetime
 from functools import lru_cache
 from hexbytes import HexBytes
 import json
@@ -220,6 +221,12 @@ class Blockchain:
             else:
                 output[target_field[i]['name']] = t[i]
         return output
+
+    def get_block_date(self, block_num: int) -> datetime:
+        block = self.get_block(block_num)
+        timestamp = block["timestamp"]
+        date_mined = datetime.fromtimestamp(timestamp)
+        return date_mined
 
     @lru_cache(maxsize=None)
     def get_contract(self, address: str, abi: str) -> web3.contract.Contract:

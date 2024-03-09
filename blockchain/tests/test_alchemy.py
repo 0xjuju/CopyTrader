@@ -47,6 +47,11 @@ class TestAlchemy(TestCase):
         block = self.eth_blockchain.get_block(12297619)
         self.assertEqual(block["hash"], HexBytes('0x4f4c153028694c2f4855bd46c4665b536924993167a5b537cdc3ed681d5dd75b'))
 
+    def test_get_block_date(self):
+        block = 18866156
+        date_mined = self.eth_blockchain.get_block_date(block)
+        self.assertEqual(str(date_mined), "2023-12-25 18:59:59")
+
     def test_get_factory_pools(self):
         univ3 = self.factory_contracts["uniswapv3"]
 
