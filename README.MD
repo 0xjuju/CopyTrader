@@ -128,7 +128,8 @@ in most pool contracts, so let's grab a v2 and v3 contract and address from ethe
 6. Now let's create a filter for parsing through coingecko tokens. We need to set the number of pages to parse, and the
 percent-of-increase attribute for a token. Head to http://127.0.0.1:8000/admin/coingecko/geckofilter/. Create one model.
 Name it 'top_movers'
-7. Run `python manage.py test` to ensure proper setup.
+7. Run `python manage.py test wallets.tests.test_update_wallets.TestUpdateWallets.test_updater` to ensure proper setup.
+Each step of how the wallet updater works will be explained in the console.
 8. Now let's run each command individually. In the terminal, run the following:
    - `python manage.py look_for_top_movers` Search through each page of coingecko tokens, looking for tokens that
    increased by x percent. The first run through may take some time to complete.
