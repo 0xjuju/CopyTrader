@@ -152,8 +152,13 @@ class TestUpdateWallets(TestCase):
                 from_block = block_data.from_block
                 to_block = block_data.to_block
 
-                print(f"Block Range {from_block}-{to_block} for timestamp: {datetime.fromtimestamp(timestamp)}")
+                from_block_date = self.blockchain.get_block_date(from_block)
+                to_block_date = self.blockchain.get_block_date(to_block)
+
+                print(f"Block Range {from_block}-{to_block} ({from_block_date} to {to_block_date})")
+                print(f"For timestamp: {datetime.fromtimestamp(timestamp)}")
                 print(f"{abs(from_block - to_block)} total blocks")
+                print(" > -----")
 
             # print(f" > Now getting all pools that contain {contract.name}")
             # Updater.get_dex_pairs(self.blockchain, token_contract)
