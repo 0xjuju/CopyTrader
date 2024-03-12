@@ -359,6 +359,7 @@ class Updater:
         print("Number of Contracts ", len(contracts))
 
         for contract in contracts:
+            print(f"Analyzing {contract.token.name} on {contract.chain}: {contract.contract}")
 
             # Blockchain (etherscan, etc...) service explorer
             explorer = Blockscan(contract.chain)

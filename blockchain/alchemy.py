@@ -14,6 +14,7 @@ import decouple
 from eth_utils import event_abi_to_log_topic, to_hex
 import web3
 from web3 import Web3
+from web3.middleware import geth_poa_middleware
 from web3._utils.filters import Filter
 from web3._utils.events import get_event_data
 
@@ -29,6 +30,8 @@ class Blockchain:
 
         self.url = f"https://{self.chain_map}-mainnet.g.alchemy.com/v2/{self.API_KEY}"
         self.w3 = Web3(Web3.HTTPProvider(self.url))
+        if chain == "polygon-pos":
+            self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     @lru_cache(maxsize=None)
     def _get_hex_topic(self, t):

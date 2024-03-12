@@ -102,7 +102,7 @@ class TestUpdateWallets(TestCase):
             self.assertIn(each[0].transaction["transactionHash"].hex(), sell_hashes)
 
     def test_updater(self):
-        percentage = 50
+        percentage = 40
         print(f"Looking for Coingecko Tokens on Ethereum, that has increased by at least {percentage}%")
 
         pools = dict()
@@ -116,21 +116,25 @@ class TestUpdateWallets(TestCase):
                 self.chain = chain
 
         contracts = [
+            Contract(name="IQ", address="0xb9638272ad6998708de56bbc0a290a1de534a578", chain="polygon-pos"),
             # Contract(name="Dvision Network", address="0xF29f568F971C043Df7079A3121e9DE616b8998a3"),
-            Contract(name="Manifold Finance", address="0xd084944d3c05cd115c09d072b9f44ba3e0e45921", chain="ethereum"),
+            # Contract(name="Manifold Finance", address="0xd084944d3c05cd115c09d072b9f44ba3e0e45921", chain="ethereum"),
         ]
 
         print(f"Here is the {len(contracts)} Coingecko token contact(s) we are looping through: {contracts}")
 
         for contract in contracts:
+            blockchain = Blockchain(contract.chain)
+            blockscan = Blockscan(contract.chain)
+
             print(f"Name of Token we are analyzing is {contract.name}")
 
             print("Converting token contract to Checksum Address...")
-            token_contract = self.blockchain.checksum_address(contract.address)
+            token_contract = blockchain.checksum_address(contract.address)
             print(f"Token changed from {contract.address} to {token_contract}")
 
             print(f" > Now getting all pools that contain {contract.name}")
-            pools.update(Updater.get_dex_pairs(self.blockchain, token_contract))
+            pools.update(Updater.get_dex_pairs(blockchain, token_contract))
 
             print(" > Get contract address for each pool...")
             pool_contracts = Updater.get_pool_contracts(pools, contract)
@@ -154,12 +158,12 @@ class TestUpdateWallets(TestCase):
                 timestamp = coingecko_breakout.timestamp
                 percentage = coingecko_breakout.largest_price_move
 
-                block_data = Updater.create_block_range(duration, timestamp, self.blockscan)
+                block_data = Updater.create_block_range(duration, timestamp, blockscan)
                 from_block = block_data.from_block
                 to_block = block_data.to_block
 
-                from_block_date = self.blockchain.get_block_date(from_block)
-                to_block_date = self.blockchain.get_block_date(to_block)
+                from_block_date = blockchain.get_block_date(from_block)
+                to_block_date = blockchain.get_block_date(to_block)
 
                 print(f"Block Range {from_block}-{to_block} ({from_block_date} to {to_block_date})")
                 print(f"For timestamp: {datetime.fromtimestamp(timestamp)} + {duration} days")
@@ -172,7 +176,7 @@ class TestUpdateWallets(TestCase):
                     print(f"Recursively splitting blocks in chunks of 10k for {pool_contract} This could take a while")
                     transactions = Updater.get_transactions(
                         from_block=from_block, to_block=to_block,
-                        contract=pool_contract, blockchain=self.blockchain
+                        contract=pool_contract, blockchain=blockchain
                     )
 
                     if transactions:
@@ -182,7 +186,7 @@ class TestUpdateWallets(TestCase):
                         print("Addresses that are blacklisted or have code associated with it are filtered out.")
 
                         buyers, sellers = Updater().map_buyers_and_sellers(
-                            blockchain=self.blockchain, all_entries=transactions, blacklisted=[]
+                            blockchain=blockchain, all_entries=transactions, blacklisted=[]
                         )
 
                         print(f" > Found {len(buyers)} different Buyers and {len(sellers)} different Sellers")
