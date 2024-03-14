@@ -255,9 +255,12 @@ class Updater:
 
         # Get last 100 days of prices for token
         price_data = GeckoClient().get_market_chart_by_contract(contract_address=contract_address, chain=chain)
-        price_data = price_data["prices"]
-        timestamps = [i[0] / 1000 for i in price_data]
-        prices = [i[1] for i in price_data]
+        if price_data:
+            price_data = price_data["prices"]
+            timestamps = [i[0] / 1000 for i in price_data]
+            prices = [i[1] for i in price_data]
+        else:
+            timestamps, prices = list(), list()
 
         return timestamps, prices
 
