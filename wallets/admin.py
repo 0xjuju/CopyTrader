@@ -31,7 +31,7 @@ class WalletAdmin(admin.ModelAdmin):
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     search_fields = ("wallet", )
-    list_display = ("transaction_hash", "timestamp", "token_in", "amount", "percent", "wallet", )
+    list_display = ("transaction_hash", "timestamp", "token_in", "chain", "amount", "percent", "wallet", )
 
 
 
