@@ -123,10 +123,10 @@ class TestAlchemy(TestCase):
         self.assertEqual(event.logs["from"], "0x71660c4005BA85c37ccec55d0C4493E66Fe775d3")
 
     def test_get_balance_of_token(self):
-        token_address = "0xFf44b937788215ecA197BAaf9AF69dbdC214aa04"
-        wallet = "0x1F83B9F220CA929676388ea9C58e80CB6261f304"
+        token_address = "0x70401dFD142A16dC7031c56E862Fc88Cb9537Ce0"
+        wallet = "0xC05189824bF36f2ad9d0f64a222c1C156Df28DA1"
 
-        balance = self.eth_blockchain.get_balance_of_token(token_address, wallet)
+        balance = self.eth_blockchain.get_balance_of_token(token_address, wallet, block_number=19293736)
         print(balance)
 
     def test_get_transaction(self):
