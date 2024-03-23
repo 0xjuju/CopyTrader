@@ -122,6 +122,13 @@ class TestAlchemy(TestCase):
         event = self.eth_blockchain.get_event(data, topics, "Transfer")
         self.assertEqual(event.logs["from"], "0x71660c4005BA85c37ccec55d0C4493E66Fe775d3")
 
+    def test_get_balance_of_token(self):
+        token_address = "0xFf44b937788215ecA197BAaf9AF69dbdC214aa04"
+        wallet = "0x1F83B9F220CA929676388ea9C58e80CB6261f304"
+
+        balance = self.eth_blockchain.get_balance_of_token(token_address, wallet)
+        print(balance)
+
     def test_get_transaction(self):
         tx_hash = "0x0cb1b9ec06a4637e67bd9f5126d2780eb9b46ac46573ccd15b78c155132610c7"
         tx = self.eth_blockchain.get_transaction_data(tx_hash)

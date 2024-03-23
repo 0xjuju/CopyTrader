@@ -183,6 +183,7 @@ class Updater:
                     swap.sender = buyer
                     filtered_transactions.append(swap)
             else:
+
                 for swap in swaps:
                     swap.sender = buyer
                     # Assumption that most real buyers will not have more than 5 buy events in a single block

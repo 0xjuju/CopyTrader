@@ -49,6 +49,7 @@ class Wallet:
         normal_tx_list = self.blockscan.get_normal_transaction_list(address=self.address)
 
         try:
+
             tx_list = normal_tx_list["result"][-max_events:]
         except IndexError:  # total transaction list is less than max_events
 

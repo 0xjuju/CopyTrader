@@ -225,6 +225,19 @@ class Blockchain:
                 output[target_field[i]['name']] = t[i]
         return output
 
+    def get_balance_of_token(self, contract_address: str, wallet_address: str, block_number: int = None):
+        abi = ABI.objects.get(abi_type="balance_of").text
+        wallet_address = self.checksum_address(wallet_address)
+        if not block_number:
+            block_number = self.w3.eth.block_number
+
+        contract = self.get_contract(address=contract_address, abi=abi)
+        decimals = contract.functions.decimals().call()
+
+        balance = contract.functions.balanceOf(wallet_address).call(block_identifier=block_number)
+
+        return balance / (10 ** decimals)
+
     def get_block_date(self, block_num: int) -> datetime:
         block = self.get_block(block_num)
         timestamp = block["timestamp"]
