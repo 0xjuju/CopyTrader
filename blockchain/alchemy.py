@@ -117,6 +117,10 @@ class Blockchain:
         """
         return self.w3.to_checksum_address(address)
 
+    @staticmethod
+    def convert_raw_balance(value: int, decimals: int):
+        return value / (10 ** decimals)
+
     def convert_to_checksum_address_from_hex(self, address: hex) -> str:
         """
         Convert address to unique checksum counterpart
@@ -236,7 +240,7 @@ class Blockchain:
 
         balance = contract.functions.balanceOf(wallet_address).call(block_identifier=block_number)
 
-        return balance / (10 ** decimals)
+        return self.convert_raw_balance(balance, decimals)
 
     def get_block_date(self, block_num: int) -> datetime:
         block = self.get_block(block_num)
