@@ -365,92 +365,110 @@ class Updater:
         contracts = Address.objects.filter(chain__in=chains)\
             .filter(processed=False)\
             .filter(
-            token__price_change_24hr__gte=percent_threshold
+            token__price_change_7d__gte=percent_threshold
         )
 
         print("Number of Contracts ", len(contracts))
 
+        pools = dict()
+
         for contract in contracts:
-            print(f"Analyzing {contract.token.name} on {contract.chain}: {contract.contract}")
-
-            # Blockchain (etherscan, etc...) service explorer
-            explorer = Blockscan(contract.chain)
-
-            # web3.py
             blockchain = Blockchain(contract.chain)
+            blockscan = Blockscan(contract.chain)
 
-            token_address = blockchain.checksum_address(contract.contract)
+            print(f"Name of Token we are analyzing is {contract.token.name}")
 
-            timestamps, prices = self.get_prices_data(contract.contract, chain=contract.chain)
+            print("Converting token contract to Checksum Address...")
+            token_contract = blockchain.checksum_address(contract.contract)
+            print(f"Token changed from {contract.contract} to {token_contract}")
 
-            # Percentage difference of each price relative to the next day, 3 days, and 7 days from price
+            print(f" > Now getting all pools that contain {contract.token.name}")
+            pools.update(self.get_dex_pairs(blockchain, token_contract))
+
+            print(" > Get contract address for each pool...")
+            pool_contracts = self.get_pool_contracts(pools, contract)
+            print(f"{len(pool_contracts)} contracts: {pool_contracts}")
+
+            print(f" > Getting timestamps and prices from Coingecko for the given contract...\n")
+            timestamps, prices = self.get_prices_data(contract.contract, contract.chain)
+            print(f" > {len(prices)} results. In the format: (Timestamp, Price)\n")
+            print(list(zip([f"{datetime.fromtimestamp(i)}" for i in timestamps], prices)))
+
+            print(" > Calculate percentage difference of each days' price relative to the next day, 3rd, and 7th\n")
             diffs = percent_difference_from_dataset(prices)
+            print([f"({i[0]:,.2f}% 1 day, {i[1]:,.2f}% 3 days, {i[2]:,.2f}%) 7 days" for i in diffs])
 
-            # determine if a price increase that meets threshold is reached and add to list
-            price_breakouts = self.determine_price_breakouts(diffs=diffs, timestamps=timestamps,
-                                                             percent_threshold=percent_threshold)
+            print(f"\n > Determine which days have prices that increased by at least {percent_threshold}%\n")
+            price_breakouts = self.determine_price_breakouts(diffs, timestamps, percent_threshold)
 
-            if price_breakouts:
+            print("Looping through each day, creating a block range before price breakout started\n")
+            for index, coingecko_breakout in enumerate(price_breakouts):
+                duration = coingecko_breakout.day
+                timestamp = coingecko_breakout.timestamp
+                percentage = coingecko_breakout.largest_price_move
 
-                # Pair contract and token addresses from Dex
-                pools = dict()
+                block_data = self.create_block_range(duration, timestamp, blockscan)
+                from_block = block_data.from_block
+                to_block = block_data.to_block
 
-                pools.update(self.get_dex_pairs(blockchain, token_address))
-                # Exclude known bot wallets from processing
+                from_block_date = blockchain.get_block_date(from_block)
+                to_block_date = blockchain.get_block_date(to_block)
 
-                # Get contract address for each pool
-                pool_contracts = self.get_pool_contracts(pools, contract)
+                print(f"Block Range {from_block}-{to_block} ({from_block_date} to {to_block_date})")
+                print(f"For timestamp: {datetime.fromtimestamp(timestamp)} + {duration} days")
+                print(f"{abs(from_block - to_block)} total blocks")
+                print(" > -----")
 
-                blacklisted = Bot.objects.values_list("address", flat=True)
+                print(" > Get batch of transactions for each day there was a significant appreciation in price")
+                for pool_contract in pool_contracts:
 
-                for index, coingecko_breakout in enumerate(price_breakouts):
-                    duration = coingecko_breakout.day
-                    timestamp = coingecko_breakout.timestamp
-                    percentage = coingecko_breakout.largest_price_move
+                    print(f"Recursively splitting blocks in chunks of 10k for {pool_contract} This could take a while")
+                    transactions = self.get_transactions(
+                        from_block=from_block, to_block=to_block,
+                        contract=pool_contract, blockchain=blockchain
+                    )
 
-                    # Convert datetime to range of blocks to look through
-                    block_range = self.create_block_range(duration=duration, timestamp=timestamp, explorer=explorer)
-                    from_block = block_range.from_block
-                    to_block = block_range.to_block
+                    if transactions:
+                        print(f"Found {len(transactions)} transactions in this block range")
 
-                    if pool_contracts:
-                        for pool_contract in pool_contracts:
+                        print(f"Separating transactions from buyers and sellers for {contract.token.name} token")
+                        print("Addresses that are blacklisted or have code associated with it are filtered out.")
 
-                            transactions = self.get_transactions(
-                                from_block=from_block, to_block=to_block,
-                                contract=pool_contract, blockchain=blockchain
-                            )
+                        buyers, sellers = self.map_buyers_and_sellers(
+                            blockchain=blockchain, all_entries=transactions, blacklisted=[], decimals=contract.decimals
+                        )
 
-                            if transactions:
-                                # Separate Buyers from Sellers for each transaction and create Dictionary
-                                # representations Wallet address (EOA) as KEY
-                                buyers, sellers = self.map_buyers_and_sellers(
-                                    blockchain=blockchain,
-                                    all_entries=transactions,
-                                    blacklisted=blacklisted,
-                                    decimals=contract.decimals
-                                )
+                        print(f" > Found {len(buyers)} different Buyers and {len(sellers)} different Sellers")
 
-                                # transactions with unwanted accounts filtered out
-                                filtered_transactions = self.filter_transactions(buyers, explorer, blockchain,
-                                                                                 token_address)
+                        print("Continue to filter transactions based on the following conditions")
+                        print("\t > Buyers holds at least half of the original token 3 days later")
+                        print("\t > Account doesn't have less than 5 transactions for the block range")
 
-                                token, _ = Token.objects.get_or_create(
-                                    name=contract.token.name,
-                                    address=contract.contract
-                                )
+                        filtered_transactions = self.filter_transactions(buyers, blockscan, blockchain,
+                                                                            contract.contract)
 
-                                # Update Database with new wallets and transactions
-                                self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
-                                                           chain=contract.chain, percentage=str(percentage),
-                                                           index=index)
-                    else:
-                        print(f"-------------Pool not found for Token {contract.token.name} - {token_address}")
+                        print(f"Number of buyers after filters: {len(filtered_transactions)}")
 
+                        token, _ = Token.objects.get_or_create(
+                            name=contract.token.name,
+                            address=contract.contract
+                        )
+
+                        # Update Database with new wallets and transactions
+                        self.create_database_entry(filtered_transactions=filtered_transactions, token=token,
+                                                      chain=contract.chain, percentage=str(percentage), index=index)
+
+                        print(f"{len(filtered_transactions)} wallets that bought {contract.token.name} created!!!!!!!")
+
+                print(" > ---------------------------------------------------------------------------------------")
+                print(" > ---------------------------------------------------------------------------------------")
+                print(" > ---------------------------------------------------------------------------------------")
+
+            transactions = Transaction.objects.filter(token_in=contract.token.name)
+            print(f"Done. {transactions.count()} total transactions saved for {contract.token.name} on {contract.chain}")
             contract.processed = True
             contract.save()
-            count = Transaction.objects.filter(token_in=contract.token.name).count()
-            print(f"Done. {count} total transactions saved for {contract.token.name} on {contract.chain}")
+
 
 
 

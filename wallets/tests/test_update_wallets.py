@@ -120,7 +120,8 @@ class TestUpdateWallets(TestCase):
         contracts = [
             # Contract(name="IQ", address="0xb9638272ad6998708de56bbc0a290a1de534a578", chain="polygon-pos"),
             # Contract(name="Dvision Network", address="0xF29f568F971C043Df7079A3121e9DE616b8998a3"),
-            Contract(name="Manifold Finance", address="0xd084944d3c05cd115c09d072b9f44ba3e0e45921", chain="ethereum", decimals=18),
+            # Contract(name="Manifold Finance", address="0xd084944d3c05cd115c09d072b9f44ba3e0e45921", chain="ethereum", decimals=18),
+            Contract(name="Pundi", address="0x5516ac1aaca7bb2fd5b7bdde1549ef1ea242953d", chain="ethereum", decimals=18),
         ]
 
         print(f"Here is the {len(contracts)} Coingecko token contact(s) we are looping through: {contracts}")
