@@ -12,6 +12,7 @@ from coingecko.coingecko_api import GeckoClient
 from coingecko.models import Address
 # from django.db.models import Q
 from wallets.models import Bot, Transaction, Wallet, Token
+from web3 import Web3
 
 
 logging.basicConfig(level=logging.INFO)
@@ -165,35 +166,28 @@ class Updater:
         return price_breakouts
 
     @staticmethod
-    def filter_transactions(buyers: dict[str, list[Swap]], sellers: dict[str, list[Swap]]) -> list[Swap]:
+    def filter_transactions(buyers: dict[str, list[Swap]], explorer: Blockscan) -> list[Swap]:
         """
         :param buyers: ...
-        :param sellers: ...
+        :param explorer: etherscan
         :return:
         """
         # Loop through buyers and sellers to create list of transaction excluding ones likely done by bots
         filtered_transactions = list()
         for buyer, swaps in buyers.items():
+            for swap in swaps:
+                future_timestamp = (datetime.fromtimestamp(swap.timestamp) + timedelta(days=3)).timestamp()
+                future_block = explorer.get_block_by_timestamp(int(future_timestamp),
+                                                               look_for_previous_block_if_error=True)
+                print(swap.amount)
 
-            # Whitelist address since FrontRunner bots should always have sales transactions
-            # Assumes token with high enough volume that buy and sale happens within this range of blocks
-            # possible to miss bots within transactions on front or end of block
-            if sellers.get(buyer) is None:
-                for swap in swaps:
-                    swap.sender = buyer
-                    filtered_transactions.append(swap)
-            else:
-
-                for swap in swaps:
-                    swap.sender = buyer
-                    # Assumption that most real buyers will not have more than 5 buy events in a single block
-                    if swap.count == 1:
-                        filtered_transactions.append(swap)
+                swap.sender = buyer
+                filtered_transactions.append(swap)
 
         # Number of tx for each account
         tx_count = Counter(i.sender for i in filtered_transactions)
         # Filter accounts to ones with less than 4 transactions for this range of block
-        filtered_transactions = [i for i in filtered_transactions if tx_count[i.sender] <= 3]
+        filtered_transactions = [i for i in filtered_transactions if tx_count[i.sender] <= 5]
         return filtered_transactions
 
     @staticmethod
@@ -293,7 +287,7 @@ class Updater:
             defaultdict[list[Swap]],
             ):
         """
-        :param blockchain: chain
+        :param blockchain: Blockchain explorer
         :param all_entries: list of transaction from given timeframe
         :param blacklisted: Known automated addresses
         :return: List of Swap events for buyers and sellers
@@ -326,6 +320,7 @@ class Updater:
                         log_data = log_data.logs
                         block = transaction["blockNumber"]
                         timestamp = blockchain.get_block(block)["timestamp"]
+
                         try:
                             # Uniswap V3 log data has different vs v2
                             amount0 = log_data["amount0"]
@@ -349,6 +344,7 @@ class Updater:
                             # We want to classify as either BUYER or SELLER always using these criteria
                             else:
                                 raise Exception(f"Unidentified error\n {transaction['transactionHash'].hex(), log_data}")
+
         return buyers, sellers
 
     def update(self, percent_threshold: float):
@@ -417,11 +413,13 @@ class Updater:
                                 # Separate Buyers from Sellers for each transaction and create Dictionary
                                 # representations Wallet address (EOA) as KEY
                                 buyers, sellers = self.map_buyers_and_sellers(
-                                    blockchain=blockchain, all_entries=transactions, blacklisted=blacklisted
+                                    blockchain=blockchain,
+                                    all_entries=transactions,
+                                    blacklisted=blacklisted,
                                 )
 
                                 # transactions with unwanted accounts filtered out
-                                filtered_transactions = self.filter_transactions(buyers, sellers)
+                                filtered_transactions = self.filter_transactions(buyers, explorer)
 
                                 token, _ = Token.objects.get_or_create(
                                     name=contract.token.name,

@@ -186,7 +186,7 @@ class TestUpdateWallets(TestCase):
                         print("Addresses that are blacklisted or have code associated with it are filtered out.")
 
                         buyers, sellers = Updater().map_buyers_and_sellers(
-                            blockchain=blockchain, all_entries=transactions, blacklisted=[]
+                            blockchain=blockchain, explorer=blockscan, all_entries=transactions, blacklisted=[]
                         )
 
                         print(f" > Found {len(buyers)} different Buyers and {len(sellers)} different Sellers")
@@ -195,7 +195,7 @@ class TestUpdateWallets(TestCase):
                         print("\t > Buyers aren't also sellers in the same block range")
                         print("\t > Account doesn't have less than 4 transactions for the block range")
 
-                        filtered_transactions = Updater.filter_transactions(buyers, sellers)
+                        filtered_transactions = Updater.filter_transactions(buyers)
 
                         print(f"Number of buyers after filters: {len(filtered_transactions)}")
 
