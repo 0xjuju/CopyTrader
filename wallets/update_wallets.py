@@ -62,10 +62,7 @@ class Updater:
 
             amount = transaction_data.amount / (10 ** 18)
 
-            wallet, created = Wallet.objects.get_or_create(address=address)
-
-            if created:
-                wallet.save()
+            wallet, _ = Wallet.objects.get_or_create(address=address)
 
             if wallet.token.filter(address=token.address).exists() is False:
                 wallet.token.add(token)
