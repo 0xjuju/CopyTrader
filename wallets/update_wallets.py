@@ -166,28 +166,41 @@ class Updater:
         return price_breakouts
 
     @staticmethod
-    def filter_transactions(buyers: dict[str, list[Swap]], explorer: Blockscan) -> list[Swap]:
+    def filter_transactions(buyers: dict[str, list[Swap]], explorer: Blockscan, blockchain: Blockchain,
+                            token_address: str) -> list[Swap]:
         """
-        :param buyers: ...
+
+        :param buyers: List of buyers of token
         :param explorer: etherscan
+        :param blockchain: main blockchain explorer
+        :param token_address: Address of token
         :return:
         """
+
         # Loop through buyers and sellers to create list of transaction excluding ones likely done by bots
         filtered_transactions = list()
         for buyer, swaps in buyers.items():
-            for swap in swaps:
-                future_timestamp = (datetime.fromtimestamp(swap.timestamp) + timedelta(days=3)).timestamp()
-                future_block = explorer.get_block_by_timestamp(int(future_timestamp),
-                                                               look_for_previous_block_if_error=True)
-                print(swap.amount)
 
-                swap.sender = buyer
-                filtered_transactions.append(swap)
+            # Total amount of all swaps for buyer
+            total = sum([i.amount for i in swaps])
+
+            # Get future block of tx 3 days into future
+            future_timestamp = (datetime.fromtimestamp(swaps[0].timestamp) + timedelta(days=3)).timestamp()
+            future_block = explorer.get_block_by_timestamp(int(future_timestamp),
+                                                           look_for_previous_block_if_error=True)
+
+            # Get balance of token for wallet, if still holding at least half, wallet is less likely a bot
+            # Also filters out users who buy and sell before token actually increases
+            balance = blockchain.get_balance_of_token(token_address, buyer, block_number=future_block)
+            if balance >= total / 2:
+                for swap in swaps:
+                    swap.sender = buyer
+                    filtered_transactions.append(swap)
 
         # Number of tx for each account
         tx_count = Counter(i.sender for i in filtered_transactions)
         # Filter accounts to ones with less than 4 transactions for this range of block
-        filtered_transactions = [i for i in filtered_transactions if tx_count[i.sender] <= 5]
+        filtered_transactions = [i for i in filtered_transactions if tx_count[i.sender] <= 4]
         return filtered_transactions
 
     @staticmethod
@@ -282,11 +295,12 @@ class Updater:
                                            fromBlock=from_block, toBlock=to_block)
         return transactions
 
-    def map_buyers_and_sellers(self, blockchain: Blockchain, all_entries, blacklisted) -> (
+    def map_buyers_and_sellers(self, decimals: int, blockchain: Blockchain, all_entries, blacklisted) -> (
             defaultdict[list[Swap]],
             defaultdict[list[Swap]],
             ):
         """
+        :param decimals: decimals of token
         :param blockchain: Blockchain explorer
         :param all_entries: list of transaction from given timeframe
         :param blacklisted: Known automated addresses
@@ -325,13 +339,13 @@ class Updater:
                             # Uniswap V3 log data has different vs v2
                             amount0 = log_data["amount0"]
                             amount1 = log_data["amount1"]
-                            # amount0 as negative number represents main asset as sold
 
                             if amount0 > 0:
-                                sellers[from_address].append(Swap(transaction, timestamp, "sell", amount1))
+                                amount = abs(blockchain.convert_raw_balance(amount1, decimals))
+                                buyers[from_address].append(Swap(transaction, timestamp, "buy", amount))
 
                             elif amount0 < 0:
-                                buyers[from_address].append(Swap(transaction, timestamp, "buy", amount0))
+                                sellers[from_address].append(Swap(transaction, timestamp, "sell", amount1))
 
                         except KeyError:
                             # Try for V3 first. If Key Error, try V2 syntax
@@ -339,7 +353,8 @@ class Updater:
                                 sellers[from_address].append(Swap(transaction, timestamp, "sell", log_data["amount0Out"]))
 
                             elif from_address == log_data["to"] and log_data["amount1Out"] > 0:
-                                buyers[from_address].append(Swap(transaction, timestamp, "buy", log_data["amount1Out"]))
+                                amount = blockchain.convert_raw_balance(log_data["amount1Out"], decimals)
+                                buyers[from_address].append(Swap(transaction, timestamp, "buy", amount))
 
                             # We want to classify as either BUYER or SELLER always using these criteria
                             else:
@@ -416,10 +431,12 @@ class Updater:
                                     blockchain=blockchain,
                                     all_entries=transactions,
                                     blacklisted=blacklisted,
+                                    decimals=contract.decimals
                                 )
 
                                 # transactions with unwanted accounts filtered out
-                                filtered_transactions = self.filter_transactions(buyers, explorer)
+                                filtered_transactions = self.filter_transactions(buyers, explorer, blockchain,
+                                                                                 token_address)
 
                                 token, _ = Token.objects.get_or_create(
                                     name=contract.token.name,

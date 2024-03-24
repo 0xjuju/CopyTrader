@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from algorithms.token_dataset_algos import percent_difference_from_dataset
 from blockchain.alchemy import Blockchain
 from blockchain.blockscsan import Blockscan
-from blockchain.tests.build_test_data import build_factory_contracts
+from blockchain.tests.build_test_data import build_factory_contracts, build_generic_pool_abi
 from coingecko.tests.build_coingecko_test_data import BuildGeckoModel
 from django.test import TestCase
 from wallets.models import Token, Transaction
@@ -15,9 +15,10 @@ class TestUpdateWallets(TestCase):
     def setUp(self):
         Build.tokens()
         Build.bots()
-        Build.abi()
+        build_generic_pool_abi()
         BuildGeckoModel.build_tokens()
         build_factory_contracts()
+
 
         self.blockchain = Blockchain("ethereum")
         self.blockscan = Blockscan("ethereum")
@@ -110,15 +111,16 @@ class TestUpdateWallets(TestCase):
         # List of token contracts to loop through
 
         class Contract:
-            def __init__(self, name, address, chain):
+            def __init__(self, name, address, chain, decimals):
                 self.name = name
                 self.address = address
                 self.chain = chain
+                self.decimals = decimals
 
         contracts = [
             # Contract(name="IQ", address="0xb9638272ad6998708de56bbc0a290a1de534a578", chain="polygon-pos"),
             # Contract(name="Dvision Network", address="0xF29f568F971C043Df7079A3121e9DE616b8998a3"),
-            Contract(name="Manifold Finance", address="0xd084944d3c05cd115c09d072b9f44ba3e0e45921", chain="ethereum"),
+            Contract(name="Manifold Finance", address="0xd084944d3c05cd115c09d072b9f44ba3e0e45921", chain="ethereum", decimals=18),
         ]
 
         print(f"Here is the {len(contracts)} Coingecko token contact(s) we are looping through: {contracts}")
@@ -186,16 +188,17 @@ class TestUpdateWallets(TestCase):
                         print("Addresses that are blacklisted or have code associated with it are filtered out.")
 
                         buyers, sellers = Updater().map_buyers_and_sellers(
-                            blockchain=blockchain, explorer=blockscan, all_entries=transactions, blacklisted=[]
+                            blockchain=blockchain, all_entries=transactions, blacklisted=[], decimals=contract.decimals
                         )
 
                         print(f" > Found {len(buyers)} different Buyers and {len(sellers)} different Sellers")
 
                         print("Continue to filter transactions based on the following conditions")
-                        print("\t > Buyers aren't also sellers in the same block range")
-                        print("\t > Account doesn't have less than 4 transactions for the block range")
+                        print("\t > Buyers holds at least half of the original token 3 days later")
+                        print("\t > Account doesn't have less than 5 transactions for the block range")
 
-                        filtered_transactions = Updater.filter_transactions(buyers)
+                        filtered_transactions = Updater.filter_transactions(buyers, blockscan, blockchain,
+                                                                            contract.address)
 
                         print(f"Number of buyers after filters: {len(filtered_transactions)}")
 

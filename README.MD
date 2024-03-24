@@ -123,14 +123,16 @@ WEBHOOK_WALLET_ACTIVITY_ENDPOINT: str
 in most pool contracts, so let's grab a v2 and v3 contract and address from etherscan:
    - [v3 pool](https://etherscan.io/address/0x4c54ff7f1c424ff5487a32aad0b48b19cbaf087f)
    - [v2 pool](https://etherscan.io/address/0xdfc14d2af169b0d36c4eff567ada9b2e0cae044f)
- Navigate to http://127.0.0.1:8000/admin/blockchain/abi/ and create two new ABI models. Name them 'v3pools' and 'v2pools'
- respectively.
-6. Now let's create a filter for parsing through coingecko tokens. We need to set the number of pages to parse, and the
+   
+6. Navigate to http://127.0.0.1:8000/admin/blockchain/abi/ and create two new ABI models. Name them 'v3pools' and 'v2pools'
+ respectively. Create one more named `balance_of` and set the text to `[{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"}]`
+
+7. Now let's create a filter for parsing through coingecko tokens. We need to set the number of pages to parse, and the
 percent-of-increase attribute for a token. Head to http://127.0.0.1:8000/admin/coingecko/geckofilter/. Create one model.
 Name it 'top_movers'
-7. Run `python manage.py test wallets.tests.test_update_wallets.TestUpdateWallets.test_updater` to ensure proper setup.
+8. Run `python manage.py test wallets.tests.test_update_wallets.TestUpdateWallets.test_updater` to ensure proper setup.
 Each step of how the wallet updater works will be explained in the console.
-8. Now let's run each command individually. In the terminal, run the following:
+9. Now let's run each command individually. In the terminal, run the following:
    - `python manage.py look_for_top_movers` Search through each page of coingecko tokens, looking for tokens that
    increased by x percent. The first run through may take some time to complete.
    - `python manage.py update_wallets` Enter user-input for the threshold of token-price-increases to search e.g. 80 to
@@ -140,13 +142,13 @@ Each step of how the wallet updater works will be explained in the console.
    as bots and remove them, or mark them as human.
    - `python manage.py create_webhooks_for_wallet` Create webhooks for list of wallets for each chain in blockchain.chains
    model. Head to http://127.0.0.1:8000/admin/wallets/walletfilter/ to create filters for ranked wallets.
-9. Run your local NGROK server using `ngrok http http://localhost:8000`, then add the https value to `NGROK_TEMP_HOST`
+10. Run your local NGROK server using `ngrok http http://localhost:8000`, then add the https value to `NGROK_TEMP_HOST`
    in your environment variables.
-10. Navigate to the [Alchemy Webhooks](https://www.alchemy.com/webhooks) page, click dashboard, navigate to the 'ADDRESS_ACTIVITY' webhook, and then 
+11. Navigate to the [Alchemy Webhooks](https://www.alchemy.com/webhooks) page, click dashboard, navigate to the 'ADDRESS_ACTIVITY' webhook, and then 
 send a test to your NGROK server. This method simulates a token being bought by a top-wallet, and is handled by your 
 webhook view located in `blockchain.views`. The transaction is parsed and the token data is saved to the database.
 
-11. Each iteration of `update_wallets` and `filter_wallets_for_bots` in conjunction with waller filter options will yield
+12. Each iteration of `update_wallets` and `filter_wallets_for_bots` in conjunction with waller filter options will yield
 a different group of wallets. You will need to run `python manage.py replace_webhook_wallets` to replace the list of 
 webhook addresses on each chain.
 
